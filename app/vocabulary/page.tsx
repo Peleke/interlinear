@@ -6,7 +6,7 @@ import type { VocabularyEntry, VocabularyStats } from '@/types'
 import { VocabularyList } from '@/components/vocabulary/VocabularyList'
 import { VocabularyStatsDisplay } from '@/components/vocabulary/VocabularyStats'
 
-export function VocabularyPanel() {
+export default function VocabularyPage() {
   const [entries, setEntries] = useState<VocabularyEntry[]>([])
   const [stats, setStats] = useState<VocabularyStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,36 +57,50 @@ export function VocabularyPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-serif text-sepia-900">Your Vocabulary</h2>
-
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sepia-700" />
-          <span className="ml-3 text-sepia-600">Loading vocabulary...</span>
+    <div className="min-h-screen bg-parchment">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="mb-4">
+            <a
+              href="/reader"
+              className="text-sepia-700 hover:text-sepia-900 transition-colors inline-flex items-center gap-2"
+            >
+              <span>←</span> Back to Reader
+            </a>
+          </div>
+          <h1 className="text-4xl font-serif text-sepia-900 mb-2">My Vocabulary</h1>
+          <p className="text-sepia-600">Words you've encountered in your reading</p>
         </div>
-      )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          <p className="font-medium">Error loading vocabulary</p>
-          <p className="text-sm mt-1">{error}</p>
-        </div>
-      )}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sepia-700" />
+            <span className="ml-3 text-sepia-600">Loading vocabulary...</span>
+          </div>
+        )}
 
-      {!loading && !error && (
-        <>
-          {/* Stats */}
-          {stats && <VocabularyStatsDisplay stats={stats} />}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-6">
+            <p className="font-medium">Error loading vocabulary</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        )}
 
-          {/* Vocabulary List */}
-          <VocabularyList
-            entries={entries}
-            onDelete={handleDelete}
-            onClearAll={handleClearAll}
-          />
-        </>
-      )}
+        {!loading && !error && (
+          <>
+            {/* Stats */}
+            {stats && <VocabularyStatsDisplay stats={stats} />}
+
+            {/* Vocabulary List */}
+            <VocabularyList
+              entries={entries}
+              onDelete={handleDelete}
+              onClearAll={handleClearAll}
+            />
+          </>
+        )}
+      </div>
     </div>
   )
 }

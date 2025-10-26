@@ -64,20 +64,38 @@ export function AudioPlayer({ text, onPlaybackChange, onError }: AudioPlayerProp
   const synthesizeSpeech = async () => {
     setIsLoading(true)
     setError(null)
+    setCacheHit(false)
 
     try {
-      const response = await fetch('/api/tts/synthesize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
+      // Check cache first
+      const cachedAudio = await AudioCache.get(text)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'TTS failed')
+      let audioBlob: Blob
+
+      if (cachedAudio) {
+        console.log('Cache hit for audio')
+        setCacheHit(true)
+        audioBlob = cachedAudio
+      } else {
+        // Cache miss - synthesize from API
+        console.log('Cache miss for audio')
+        const response = await fetch('/api/tts/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'TTS failed')
+        }
+
+        audioBlob = await response.blob()
+
+        // Store in cache
+        await AudioCache.set(text, audioBlob)
       }
 
-      const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
 
       // Cleanup old audio URL
@@ -231,6 +249,18 @@ export function AudioPlayer({ text, onPlaybackChange, onError }: AudioPlayerProp
           ))}
         </div>
       </div>
+
+      {/* Loading/Cache Status */}
+      {isLoading && (
+        <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 text-center">
+          Generating audio...
+        </div>
+      )}
+      {cacheHit && !isLoading && (
+        <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 text-center">
+          ✓ Loaded from cache
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (

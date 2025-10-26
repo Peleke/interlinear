@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { tokenizeText, getSentences } from '@/lib/tokenize'
+import { VocabularyService } from '@/lib/vocabulary'
 import { ClickableWord } from './ClickableWord'
 import { DefinitionSidebar } from './DefinitionSidebar'
 import { AudioPlayer } from './AudioPlayer'
-import type { Token, Sentence } from '@/types'
+import type { Token, Sentence, DictionaryResponse } from '@/types'
 
 interface TextRenderPanelProps {
   text: string
@@ -15,13 +16,29 @@ interface TextRenderPanelProps {
 export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null)
   const [lookupWord, setLookupWord] = useState<string | null>(null)
-  const [savedWords] = useState<Set<string>>(new Set()) // TODO: Load from database
+  const [savedWords, setSavedWords] = useState<Set<string>>(new Set())
+  const [currentDefinition, setCurrentDefinition] = useState<DictionaryResponse | null>(null)
   const [activeSentenceId, setActiveSentenceId] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
   // Tokenize text once when text changes
   const tokens = useMemo(() => tokenizeText(text), [text])
   const sentences = useMemo(() => getSentences(tokens), [tokens])
+
+  // Load saved words on mount
+  useEffect(() => {
+    loadSavedWords()
+  }, [])
+
+  const loadSavedWords = async () => {
+    try {
+      const entries = await VocabularyService.getAll()
+      const wordSet = new Set(entries.map(e => e.word))
+      setSavedWords(wordSet)
+    } catch (error) {
+      console.error('Failed to load saved words:', error)
+    }
+  }
 
   // Calculate sentence timing based on character ratios
   const calculateSentenceTiming = useCallback((
@@ -85,22 +102,55 @@ export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
     }
   }, [activeSentenceId])
 
-  // Handle word click with debouncing
-  const handleWordClick = useCallback((token: Token) => {
+  // Handle word click with auto-save
+  const handleWordClick = useCallback(async (token: Token) => {
     // If playing audio, don't allow word clicks
     if (isPlaying) return
 
-    // If clicking same word, close sidebar
+    // Toggle sidebar
     if (token.id === selectedTokenId) {
       setSelectedTokenId(null)
       setLookupWord(null)
+      setCurrentDefinition(null)
       return
     }
 
-    // Otherwise, select new word and trigger lookup
     setSelectedTokenId(token.id)
     setLookupWord(token.cleanText)
+
+    // Auto-save word (fire and forget - don't block UI)
+    saveWordToVocabulary(token.cleanText)
   }, [selectedTokenId, isPlaying])
+
+  const saveWordToVocabulary = async (word: string) => {
+    const normalizedWord = word.toLowerCase()
+
+    // Optimistic update
+    setSavedWords(prev => new Set([...prev, normalizedWord]))
+
+    try {
+      await VocabularyService.saveWord(normalizedWord, currentDefinition || undefined)
+    } catch (error) {
+      // Rollback on error
+      setSavedWords(prev => {
+        const next = new Set(prev)
+        next.delete(normalizedWord)
+        return next
+      })
+
+      console.error('Failed to save word:', error)
+    }
+  }
+
+  // Update current definition when sidebar loads definition
+  const handleDefinitionLoaded = useCallback((definition: DictionaryResponse) => {
+    setCurrentDefinition(definition)
+
+    // Update saved word with definition
+    if (lookupWord) {
+      VocabularyService.saveWord(lookupWord, definition).catch(console.error)
+    }
+  }, [lookupWord])
 
   // Handle sidebar close
   const handleSidebarClose = useCallback(() => {
@@ -186,6 +236,7 @@ export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
         <DefinitionSidebar
           word={lookupWord}
           onClose={handleSidebarClose}
+          onDefinitionLoaded={handleDefinitionLoaded}
         />
       </div>
     </div>

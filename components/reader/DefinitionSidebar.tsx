@@ -7,9 +7,10 @@ import type { DictionaryResponse } from '@/types'
 interface DefinitionSidebarProps {
   word: string | null
   onClose: () => void
+  onDefinitionLoaded?: (definition: DictionaryResponse) => void
 }
 
-export function DefinitionSidebar({ word, onClose }: DefinitionSidebarProps) {
+export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: DefinitionSidebarProps) {
   const [data, setData] = useState<DictionaryResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,6 +41,7 @@ export function DefinitionSidebar({ word, onClose }: DefinitionSidebarProps) {
           setData(cached)
           setCacheHit(true)
           setLoading(false)
+          onDefinitionLoaded?.(cached)
           return
         }
 
@@ -60,6 +62,7 @@ export function DefinitionSidebar({ word, onClose }: DefinitionSidebarProps) {
         // Store in cache if successful
         if (result.found) {
           DictionaryCache.set(word, result)
+          onDefinitionLoaded?.(result)
         }
       } catch (err) {
         // Ignore abort errors (user clicked another word)

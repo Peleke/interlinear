@@ -27,3 +27,26 @@ export interface DictionaryResponse {
   suggestions?: string[]
   error?: string
 }
+
+export interface VocabularyEntry {
+  id: string
+  user_id: string
+  word: string
+  definition: DictionaryResponse | null
+  click_count: number
+  first_seen: string
+  last_seen: string
+  created_at: string
+  updated_at: string
+}
+
+export interface VocabularyCreateInput {
+  word: string
+  definition?: DictionaryResponse
+}
+
+export interface VocabularyStats {
+  totalWords: number
+  recentWords: number
+  topWords: { word: string; count: number }[]
+}
