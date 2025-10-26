@@ -12,3 +12,18 @@ export interface Sentence {
   tokens: Token[]
   text: string
 }
+
+export interface DictionaryResponse {
+  word: string
+  found: boolean
+  definitions?: {
+    partOfSpeech: string
+    meanings: string[]
+  }[]
+  pronunciations?: {
+    text: string
+    audio?: string
+  }[]
+  suggestions?: string[]
+  error?: string
+}
