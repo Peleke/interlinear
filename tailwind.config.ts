@@ -10,7 +10,11 @@ const config: Config = {
       colors: {
         parchment: '#F9F6F0',
         ink: '#1A1614',
-        gold: '#D4A574',
+        gold: {
+          DEFAULT: '#D4A574',
+          100: '#FEF3C7', // Sentence highlight
+          200: '#F4E4C1', // Word selection
+        },
         sepia: {
           50: '#FAF8F5',
           100: '#F5F1EB',
