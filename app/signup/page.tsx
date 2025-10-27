@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
   const router = useRouter()
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccess(false)
 
     // Client-side validation
     if (password.length < 8) {
@@ -34,7 +36,11 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password)
-      router.push('/reader')
+      setSuccess(true)
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        router.push('/login?verified=pending')
+      }, 3000)
     } catch (err: any) {
       setError(err.message || 'Failed to create account')
     } finally {
@@ -97,6 +103,13 @@ export default function SignupPage() {
           {error && (
             <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md" role="alert" aria-live="polite">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="text-green-700 text-sm bg-green-50 p-4 rounded-md border border-green-200" role="alert" aria-live="polite">
+              <p className="font-semibold mb-1">Success! Account created.</p>
+              <p className="text-xs">Please check your email to verify your account before logging in.</p>
             </div>
           )}
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
 import Link from 'next/link'
 
@@ -12,8 +12,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showVerificationReminder, setShowVerificationReminder] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check if redirected from signup
+  useEffect(() => {
+    if (searchParams.get('verified') === 'pending') {
+      setShowVerificationReminder(true)
+    }
+  }, [searchParams])
 
   // Suppress hydration warnings from browser extensions (e.g., LastPass)
   if (typeof window !== 'undefined') {
@@ -46,6 +55,13 @@ export default function LoginPage() {
             Sign in to continue reading
           </p>
         </div>
+
+        {showVerificationReminder && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-sm text-blue-700" role="alert">
+            <p className="font-semibold mb-1">Check your email</p>
+            <p className="text-xs">Please verify your email address before logging in. Check your inbox for the verification link.</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
