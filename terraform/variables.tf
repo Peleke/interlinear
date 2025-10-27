@@ -53,3 +53,9 @@ variable "deploy_cloud_run" {
   type        = bool
   default     = false
 }
+
+variable "image_tag" {
+  description = "Docker image tag to deploy"
+  type        = string
+  default     = "latest"
+}

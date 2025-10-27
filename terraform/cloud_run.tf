@@ -7,7 +7,7 @@ resource "google_cloud_run_v2_service" "interlinear" {
     service_account = google_service_account.cloud_run.email
 
     containers {
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/interlinear/app:latest"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/interlinear/app:${var.image_tag}"
 
       env {
         name  = "NEXT_PUBLIC_SUPABASE_URL"

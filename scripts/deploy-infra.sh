@@ -7,17 +7,34 @@ source "$SCRIPT_DIR/lib/common.sh"
 ENV=${1:-}
 validate_env "$ENV"
 
-# Check for --with-cloud-run flag
+# Check for --with-cloud-run flag and optional image tag
 DEPLOY_CLOUD_RUN=false
-if [[ "${2:-}" == "--with-cloud-run" ]]; then
-  DEPLOY_CLOUD_RUN=true
-fi
+IMAGE_TAG="latest"
+shift  # Remove first argument (ENV)
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --with-cloud-run)
+      DEPLOY_CLOUD_RUN=true
+      shift
+      ;;
+    --image-tag)
+      IMAGE_TAG="$2"
+      shift 2
+      ;;
+    *)
+      warn "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
 
 PROJECT_ID=$(get_project_id "$ENV")
 REGION=$(get_region "$ENV")
 
 if [ "$DEPLOY_CLOUD_RUN" = true ]; then
   info "Deploying infrastructure + Cloud Run to $ENV environment"
+  info "Image tag: $IMAGE_TAG"
 else
   info "Deploying base infrastructure to $ENV environment (registry, IAM, secrets)"
 fi
@@ -56,6 +73,7 @@ info "Planning infrastructure changes..."
 tofu plan \
   -var-file=environments/$ENV.tfvars \
   -var="deploy_cloud_run=$DEPLOY_CLOUD_RUN" \
+  -var="image_tag=$IMAGE_TAG" \
   -out=/tmp/tfplan-$ENV
 
 # Review and apply
@@ -70,7 +88,7 @@ if confirm "Apply these changes?"; then
     info ""
     info "Next steps:"
     info "  1. Build and push container: ./scripts/deploy-app.sh $ENV"
-    info "  2. Deploy Cloud Run: ./scripts/deploy-infra.sh $ENV --with-cloud-run"
+    info "  2. Deploy Cloud Run: ./scripts/deploy-infra.sh $ENV --with-cloud-run --image-tag <tag>"
   fi
 else
   warn "Apply cancelled"
