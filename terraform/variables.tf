@@ -59,3 +59,9 @@ variable "image_tag" {
   type        = string
   default     = "latest"
 }
+
+variable "custom_domain" {
+  description = "Custom domain for Cloud Run service (e.g., interlinear.peleke.me). Leave empty to skip domain mapping."
+  type        = string
+  default     = ""
+}

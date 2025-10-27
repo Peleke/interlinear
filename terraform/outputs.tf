@@ -23,3 +23,17 @@ output "github_actions_sa_key" {
   value       = google_service_account_key.github_actions.private_key
   sensitive   = true
 }
+
+output "custom_domain" {
+  description = "Custom domain URL (if configured)"
+  value       = var.custom_domain != "" ? "https://${var.custom_domain}" : "No custom domain configured"
+}
+
+output "domain_dns_records" {
+  description = "DNS records to add to your domain registrar (Namecheap). Add these CNAME records after deployment."
+  value = var.deploy_cloud_run && var.custom_domain != "" ? {
+    status = "Domain mapping created. Run 'gcloud run domain-mappings describe --domain=${var.custom_domain} --region=${var.region}' to get DNS records"
+  } : {
+    status = "No domain mapping configured"
+  }
+}
