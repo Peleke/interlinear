@@ -15,3 +15,12 @@ resource "google_secret_manager_secret" "elevenlabs_key" {
     auto {}
   }
 }
+
+# Merriam-Webster Dictionary API key secret
+resource "google_secret_manager_secret" "merriam_webster_key" {
+  secret_id = "merriam-webster-api-key-${var.environment}"
+
+  replication {
+    auto {}
+  }
+}

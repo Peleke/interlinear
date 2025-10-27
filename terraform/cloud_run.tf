@@ -34,6 +34,16 @@ resource "google_cloud_run_v2_service" "interlinear" {
         }
       }
 
+      env {
+        name = "MERRIAM_WEBSTER_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.merriam_webster_key.id
+            version = "latest"
+          }
+        }
+      }
+
       resources {
         limits = {
           cpu    = var.cpu_limit
