@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   description: 'Click-to-define Spanish reading application with TTS pronunciation',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function RootLayout({
   children,
 }: Readonly<{

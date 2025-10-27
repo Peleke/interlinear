@@ -60,6 +60,15 @@ export function ReaderClient() {
         >
           Vocabulary
         </button>
+        <a
+          href="/tutor"
+          className="px-6 py-3 font-serif text-sepia-600 hover:text-sepia-800 transition-colors flex items-center gap-2"
+        >
+          Tutor
+          <span className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">
+            Coming Soon
+          </span>
+        </a>
       </div>
 
       {/* Content Panel */}

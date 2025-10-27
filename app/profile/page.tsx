@@ -6,6 +6,8 @@ import { VocabularyService } from '@/lib/vocabulary'
 import type { VocabularyStats } from '@/types'
 import { useRouter } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState<VocabularyStats | null>(null)
