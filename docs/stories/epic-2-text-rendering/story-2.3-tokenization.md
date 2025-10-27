@@ -9,13 +9,13 @@
 **P0 - Day 1 PM, Hours 6-7**
 
 ## Acceptance Criteria
-- [ ] Text split by whitespace into tokens
-- [ ] Punctuation preserved with words
-- [ ] Each token has unique ID
-- [ ] Sentence boundaries detected
-- [ ] Original formatting maintained (spacing, line breaks)
-- [ ] Handles edge cases (numbers, ellipses, quotes)
-- [ ] TypeScript types for Token interface
+- [x] Text split by whitespace into tokens
+- [x] Punctuation preserved with words
+- [x] Each token has unique ID
+- [x] Sentence boundaries detected
+- [x] Original formatting maintained (spacing, line breaks)
+- [x] Handles edge cases (numbers, ellipses, quotes)
+- [x] TypeScript types for Token interface
 
 ## Technical Details
 
@@ -143,10 +143,126 @@ const tokens = tokenizeText(text)
 - `/docs/architecture/coding-standards.md` - TypeScript patterns
 
 ## Definition of Done
-- [ ] Text tokenized correctly
-- [ ] Punctuation preserved
-- [ ] Sentence boundaries detected
-- [ ] Handles Spanish characters (á, ñ, ¿, ¡)
-- [ ] TypeScript fully typed
-- [ ] Edge cases tested
-- [ ] No data loss from original text
+- [x] Text tokenized correctly
+- [x] Punctuation preserved
+- [x] Sentence boundaries detected
+- [x] Handles Spanish characters (á, ñ, ¿, ¡)
+- [x] TypeScript fully typed
+- [x] Edge cases tested
+- [x] No data loss from original text
+
+---
+
+## Dev Agent Record
+
+### Agent Model Used
+Claude Sonnet 4.5 (20250929)
+
+### Tasks Completed
+- [x] Created types/index.ts with Token and Sentence interfaces
+- [x] Created lib/tokenize.ts with full tokenization engine
+- [x] Implemented tokenizeText() - whitespace splitting with preservation
+- [x] Implemented detectSentences() - sentence boundary detection
+- [x] Implemented getSentence() - retrieve sentence text by ID
+- [x] Implemented getWordTokens() - filter to only word tokens
+- [x] Implemented getSentences() - group tokens into Sentence objects
+- [x] Unicode-aware punctuation handling (\p{L}, \p{N})
+- [x] Tested with Spanish text and edge cases
+- [x] TypeScript strict mode validation passed
+
+### Implementation Details
+
+**Tokenization Algorithm:**
+```typescript
+// Split by whitespace, preserve whitespace tokens
+text.split(/(\s+)/)
+
+// Identify word vs whitespace
+isWord = /\S/.test(rawToken)
+
+// Clean text for API lookups (preserves Unicode letters/numbers)
+cleanText = rawToken.replace(/[^\p{L}\p{N}]+/gu, '').toLowerCase()
+```
+
+**Sentence Detection:**
+- Detects sentence endings: `.`, `!`, `?`
+- Handles spacing after punctuation
+- Accumulates buffer until punctuation found
+- Increments sentenceId after each sentence
+
+**Token Structure:**
+```typescript
+{
+  id: 'word-0',           // Unique identifier
+  text: '¿Cómo',          // Original text with punctuation
+  cleanText: 'cómo',      // Cleaned for dictionary lookups
+  index: 0,               // Position in token array
+  sentenceId: 1,          // Which sentence this belongs to
+  isWord: true            // true = word, false = whitespace
+}
+```
+
+**Spanish Character Handling:**
+- Accented vowels: á, é, í, ó, ú
+- Ñ (eñe): ñ
+- Inverted punctuation: ¿, ¡
+- All preserved in `text`, removed in `cleanText`
+
+**Edge Cases Tested:**
+1. **año 2024** → Words: "año", "2024"
+2. **palabra...** → Words: "palabra..." (clean: "palabra")
+3. **¿¡Hola!?** → Words: "¿¡Hola!?" (clean: "hola")
+4. **"palabra" otra** → Words: ""palabra"", "otra"
+5. **1.5 metros** → Words: "1.5" (clean: "15"), "metros"
+
+**Test Results:**
+```
+Input: "Hola mundo. ¿Cómo estás? ¡Muy bien!"
+Tokens: 11 (6 words, 5 whitespace)
+Sentences: 3
+- Sentence 0: "Hola mundo."
+- Sentence 1: " ¿Cómo estás?"
+- Sentence 2: " ¡Muy bien!"
+```
+
+### Files Created
+- `types/index.ts` - Token and Sentence TypeScript interfaces
+- `lib/tokenize.ts` - Core tokenization engine with helpers
+- `lib/tokenize.test.ts` - Test file for validation
+
+### Helper Functions
+
+**getWordTokens(tokens)**
+- Filters to only word tokens (isWord: true)
+- Removes whitespace tokens
+
+**getSentence(tokens, sentenceId)**
+- Retrieves text for a specific sentence
+- Joins tokens by sentenceId
+
+**getSentences(tokens)**
+- Groups tokens into Sentence objects
+- Returns array of { id, tokens, text }
+
+### Unicode Regex Pattern
+```typescript
+/[^\p{L}\p{N}]+/gu
+```
+- `\p{L}` = Unicode letter property (includes á, ñ, etc.)
+- `\p{N}` = Unicode number property
+- `u` flag = Unicode mode
+- `g` flag = Global replacement
+
+### Completion Notes
+- TypeScript strict mode: ✓ passed
+- Spanish characters: ✓ preserved
+- Punctuation: ✓ preserved in text, removed in cleanText
+- Sentence detection: ✓ working
+- No data loss: ✓ verified
+- Ready for Story 2.4: Clickable Word Component
+
+### Change Log
+- 2025-10-25: Tokenization engine implemented and tested
+
+### Status
+**Ready for Review**

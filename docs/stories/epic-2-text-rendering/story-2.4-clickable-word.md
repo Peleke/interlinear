@@ -9,13 +9,13 @@
 **P0 - Day 1 PM, Hour 7**
 
 ## Acceptance Criteria
-- [ ] Each word rendered as clickable span
-- [ ] Hover state shows word is clickable
-- [ ] Click highlights the word
-- [ ] Active/selected state visually distinct
-- [ ] Saved words have different visual indicator
-- [ ] Smooth transitions on state changes
-- [ ] Accessible (keyboard navigation, ARIA)
+- [x] Each word rendered as clickable span
+- [x] Hover state shows word is clickable
+- [x] Click highlights the word
+- [x] Active/selected state visually distinct
+- [x] Saved words have different visual indicator
+- [x] Smooth transitions on state changes
+- [x] Accessible (keyboard navigation, ARIA)
 
 ## Technical Details
 
@@ -117,11 +117,118 @@ export function ClickableWord({
 - `/docs/architecture/coding-standards.md` - Accessibility rules
 
 ## Definition of Done
-- [ ] Words are clickable
-- [ ] Hover state works
-- [ ] Selected state visually distinct
-- [ ] Saved words show indicator
-- [ ] Keyboard accessible (Tab, Enter, Space)
-- [ ] Screen reader friendly
-- [ ] Transitions smooth (150ms)
-- [ ] TypeScript fully typed
+- [x] Words are clickable
+- [x] Hover state works
+- [x] Selected state visually distinct
+- [x] Saved words show indicator
+- [x] Keyboard accessible (Tab, Enter, Space)
+- [x] Screen reader friendly
+- [x] Transitions smooth (150ms)
+- [x] TypeScript fully typed
+
+---
+
+## Dev Agent Record
+
+### Agent Model Used
+Claude Sonnet 4.5 (20250929)
+
+### Tasks Completed
+- [x] Created components/reader/ClickableWord.tsx
+- [x] Implemented Token props interface
+- [x] Added click handler with keyboard support (Enter, Space)
+- [x] Styled visual states: default, hover, selected, saved
+- [x] Added smooth transitions (duration-150)
+- [x] Implemented ARIA attributes (role, tabIndex, aria-label, aria-pressed)
+- [x] Updated TextRenderPanel to integrate tokenization
+- [x] Added useMemo for tokenization performance
+- [x] Implemented selected word state management
+- [x] Added debug display for selected word
+- [x] TypeScript strict mode validation passed
+- [x] Dev server hot-reloaded successfully
+
+### Implementation Details
+
+**ClickableWord Component:**
+- **Whitespace handling:** Non-word tokens render as plain spans
+- **Keyboard navigation:** Tab to focus, Enter/Space to activate
+- **Click toggle:** Click same word to deselect
+- **Visual feedback:** Hover (scale-105, bg-sepia-100)
+
+**Visual States:**
+1. **Default:** text-sepia-800
+2. **Hover:** bg-sepia-100, scale-105 transform
+3. **Selected:** bg-gold, text-sepia-900, font-semibold, shadow-sm
+4. **Saved:** text-sepia-700, border-b-2 border-dotted border-sepia-400
+
+**TextRenderPanel Integration:**
+- **useMemo:** Tokenizes text only when input changes
+- **State management:** useState for selectedTokenId
+- **Placeholder saved words:** Empty Set (TODO: database integration)
+- **Debug display:** Shows selected word cleanText and ID
+
+**Accessibility Features:**
+```typescript
+role="button"           // Screen reader identifies as button
+tabIndex={0}            // Keyboard focusable
+onKeyDown={Enter/Space} // Keyboard activation
+aria-label              // Word description with saved status
+aria-pressed            // Selection state for screen readers
+```
+
+**Performance:**
+- useMemo prevents re-tokenization on every render
+- Only re-tokenizes when text prop changes
+- Efficient token mapping with unique keys
+
+### Files Created/Modified
+- `components/reader/ClickableWord.tsx` - Clickable word component
+- `components/reader/TextRenderPanel.tsx` - Integrated tokenization and word rendering
+
+### Example Token Rendering
+```
+Input: "Hola mundo. ¿Cómo estás?"
+
+Renders as:
+<ClickableWord token={hola} />
+<span> </span>
+<ClickableWord token={mundo.} />
+<span>. </span>
+<ClickableWord token={¿Cómo} />
+...
+```
+
+### Interaction Flow
+```
+User pastes text → Input Panel
+User clicks "Render Interactive Text" → Switches to Render mode
+Text tokenized (useMemo) → tokens array
+Each word renders as ClickableWord
+User clicks/tabs/presses word → selectedTokenId updates
+Selected word highlighted with gold background
+Debug display shows cleanText
+```
+
+### Completion Notes
+- TypeScript strict mode: ✓ passed
+- Dev server compiled: ✓ successful
+- Hot reload working: ✓ confirmed
+- Interactive word clicking: ✓ functional
+- Keyboard navigation: ✓ implemented
+- Accessibility: ✓ ARIA attributes complete
+- Ready for Epic 3: Dictionary Integration
+
+### Next Steps
+Story 2.4 complete - Interactive text rendering functional. Now ready for:
+- Epic 3: Dictionary API integration (click word → fetch definition)
+- Epic 4: Text-to-Speech pronunciation
+- Epic 5: Vocabulary tracking and persistence
+
+### Change Log
+- 2025-10-25: Clickable word component and render panel integration
+
+### Status
+**Complete**
+
+### Next Steps
+Epic 2 complete (4/4 stories). Ready for Epic 3: Dictionary Integration.

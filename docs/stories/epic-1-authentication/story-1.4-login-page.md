@@ -9,14 +9,14 @@
 **P0 - Day 1, Hour 3-4**
 
 ## Acceptance Criteria
-- [ ] Login page accessible at `/login`
-- [ ] Form with email and password inputs
-- [ ] Submit button triggers signIn
-- [ ] Loading state during auth
-- [ ] Error messages display for invalid credentials
-- [ ] Link to signup page
-- [ ] Redirects to `/reader` on successful login
-- [ ] Accessible form labels and ARIA attributes
+- [x] Login page accessible at `/login`
+- [x] Form with email and password inputs
+- [x] Submit button triggers signIn
+- [x] Loading state during auth
+- [x] Error messages display for invalid credentials
+- [x] Link to signup page
+- [x] Redirects to `/reader` on successful login
+- [x] Accessible form labels and ARIA attributes
 
 ## Technical Details
 
@@ -132,8 +132,64 @@ export default function LoginPage() {
 - `/docs/architecture/coding-standards.md` - Form patterns
 
 ## Definition of Done
-- [ ] Login form submits correctly
-- [ ] Errors display properly
-- [ ] Successful login redirects to reader
-- [ ] Accessible (keyboard nav, ARIA)
-- [ ] Styled per design system
+- [x] Login form submits correctly
+- [x] Errors display properly
+- [x] Successful login redirects to reader
+- [x] Accessible (keyboard nav, ARIA)
+- [x] Styled per design system
+
+---
+
+## Dev Agent Record
+
+### Agent Model Used
+Claude Sonnet 4.5 (20250929)
+
+### Tasks Completed
+- [x] Created app/login/page.tsx with complete form implementation
+- [x] Integrated useAuth hook for signIn method
+- [x] Added email/password inputs with proper types and autocomplete
+- [x] Implemented loading state (button disabled during auth)
+- [x] Added error handling with role="alert" and aria-live
+- [x] Styled with parchment/sepia design system
+- [x] Added accessibility attributes (labels, ARIA, autocomplete)
+- [x] Added link to signup page
+- [x] Configured redirect to /reader on success
+- [x] Extended Tailwind config with design system colors
+
+### File List
+- `app/login/page.tsx` - Login page with form and auth integration
+- `tailwind.config.ts` - Added parchment, sepia, gold, crimson colors + serif font
+
+### Design System Implementation
+**Colors added:**
+- `parchment` (#F9F6F0) - Warm background
+- `sepia` (50-900 scale) - UI elements
+- `gold` (#D4A574) - Accents
+- `crimson` (#A4443E) - Errors
+- `ink` (#1A1614) - Text
+
+**Typography:**
+- `font-serif` - Merriweather for headings
+- `font-sans` - Apple system fonts for UI
+
+### Accessibility Features
+- Proper form labels with `htmlFor`
+- `autocomplete` attributes for browser autofill
+- `aria-required` on inputs
+- `role="alert"` and `aria-live="polite"` on error messages
+- Keyboard navigation support
+- Focus states with ring utilities
+- Disabled state with visual feedback
+
+### Completion Notes
+- Build successful: /login route generated
+- No TypeScript errors
+- Ready for Story 1.5 (Signup page)
+- Form connects to AuthProvider's signIn method
+
+### Change Log
+- 2025-10-25: Login page implemented with design system
+
+### Status
+**Ready for Review**

@@ -9,12 +9,12 @@
 **P0 - Day 1 PM, Hour 5**
 
 ## Acceptance Criteria
-- [ ] Reader page at `/reader` (protected route)
-- [ ] Mode state managed (input/render/vocabulary)
-- [ ] Mode switcher UI (tabs or buttons)
-- [ ] Layout adapts based on current mode
-- [ ] Server Component for layout, Client Component for interactive parts
-- [ ] Smooth transitions between modes
+- [x] Reader page at `/reader` (protected route)
+- [x] Mode state managed (input/render/vocabulary)
+- [x] Mode switcher UI (tabs or buttons)
+- [x] Layout adapts based on current mode
+- [x] Server Component for layout, Client Component for interactive parts
+- [x] Smooth transitions between modes
 
 ## Technical Details
 
@@ -128,9 +128,78 @@ export function ReaderClient() {
 - Component composition
 
 ## Definition of Done
-- [ ] Reader page accessible at `/reader`
-- [ ] Mode switching works smoothly
-- [ ] UI matches design system (serif fonts, warm colors)
-- [ ] Transitions are smooth (200-300ms)
-- [ ] TypeScript fully typed
-- [ ] No console errors
+- [x] Reader page accessible at `/reader`
+- [x] Mode switching works smoothly
+- [x] UI matches design system (serif fonts, warm colors)
+- [x] Transitions are smooth (200ms)
+- [x] TypeScript fully typed
+- [x] No console errors
+
+---
+
+## Dev Agent Record
+
+### Agent Model Used
+Claude Sonnet 4.5 (20250929)
+
+### Tasks Completed
+- [x] Created app/reader/page.tsx (Server Component with parchment bg)
+- [x] Created app/reader/reader-client.tsx (Client Component with mode state)
+- [x] Implemented mode switcher UI (tab-style buttons)
+- [x] Created TextInputPanel placeholder component
+- [x] Created TextRenderPanel placeholder component
+- [x] Created VocabularyPanel placeholder component
+- [x] Mode state managed with useState (input/render/vocabulary)
+- [x] Layout conditionally renders based on current mode
+- [x] Read button disabled when no text present
+- [x] Smooth transitions (duration-200 opacity)
+- [x] TypeScript type checking passed
+- [x] Dev server compiled successfully
+
+### File List
+- `app/reader/page.tsx` - Server Component wrapper
+- `app/reader/reader-client.tsx` - Client Component with mode switcher
+- `components/reader/TextInputPanel.tsx` - Text input interface placeholder
+- `components/reader/TextRenderPanel.tsx` - Render mode placeholder
+- `components/reader/VocabularyPanel.tsx` - Vocabulary mode placeholder
+
+### Implementation Details
+
+**Mode Switcher:**
+- Tab-style buttons with border-b-2 for active state
+- Sepia color scheme (700 for active, 600/800 for hover)
+- "Read" button disabled when text is empty
+- Smooth transitions with Tailwind duration-200
+
+**Component Architecture:**
+- Server Component (page.tsx) - Static parchment background wrapper
+- Client Component (reader-client.tsx) - Interactive mode switching
+- Panel components - Modular, swappable based on mode
+- Props passed: text, onTextChange, mode switching callbacks
+
+**Design System Consistency:**
+- font-serif for headings and buttons
+- Parchment background (#F9F6F0)
+- Sepia text colors (600, 700, 800, 900)
+- Rounded corners (rounded-lg, rounded-md)
+- Hover states on interactive elements
+
+### Next Steps
+Story 2.1 complete - provides foundation for:
+- Story 2.2: Full TextInputPanel implementation (word count, session storage)
+- Story 2.3: Tokenization engine
+- Story 2.4: Clickable word components
+- Story 2.5: Already implemented (mode switcher integrated in 2.1)
+
+### Completion Notes
+- Dev server running successfully at http://localhost:3000
+- /reader route now accessible (protected by middleware)
+- TypeScript strict mode validation passed
+- No console errors
+- Ready for Story 2.2
+
+### Change Log
+- 2025-10-25: Reader layout and mode switcher implemented
+
+### Status
+**Ready for Review**
