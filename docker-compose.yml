@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Pass NEXT_PUBLIC_* vars as build args (baked into client bundle)
+        # IMPORTANT: NEXT_PUBLIC_* vars must be passed as build args
+        # They are baked into the JavaScript bundle at BUILD time, not runtime
         NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     ports:
