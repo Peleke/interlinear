@@ -4,7 +4,7 @@
 
 Interlinear Reader removes friction from language acquisition by making every unknown word instantly accessible. Click any word for definitions, pronunciation, and automatic vocabulary tracking—without losing your place or breaking flow.
 
-**Live Demo**: [https://interlinear-staging-271727967497.us-east4.run.app](https://interlinear-staging-271727967497.us-east4.run.app)
+**Live Demo**: [Interlinear](https://interlinear-staging-tiau52hk5a-uk.a.run.app)
 
 ---
 
