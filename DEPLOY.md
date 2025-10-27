@@ -285,29 +285,22 @@ curl https://interlinear-staging-xxxxx.a.run.app
 
 ## Part 4: GitHub CI/CD Setup
 
-### Step 10: Create Service Account for GitHub Actions
+### Step 10: Get GitHub Actions Service Account Key
+
+The GitHub Actions service account is created automatically by Terraform. Retrieve the key:
 
 ```bash
-# Create service account
-gcloud iam service-accounts create github-actions \
-  --display-name="GitHub Actions CI/CD"
+# Get the service account key from Terraform output
+cd terraform
+tofu output -raw github_actions_sa_key
 
-# Grant permissions to write to Artifact Registry
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/artifactregistry.writer"
+# This outputs the base64-encoded JSON key
+# Copy this ENTIRE output for the next step
+```
 
-# Grant storage admin (for accessing GCS)
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:github-actions@${PROJECT_ID}.iam.gserviceaccount.com" \
-  --role="roles/storage.admin"
-
-# Create and download key
-gcloud iam service-accounts keys create github-actions-key.json \
-  --iam-account=github-actions@${PROJECT_ID}.iam.gserviceaccount.com
-
-# Show the key (copy this entire JSON)
-cat github-actions-key.json
+**Alternative**: If you need to see it formatted:
+```bash
+tofu output -raw github_actions_sa_key | base64 -d | jq .
 ```
 
 ### Step 11: Add GitHub Secrets

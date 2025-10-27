@@ -12,3 +12,14 @@ output "service_account" {
   description = "Cloud Run service account email"
   value       = google_service_account.cloud_run.email
 }
+
+output "github_actions_sa_email" {
+  description = "GitHub Actions service account email"
+  value       = google_service_account.github_actions.email
+}
+
+output "github_actions_sa_key" {
+  description = "GitHub Actions service account key (base64-encoded JSON) - Add this to GitHub Secrets as GCP_SA_KEY"
+  value       = google_service_account_key.github_actions.private_key
+  sensitive   = true
+}
