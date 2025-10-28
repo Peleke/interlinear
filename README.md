@@ -1,26 +1,51 @@
 # Interlinear Reader
 
-**Turn reading into learning, automatically.**
+**Stop switching tabs. Start learning languages.**
 
-Interlinear Reader removes friction from language acquisition by making every unknown word instantly accessible. Click any word for definitions, pronunciation, and automatic vocabulary tracking—without losing your place or breaking flow.
+Every unknown word is one click away from becoming part of your permanent vocabulary. No app switching. No copy-paste. No losing your place. Just pure, uninterrupted reading that builds your language skills automatically.
 
-**Live Demo**: [Interlinear](https://interlinear-staging-tiau52hk5a-uk.a.run.app)
+**[Try it now →](https://interlinear.peleke.me)**
 
 ---
 
-## The Problem
+## Why This Exists
 
-Traditional language learning separates reading from vocabulary acquisition. Learners interrupt their reading flow to look up words in external dictionaries, manually transcribe vocabulary, and lose context while switching between tools. This friction discourages extensive reading—the single most effective method for language acquisition.
+You know the drill: You're reading in your target language. You hit an unknown word. Now what?
 
-## The Solution
+1. Highlight the word
+2. Open a new tab
+3. Search in Google Translate or a dictionary
+4. Read the definition
+5. Go back to your article
+6. Try to remember where you were
+7. Repeat 47 more times
+8. Give up and watch Netflix instead
 
-Interlinear Reader collapses the lookup-transcribe-track workflow into a single click. Every interaction automatically builds your personal vocabulary database with frequency analytics, enabling spaced repetition without manual effort.
+**This is why people don't learn languages through reading.** Not because reading doesn't work (it's the single most effective method for vocabulary acquisition) but because the tooling makes it feel like punishment.
 
-**Key Value Propositions:**
-- **Zero Friction**: One-click definitions with audio pronunciation (ElevenLabs TTS)
-- **Automatic Tracking**: Implicit vocabulary building through natural reading behavior
-- **Context Preservation**: Inline definitions maintain reading flow and comprehension
-- **Privacy First**: Personal vocabulary data encrypted and user-scoped via Row Level Security
+## How It Works
+
+Click any word. Get instant definition + native pronunciation. Done.
+
+Behind the scenes, we're silently building your personal vocabulary database. Every click is tracked, timestamped, and sorted by frequency. You're not managing flashcards: you're just reading. Your vocabulary list builds itself.
+
+**The entire workflow collapses to a single click:**
+- 🎯 **Instant lookup** with audio pronunciation (ElevenLabs neural TTS)
+- 📊 **Automatic tracking**: click count, recency, frequency analytics
+- 🧠 **Stay in flow**: inline definitions, no context switching
+- 🔒 **Private by default**: your data is encrypted and RLS-protected
+
+[Demo video placeholder]
+
+**What you get:**
+- Read faster (no tab switching)
+- Learn more (every word is trackable)
+- Remember better (frequency + recency data for spaced repetition)
+- Stay motivated (reading feels effortless, not like homework)
+
+This is reading the way it should be: immersive, intelligent, and completely frictionless.
+
+**[Start reading →](https://interlinear.peleke.me)**
 
 ---
 
