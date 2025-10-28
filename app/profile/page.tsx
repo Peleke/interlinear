@@ -30,9 +30,14 @@ export default function ProfilePage() {
 
       setUser(user)
 
-      // Load vocabulary stats
-      const vocabStats = await VocabularyService.getStats()
-      setStats(vocabStats)
+      // Load vocabulary stats (non-blocking - fail gracefully)
+      try {
+        const vocabStats = await VocabularyService.getStats()
+        setStats(vocabStats)
+      } catch (statsError) {
+        console.error('Error loading vocabulary stats:', statsError)
+        // Continue without stats - profile page will still work
+      }
     } catch (error) {
       console.error('Error loading profile:', error)
     } finally {

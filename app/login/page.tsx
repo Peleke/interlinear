@@ -13,14 +13,18 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showVerificationReminder, setShowVerificationReminder] = useState(false)
+  const [showPasswordResetSuccess, setShowPasswordResetSuccess] = useState(false)
   const { signIn } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Check if redirected from signup
+  // Check if redirected from signup or password reset
   useEffect(() => {
     if (searchParams.get('verified') === 'pending') {
       setShowVerificationReminder(true)
+    }
+    if (searchParams.get('password') === 'reset') {
+      setShowPasswordResetSuccess(true)
     }
   }, [searchParams])
 
@@ -63,6 +67,13 @@ export default function LoginPage() {
           </div>
         )}
 
+        {showPasswordResetSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-md p-4 text-sm text-green-700" role="alert">
+            <p className="font-semibold mb-1">Password updated successfully</p>
+            <p className="text-xs">You can now log in with your new password.</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-sepia-700">
@@ -82,9 +93,14 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-sepia-700">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium text-sepia-700">
+                Password
+              </label>
+              <Link href="/reset-password" className="text-xs text-sepia-600 hover:text-sepia-800 hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               name="password"

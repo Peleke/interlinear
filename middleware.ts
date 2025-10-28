@@ -54,14 +54,29 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Get user, handle refresh token errors gracefully
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser()
+
+  // If there's a refresh token error, clear the bad cookies to prevent repeated errors
+  if (error && error.message?.includes('refresh_token_not_found')) {
+    // Clear all Supabase auth cookies
+    const authCookies = ['sb-access-token', 'sb-refresh-token']
+    authCookies.forEach((cookieName) => {
+      response.cookies.delete(cookieName)
+    })
+  }
+
+  // If there's an auth error (e.g., refresh_token_not_found), treat as unauthenticated
+  // This prevents middleware crashes when tokens are stale/invalid
+  const isAuthenticated = user && !error
 
   // Protected routes requiring authentication
   if (request.nextUrl.pathname.startsWith('/reader') ||
       request.nextUrl.pathname.startsWith('/vocabulary')) {
-    if (!user) {
+    if (!isAuthenticated) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }
@@ -69,7 +84,7 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/signup')) {
-    if (user) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL('/reader', request.url))
     }
   }
