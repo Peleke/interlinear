@@ -11,9 +11,10 @@ import type { Token, Sentence, DictionaryResponse } from '@/types'
 interface TextRenderPanelProps {
   text: string
   onEditClick: () => void
+  libraryId: string | null
 }
 
-export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
+export function TextRenderPanel({ text, onEditClick, libraryId }: TextRenderPanelProps) {
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null)
   const [lookupWord, setLookupWord] = useState<string | null>(null)
   const [savedWords, setSavedWords] = useState<Set<string>>(new Set())
@@ -129,7 +130,17 @@ export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
     setSavedWords(prev => new Set([...prev, normalizedWord]))
 
     try {
-      await VocabularyService.saveWord(normalizedWord, currentDefinition || undefined)
+      // Find the sentence containing this word
+      const sentence = sentences.find(s =>
+        s.text.toLowerCase().includes(normalizedWord)
+      )
+
+      await VocabularyService.saveWord(
+        normalizedWord,
+        currentDefinition || undefined,
+        libraryId || undefined,
+        sentence?.text
+      )
     } catch (error) {
       // Rollback on error
       setSavedWords(prev => {
@@ -148,9 +159,18 @@ export function TextRenderPanel({ text, onEditClick }: TextRenderPanelProps) {
 
     // Update saved word with definition
     if (lookupWord) {
-      VocabularyService.saveWord(lookupWord, definition).catch(console.error)
+      const sentence = sentences.find(s =>
+        s.text.toLowerCase().includes(lookupWord.toLowerCase())
+      )
+
+      VocabularyService.saveWord(
+        lookupWord,
+        definition,
+        libraryId || undefined,
+        sentence?.text
+      ).catch(console.error)
     }
-  }, [lookupWord])
+  }, [lookupWord, libraryId, sentences])
 
   // Handle sidebar close
   const handleSidebarClose = useCallback(() => {

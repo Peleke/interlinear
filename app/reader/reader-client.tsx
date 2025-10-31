@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Navigation } from '@/components/Navigation'
 import { TextInputPanel } from '@/components/reader/TextInputPanel'
 import { TextRenderPanel } from '@/components/reader/TextRenderPanel'
 import { VocabularyPanel } from '@/components/reader/VocabularyPanel'
@@ -8,24 +10,93 @@ import { VocabularyPanel } from '@/components/reader/VocabularyPanel'
 type Mode = 'input' | 'render' | 'vocabulary'
 
 export function ReaderClient() {
+  const searchParams = useSearchParams()
+  const libraryId = searchParams.get('libraryId')
+
   const [mode, setMode] = useState<Mode>('input')
   const [text, setText] = useState('')
+  const [title, setTitle] = useState('')
+  const [currentLibraryId, setCurrentLibraryId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  // Load library text if libraryId present
+  useEffect(() => {
+    if (libraryId) {
+      loadLibraryText(libraryId)
+    }
+  }, [libraryId])
+
+  const loadLibraryText = async (id: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/library/${id}`)
+      if (!response.ok) {
+        throw new Error('Failed to load text')
+      }
+      const data = await response.json()
+      setText(data.text.content)
+      setTitle(data.text.title)
+      setCurrentLibraryId(data.text.id)
+      setMode('render')
+    } catch (err) {
+      console.error('Failed to load library text:', err)
+      alert('Failed to load text from library')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRenderClick = async () => {
+    // Save to library if not already saved
+    if (!currentLibraryId && text.trim()) {
+      try {
+        const response = await fetch('/api/library', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `Reading ${new Date().toLocaleDateString()}`,
+            content: text,
+            language: 'es',
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setCurrentLibraryId(data.text.id)
+          setTitle(data.text.title)
+        }
+      } catch (err) {
+        console.error('Failed to save to library:', err)
+        // Continue to render even if save fails
+      }
+    }
+
+    setMode('render')
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto py-8 px-4">
+        <Navigation />
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sepia-700" />
+          <span className="ml-3 text-sepia-600">Loading text...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
-      {/* Header with Profile Link */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-serif text-sepia-900">Interlinear Reader</h1>
-        <a
-          href="/profile"
-          className="px-4 py-2 text-sepia-700 border border-sepia-700 rounded-md hover:bg-sepia-50 transition-colors flex items-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Profile
-        </a>
-      </div>
+      {/* Navigation */}
+      <Navigation />
+
+      {/* Title (if viewing library text) */}
+      {title && currentLibraryId && (
+        <div className="mb-4">
+          <h2 className="text-2xl font-serif text-sepia-900">{title}</h2>
+        </div>
+      )}
 
       {/* Mode Switcher */}
       <div className="flex gap-2 mb-6 border-b border-sepia-300">
@@ -77,13 +148,14 @@ export function ReaderClient() {
           <TextInputPanel
             text={text}
             onTextChange={setText}
-            onRenderClick={() => setMode('render')}
+            onRenderClick={handleRenderClick}
           />
         )}
-        {mode === 'render' && (
+        {mode === 'render' && text && (
           <TextRenderPanel
             text={text}
             onEditClick={() => setMode('input')}
+            libraryId={currentLibraryId}
           />
         )}
         {mode === 'vocabulary' && <VocabularyPanel />}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Navigation } from '@/components/Navigation'
 import { VocabularyService } from '@/lib/vocabulary'
 import type { VocabularyEntry, VocabularyStats } from '@/types'
 import { VocabularyList } from '@/components/vocabulary/VocabularyList'
@@ -59,16 +60,11 @@ export default function VocabularyPage() {
   return (
     <div className="min-h-screen bg-parchment">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Navigation */}
+        <Navigation />
+
         {/* Header */}
-        <div className="mb-8">
-          <div className="mb-4">
-            <a
-              href="/reader"
-              className="text-sepia-700 hover:text-sepia-900 transition-colors inline-flex items-center gap-2"
-            >
-              <span>←</span> Back to Reader
-            </a>
-          </div>
+        <div className="mb-8 mt-6">
           <h1 className="text-4xl font-serif text-sepia-900 mb-2">My Vocabulary</h1>
           <p className="text-sepia-600">Words you've encountered in your reading</p>
         </div>
