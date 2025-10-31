@@ -75,7 +75,8 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes requiring authentication
   if (request.nextUrl.pathname.startsWith('/reader') ||
-      request.nextUrl.pathname.startsWith('/vocabulary')) {
+      request.nextUrl.pathname.startsWith('/vocabulary') ||
+      request.nextUrl.pathname.startsWith('/library')) {
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
