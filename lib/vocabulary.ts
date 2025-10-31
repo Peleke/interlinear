@@ -49,7 +49,9 @@ export class VocabularyService {
    */
   static async saveWord(
     word: string,
-    definition?: DictionaryResponse
+    definition?: DictionaryResponse,
+    sourceTextId?: string,
+    originalSentence?: string
   ): Promise<VocabularyEntry> {
     const supabase = createClient()
 
@@ -71,6 +73,11 @@ export class VocabularyService {
           updated_at: new Date().toISOString(),
           // Update definition if provided and different
           ...(definition && { definition }),
+          // Update source info only if not already set (first encounter wins)
+          ...(sourceTextId && !existing.source_text_id && {
+            source_text_id: sourceTextId,
+            original_sentence: originalSentence
+          })
         })
         .eq('id', existing.id)
         .select()
@@ -87,6 +94,8 @@ export class VocabularyService {
           word: normalizedWord,
           definition: definition || null,
           click_count: 1,
+          source_text_id: sourceTextId,
+          original_sentence: originalSentence
         })
         .select()
         .single()

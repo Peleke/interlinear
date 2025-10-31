@@ -38,6 +38,8 @@ export interface VocabularyEntry {
   last_seen: string
   created_at: string
   updated_at: string
+  source_text_id?: string | null
+  original_sentence?: string | null
 }
 
 export interface VocabularyCreateInput {
