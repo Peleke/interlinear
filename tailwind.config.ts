@@ -47,10 +47,15 @@ const config: Config = {
           '0%': { transform: 'translateY(-10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        'slide-in-from-right': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-in-out',
         'slide-in-from-top-2': 'slide-in-from-top 0.3s ease-out',
+        'slide-in-from-right': 'slide-in-from-right 0.3s ease-out',
         'in': 'fade-in 0.3s ease-in-out',
       },
     },

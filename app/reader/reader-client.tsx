@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import { TextInputPanel } from '@/components/reader/TextInputPanel'
@@ -15,12 +15,29 @@ export function ReaderClient() {
   const searchParams = useSearchParams()
   const libraryId = searchParams.get('libraryId')
   const tabParam = searchParams.get('tab')
+  const tabsRef = useRef<HTMLDivElement>(null)
 
   const [mode, setMode] = useState<Mode>('input')
   const [text, setText] = useState('')
   const [title, setTitle] = useState('')
   const [currentLibraryId, setCurrentLibraryId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // Enable horizontal scroll with mouse wheel
+  useEffect(() => {
+    const tabsElement = tabsRef.current
+    if (!tabsElement) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault()
+        tabsElement.scrollLeft += e.deltaY
+      }
+    }
+
+    tabsElement.addEventListener('wheel', handleWheel, { passive: false })
+    return () => tabsElement.removeEventListener('wheel', handleWheel)
+  }, [])
 
   // Load library text if libraryId present
   useEffect(() => {
@@ -111,59 +128,62 @@ export function ReaderClient() {
         </div>
       )}
 
-      {/* Mode Switcher */}
-      <div className="flex gap-2 mb-6 border-b border-sepia-300">
-        <button
-          onClick={() => setMode('input')}
-          className={`px-6 py-3 font-serif transition-colors ${
-            mode === 'input'
-              ? 'border-b-2 border-sepia-700 text-sepia-900'
-              : 'text-sepia-600 hover:text-sepia-800'
-          }`}
-        >
-          Input Text
-        </button>
-        <button
-          onClick={() => setMode('render')}
-          disabled={!text}
-          className={`px-6 py-3 font-serif transition-colors ${
-            mode === 'render'
-              ? 'border-b-2 border-sepia-700 text-sepia-900'
-              : 'text-sepia-600 hover:text-sepia-800 disabled:opacity-50'
-          }`}
-        >
-          Read
-        </button>
-        <button
-          onClick={() => setMode('vocabulary')}
-          className={`px-6 py-3 font-serif transition-colors ${
-            mode === 'vocabulary'
-              ? 'border-b-2 border-sepia-700 text-sepia-900'
-              : 'text-sepia-600 hover:text-sepia-800'
-          }`}
-        >
-          Vocabulary
-        </button>
-        <button
-          onClick={() => setMode('tutor')}
-          className={`px-6 py-3 font-serif transition-colors ${
-            mode === 'tutor'
-              ? 'text-sepia-900 border-b-2 border-sepia-700'
-              : 'text-sepia-600 hover:text-sepia-800'
-          }`}
-        >
-          Tutor
-        </button>
-        <button
-          onClick={() => setMode('flashcards')}
-          className={`px-6 py-3 font-serif transition-colors ${
-            mode === 'flashcards'
-              ? 'text-sepia-900 border-b-2 border-sepia-700'
-              : 'text-sepia-600 hover:text-sepia-800'
-          }`}
-        >
-          Flashcards
-        </button>
+      {/* Mode Switcher - Horizontal Scrolling Tabs */}
+      <div className="relative mb-6 border-b border-sepia-300">
+        {/* Scrollable tab container */}
+        <div ref={tabsRef} className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory">
+          <button
+            onClick={() => setMode('input')}
+            className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
+              mode === 'input'
+                ? 'border-b-2 border-sepia-700 text-sepia-900'
+                : 'text-sepia-600 hover:text-sepia-800'
+            }`}
+          >
+            Input Text
+          </button>
+          <button
+            onClick={() => setMode('render')}
+            disabled={!text}
+            className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
+              mode === 'render'
+                ? 'border-b-2 border-sepia-700 text-sepia-900'
+                : 'text-sepia-600 hover:text-sepia-800 disabled:opacity-50'
+            }`}
+          >
+            Read
+          </button>
+          <button
+            onClick={() => setMode('vocabulary')}
+            className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
+              mode === 'vocabulary'
+                ? 'border-b-2 border-sepia-700 text-sepia-900'
+                : 'text-sepia-600 hover:text-sepia-800'
+            }`}
+          >
+            Vocabulary
+          </button>
+          <button
+            onClick={() => setMode('tutor')}
+            className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
+              mode === 'tutor'
+                ? 'text-sepia-900 border-b-2 border-sepia-700'
+                : 'text-sepia-600 hover:text-sepia-800'
+            }`}
+          >
+            Tutor
+          </button>
+          <button
+            onClick={() => setMode('flashcards')}
+            className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
+              mode === 'flashcards'
+                ? 'text-sepia-900 border-b-2 border-sepia-700'
+                : 'text-sepia-600 hover:text-sepia-800'
+            }`}
+          >
+            Flashcards
+          </button>
+        </div>
       </div>
 
       {/* Content Panel */}
