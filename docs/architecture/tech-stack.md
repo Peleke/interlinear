@@ -27,6 +27,9 @@ This is the **DEFINITIVE** technology selection. All development uses these exac
 | **Monitoring** | Cloud Logging (GCP) | N/A | Error logs + request traces | Built into Cloud Run; no extra setup |
 | **Logging** | Console + Cloud Logging | N/A | Structured logs (`console.log` → GCP) | Cloud Run auto-captures stdout |
 | **CSS Framework** | Tailwind CSS | 3.4.x | Utility-first styling + custom theme | PRD design system (parchment, sepia, gold) via `tailwind.config` |
+| **AI Framework** | LangChain | 0.3.11 | LLM orchestration + prompt management | Standardized LLM patterns, prompt templates, structured outputs |
+| **LLM Provider** | OpenAI (GPT-4) | Latest | AI Tutor conversation + error analysis | Industry-leading Spanish language support, reliable structured outputs |
+| **Schema Validation** | Zod | 3.x | Runtime type validation for LLM outputs | Ensures LLM JSON responses match TypeScript types |
 
 ## Key Decisions
 
@@ -35,11 +38,15 @@ This is the **DEFINITIVE** technology selection. All development uses these exac
 3. **Vitest over Jest** - Faster, modern, better Next.js 15 compatibility
 4. **Tailwind over CSS-in-JS** - PRD design system needs custom tokens; utility classes faster than styled-components
 5. **Tests written WITH features** - BDD/TDD integrated into dev workflow (not post-delivery)
+6. **LangChain for AI** - Standardized prompt management, streaming support, structured output parsing
+7. **GPT-4 for quality** - Better Spanish language understanding than GPT-3.5, critical for error analysis
+8. **Zod for LLM validation** - Runtime schema validation prevents malformed JSON from breaking app
 
 ## External Dependencies
 
 - **Merriam-Webster Spanish Dictionary API** - Word definitions (free tier: 1k requests/day)
 - **ElevenLabs TTS API** - Spanish pronunciation (free tier: 10k characters/month)
+- **OpenAI API** - GPT-4 for AI Tutor (pay-as-you-go: ~$0.03/1K input tokens)
 
 ## Shared Package (`packages/shared`)
 

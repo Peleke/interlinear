@@ -1771,12 +1771,22 @@ jobs:
    - `NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbG...`
 
+### OpenAI (for AI Tutor - Epic 6)
+
+1. Go to: https://platform.openai.com/signup
+2. Create account and add payment method
+3. Navigate to API Keys section
+4. Generate new secret key
+5. Add to `.env.local`: `OPENAI_API_KEY=sk-...`
+6. **Cost Management**: Set usage limits in OpenAI dashboard ($50/month recommended for demo)
+
 ---
 
 ## Success Metrics
 
 **Development Velocity:**
 - [ ] MVP completed in 48 hours (Day 1-2)
+- [ ] 4-Day Sprint: Library, AI Tutor, Flashcards (Day 1-4)
 - [ ] Deployment pipeline functional by Day 3
 - [ ] Zero critical bugs at demo time
 
