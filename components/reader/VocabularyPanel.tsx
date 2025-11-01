@@ -6,7 +6,11 @@ import type { VocabularyEntry, VocabularyStats } from '@/types'
 import { VocabularyList } from '@/components/vocabulary/VocabularyList'
 import { VocabularyStatsDisplay } from '@/components/vocabulary/VocabularyStats'
 
-export function VocabularyPanel() {
+interface VocabularyPanelProps {
+  textId?: string | null
+}
+
+export function VocabularyPanel({ textId }: VocabularyPanelProps) {
   const [entries, setEntries] = useState<VocabularyEntry[]>([])
   const [stats, setStats] = useState<VocabularyStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -14,7 +18,7 @@ export function VocabularyPanel() {
 
   useEffect(() => {
     loadVocabulary()
-  }, [])
+  }, [textId])
 
   const loadVocabulary = async () => {
     setLoading(true)
@@ -24,7 +28,14 @@ export function VocabularyPanel() {
         VocabularyService.getAll(),
         VocabularyService.getStats()
       ])
-      setEntries(vocabData)
+
+      // Filter by textId if provided
+      let filteredEntries = vocabData
+      if (textId) {
+        filteredEntries = vocabData.filter(entry => entry.source_text_id === textId)
+      }
+
+      setEntries(filteredEntries)
       setStats(statsData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load vocabulary')
@@ -58,7 +69,14 @@ export function VocabularyPanel() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-serif text-sepia-900">Your Vocabulary</h2>
+      <h2 className="text-2xl font-serif text-sepia-900">
+        {textId ? 'Vocabulary from This Text' : 'Your Vocabulary'}
+      </h2>
+      {textId && entries.length === 0 && !loading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-900 text-sm">
+          💡 No words saved from this text yet. Words you save while reading will appear here.
+        </div>
+      )}
 
       {loading && (
         <div className="flex items-center justify-center py-12">

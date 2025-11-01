@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { VoiceInput } from './VoiceInput'
 import { MessageCorrection } from './MessageCorrection'
 import { AudioButton } from './AudioButton'
+import { FlashcardSaver } from './FlashcardSaver'
+import { WordSaver } from './WordSaver'
 import { toast } from 'sonner'
 
 interface DialogMessage {
@@ -156,12 +158,20 @@ export function DialogView({
                   <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
 
-                {/* Audio button for AI messages */}
+                {/* Action buttons for AI messages */}
                 {message.role === 'ai' && (
-                  <AudioButton
-                    text={message.content}
-                    messageId={message.id}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <AudioButton
+                      text={message.content}
+                      messageId={message.id}
+                    />
+                    <FlashcardSaver
+                      defaultClozeText={message.content}
+                      buttonLabel=""
+                      buttonSize="icon"
+                      buttonVariant="ghost"
+                    />
+                  </div>
                 )}
               </div>
 
@@ -235,6 +245,23 @@ export function DialogView({
             )}
           </Button>
         </div>
+
+        {/* Quick vocabulary extraction from last AI message */}
+        {messages.length > 0 && messages[messages.length - 1].role === 'ai' && (
+          <div className="flex gap-2 pt-2">
+            <WordSaver
+              sentence={messages[messages.length - 1].content}
+              buttonSize="sm"
+              buttonVariant="outline"
+            />
+            <FlashcardSaver
+              defaultClozeText={messages[messages.length - 1].content}
+              buttonLabel="Save Last Message"
+              buttonSize="sm"
+              buttonVariant="outline"
+            />
+          </div>
+        )}
       </div>
     </div>
   )

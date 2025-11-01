@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react'
 import { DictionaryCache } from '@/lib/dictionary-cache'
 import type { DictionaryResponse } from '@/types'
+import { FlashcardSaver } from '@/components/tutor/FlashcardSaver'
+import { Button } from '@/components/ui/button'
+import { Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface DefinitionSidebarProps {
   word: string | null
@@ -15,12 +19,43 @@ export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: Definit
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cacheHit, setCacheHit] = useState(false)
+  const [generatingExamples, setGeneratingExamples] = useState(false)
+  const [examples, setExamples] = useState<string[]>([])
+  const [selectedExample, setSelectedExample] = useState<string | null>(null)
+
+  const generateExamples = async () => {
+    if (!word || !data) return
+
+    try {
+      setGeneratingExamples(true)
+      const response = await fetch('/api/tutor/generate-examples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: word,
+          definition: data.definitions?.[0]?.meanings?.[0] || ''
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to generate examples')
+
+      const result = await response.json()
+      setExamples(result.examples || [])
+    } catch (error) {
+      console.error('Generate examples error:', error)
+      toast.error('Failed to generate examples')
+    } finally {
+      setGeneratingExamples(false)
+    }
+  }
 
   useEffect(() => {
     if (!word) {
       setData(null)
       setError(null)
       setCacheHit(false)
+      setExamples([])
+      setSelectedExample(null)
       return
     }
 
@@ -222,6 +257,50 @@ export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: Definit
                   </ol>
                 </div>
               ))}
+
+              {/* Action Buttons */}
+              <div className="border-t border-sepia-200 pt-4 space-y-3">
+                <div className="flex gap-2">
+                  <FlashcardSaver
+                    defaultFront={word}
+                    defaultBack={data.definitions?.[0]?.meanings?.[0] || ''}
+                    defaultCardType="basic"
+                    buttonLabel="Create Flashcard"
+                    buttonSize="sm"
+                    buttonVariant="default"
+                  />
+                  <Button
+                    onClick={generateExamples}
+                    disabled={generatingExamples}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    {generatingExamples ? 'Generating...' : 'Generate Examples'}
+                  </Button>
+                </div>
+
+                {/* Generated Examples */}
+                {examples.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-sepia-700">Example Sentences:</p>
+                    {examples.map((example, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-sepia-50 border border-sepia-200 rounded-lg p-3 space-y-2"
+                      >
+                        <p className="text-sepia-800 italic">{example}</p>
+                        <FlashcardSaver
+                          defaultClozeText={example}
+                          buttonLabel="Save as Flashcard"
+                          buttonSize="sm"
+                          buttonVariant="outline"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -7,6 +7,7 @@ export function Navigation() {
   const links = [
     { href: '/reader', label: 'Reader' },
     { href: '/library', label: 'Library' },
+    { href: '/flashcards', label: 'Flashcards' },
     { href: '/vocabulary', label: 'Vocabulary' },
     { href: '/profile', label: 'Profile' },
   ]

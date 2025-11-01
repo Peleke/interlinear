@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronDown, ChevronUp, CheckCircle, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChevronDown, ChevronUp, CheckCircle, AlertCircle, BookmarkPlus } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 interface ErrorDetail {
   errorText: string
@@ -87,8 +89,72 @@ export function MessageCorrection({ correction }: MessageCorrectionProps) {
   )
 }
 
-// Individual Error Display
+// Individual Error Display with Flashcard Save
 function ErrorDetailComponent({ error }: { error: ErrorDetail }) {
+  const [saving, setSaving] = useState(false)
+  const [decks, setDecks] = useState<Array<{ id: string; name: string }>>([])
+  const [selectedDeckId, setSelectedDeckId] = useState<string>('')
+
+  useEffect(() => {
+    loadDecks()
+  }, [])
+
+  const loadDecks = async () => {
+    try {
+      const response = await fetch('/api/flashcards/decks')
+      if (!response.ok) return
+
+      const data = await response.json()
+      setDecks(data.decks || [])
+
+      // Auto-select "Tutor Corrections" deck if it exists
+      const tutorDeck = data.decks.find((d: any) =>
+        d.name.toLowerCase().includes('tutor') || d.name.toLowerCase().includes('correction')
+      )
+      if (tutorDeck) {
+        setSelectedDeckId(tutorDeck.id)
+      } else if (data.decks.length > 0) {
+        setSelectedDeckId(data.decks[0].id)
+      }
+    } catch (error) {
+      console.error('Failed to load decks:', error)
+    }
+  }
+
+  const saveAsFlashcard = async () => {
+    if (!selectedDeckId) {
+      toast.error('Please select a deck first')
+      return
+    }
+
+    try {
+      setSaving(true)
+
+      // Create a basic card (can be enhanced to cloze later)
+      const response = await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deck_id: selectedDeckId,
+          card_type: 'basic',
+          front: error.errorText,
+          back: error.correction,
+          notes: `${error.category}: ${error.explanation}`,
+          source: 'tutor_session'
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to save flashcard')
+
+      toast.success('Flashcard saved!')
+    } catch (err) {
+      console.error('Save flashcard error:', err)
+      toast.error('Failed to save flashcard')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const categoryColors = {
     grammar: 'bg-red-100 text-red-800 border-red-200',
     vocabulary: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -105,7 +171,7 @@ function ErrorDetailComponent({ error }: { error: ErrorDetail }) {
     <div className={`p-2 rounded border ${categoryColors[error.category]}`}>
       <div className="flex items-start gap-2">
         <span className="text-lg">{categoryIcons[error.category]}</span>
-        <div className="flex-1 space-y-1">
+        <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium px-2 py-0.5 bg-white rounded">
               {error.category}
@@ -121,6 +187,33 @@ function ErrorDetailComponent({ error }: { error: ErrorDetail }) {
           <p className="text-xs leading-relaxed">
             {error.explanation}
           </p>
+
+          {/* Save to Flashcard */}
+          {decks.length > 0 && (
+            <div className="flex items-center gap-2 pt-1">
+              <select
+                value={selectedDeckId}
+                onChange={(e) => setSelectedDeckId(e.target.value)}
+                className="text-xs border rounded px-2 py-1 bg-white"
+              >
+                {decks.map(deck => (
+                  <option key={deck.id} value={deck.id}>
+                    {deck.name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                onClick={saveAsFlashcard}
+                disabled={saving}
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs"
+              >
+                <BookmarkPlus className="h-3 w-3 mr-1" />
+                {saving ? 'Saving...' : 'Save as Card'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

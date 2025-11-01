@@ -7,8 +7,9 @@ import { TextInputPanel } from '@/components/reader/TextInputPanel'
 import { TextRenderPanel } from '@/components/reader/TextRenderPanel'
 import { VocabularyPanel } from '@/components/reader/VocabularyPanel'
 import { TutorPanel } from '@/components/reader/TutorPanel'
+import { FlashcardsPanel } from '@/components/reader/FlashcardsPanel'
 
-type Mode = 'input' | 'render' | 'vocabulary' | 'tutor'
+type Mode = 'input' | 'render' | 'vocabulary' | 'tutor' | 'flashcards'
 
 export function ReaderClient() {
   const searchParams = useSearchParams()
@@ -142,6 +143,16 @@ export function ReaderClient() {
         >
           Tutor
         </button>
+        <button
+          onClick={() => setMode('flashcards')}
+          className={`px-6 py-3 font-serif transition-colors ${
+            mode === 'flashcards'
+              ? 'text-sepia-900 border-b-2 border-sepia-700'
+              : 'text-sepia-600 hover:text-sepia-800'
+          }`}
+        >
+          Flashcards
+        </button>
       </div>
 
       {/* Content Panel */}
@@ -160,8 +171,9 @@ export function ReaderClient() {
             libraryId={currentLibraryId}
           />
         )}
-        {mode === 'vocabulary' && <VocabularyPanel />}
+        {mode === 'vocabulary' && <VocabularyPanel textId={currentLibraryId} />}
         {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
+        {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} />}
       </div>
     </div>
   )
