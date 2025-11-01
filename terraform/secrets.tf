@@ -24,3 +24,12 @@ resource "google_secret_manager_secret" "merriam_webster_key" {
     auto {}
   }
 }
+
+# OpenAI API key secret
+resource "google_secret_manager_secret" "openai_key" {
+  secret_id = "openai-api-key-${var.environment}"
+
+  replication {
+    auto {}
+  }
+}
