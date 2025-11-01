@@ -30,6 +30,20 @@ resource "google_project_iam_member" "github_actions_storage" {
   member  = "serviceAccount:${google_service_account.github_actions.email}"
 }
 
+# Grant Cloud Run Admin for deployments
+resource "google_project_iam_member" "github_actions_run_admin" {
+  project = var.project_id
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
+# Grant Service Account User for Cloud Run deployments
+resource "google_project_iam_member" "github_actions_sa_user" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
 # Generate service account key for GitHub Actions
 resource "google_service_account_key" "github_actions" {
   service_account_id = google_service_account.github_actions.name
