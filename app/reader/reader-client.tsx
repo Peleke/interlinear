@@ -14,6 +14,7 @@ type Mode = 'input' | 'render' | 'vocabulary' | 'tutor' | 'flashcards'
 export function ReaderClient() {
   const searchParams = useSearchParams()
   const libraryId = searchParams.get('libraryId')
+  const tabParam = searchParams.get('tab')
 
   const [mode, setMode] = useState<Mode>('input')
   const [text, setText] = useState('')
@@ -28,6 +29,13 @@ export function ReaderClient() {
     }
   }, [libraryId])
 
+  // Switch to tab if specified in URL
+  useEffect(() => {
+    if (tabParam && ['input', 'render', 'vocabulary', 'tutor', 'flashcards'].includes(tabParam)) {
+      setMode(tabParam as Mode)
+    }
+  }, [tabParam])
+
   const loadLibraryText = async (id: string) => {
     setLoading(true)
     try {
@@ -39,7 +47,10 @@ export function ReaderClient() {
       setText(data.text.content)
       setTitle(data.text.title)
       setCurrentLibraryId(data.text.id)
-      setMode('render')
+      // Only set mode to 'render' if no tab param specified
+      if (!tabParam) {
+        setMode('render')
+      }
     } catch (err) {
       console.error('Failed to load library text:', err)
       alert('Failed to load text from library')

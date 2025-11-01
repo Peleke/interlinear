@@ -1,6 +1,6 @@
 export default function TutorPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sepia-50 to-sepia-100">
+    <div className="min-h-screen bg-parchment">
       <div className="container mx-auto px-4 py-16">
         {/* Header */}
         <div className="text-center mb-16">

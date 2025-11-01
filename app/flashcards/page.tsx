@@ -115,17 +115,20 @@ export default function FlashcardsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-sepia-600">Loading decks...</div>
+      <div className="min-h-screen bg-parchment">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-sepia-600">Loading decks...</div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <Navigation />
+    <div className="min-h-screen bg-parchment">
+      <div className="container mx-auto p-6 max-w-6xl">
+        <Navigation />
 
       {/* Header */}
       <div className="mb-8">
@@ -290,6 +293,7 @@ export default function FlashcardsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

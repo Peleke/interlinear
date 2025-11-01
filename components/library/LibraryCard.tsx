@@ -54,7 +54,7 @@ export function LibraryCard({ text, onDelete }: LibraryCardProps) {
       {/* Actions */}
       <div className="border-t border-sepia-100 px-6 py-3 flex items-center gap-4">
         <Link
-          href={`/tutor/${text.id}`}
+          href={`/reader?libraryId=${text.id}&tab=tutor`}
           className="text-sm text-sepia-700 hover:text-sepia-900 font-medium transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
