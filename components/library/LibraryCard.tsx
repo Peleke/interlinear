@@ -51,14 +51,22 @@ export function LibraryCard({ text, onDelete }: LibraryCardProps) {
         </div>
       </Link>
 
-      {/* Delete Button */}
-      <div className="border-t border-sepia-100 px-6 py-3">
+      {/* Actions */}
+      <div className="border-t border-sepia-100 px-6 py-3 flex items-center gap-4">
+        <Link
+          href={`/tutor/${text.id}`}
+          className="text-sm text-sepia-700 hover:text-sepia-900 font-medium transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          AI Tutor →
+        </Link>
         <button
           onClick={(e) => {
             e.preventDefault()
+            e.stopPropagation()
             onDelete(text.id)
           }}
-          className="text-sm text-red-600 hover:text-red-700 transition-colors"
+          className="text-sm text-red-600 hover:text-red-700 transition-colors ml-auto"
         >
           Delete
         </button>

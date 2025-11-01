@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'Interlinear - Spanish Reading Companion',
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>{children}</AuthProvider>
+        <Toaster position="top-right" />
       </body>
     </html>
   )

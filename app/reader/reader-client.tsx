@@ -6,8 +6,9 @@ import { Navigation } from '@/components/Navigation'
 import { TextInputPanel } from '@/components/reader/TextInputPanel'
 import { TextRenderPanel } from '@/components/reader/TextRenderPanel'
 import { VocabularyPanel } from '@/components/reader/VocabularyPanel'
+import { TutorPanel } from '@/components/reader/TutorPanel'
 
-type Mode = 'input' | 'render' | 'vocabulary'
+type Mode = 'input' | 'render' | 'vocabulary' | 'tutor'
 
 export function ReaderClient() {
   const searchParams = useSearchParams()
@@ -131,15 +132,16 @@ export function ReaderClient() {
         >
           Vocabulary
         </button>
-        <a
-          href="/tutor"
-          className="px-6 py-3 font-serif text-sepia-600 hover:text-sepia-800 transition-colors flex items-center gap-2"
+        <button
+          onClick={() => setMode('tutor')}
+          className={`px-6 py-3 font-serif transition-colors ${
+            mode === 'tutor'
+              ? 'text-sepia-900 border-b-2 border-sepia-700'
+              : 'text-sepia-600 hover:text-sepia-800'
+          }`}
         >
           Tutor
-          <span className="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">
-            Coming Soon
-          </span>
-        </a>
+        </button>
       </div>
 
       {/* Content Panel */}
@@ -159,6 +161,7 @@ export function ReaderClient() {
           />
         )}
         {mode === 'vocabulary' && <VocabularyPanel />}
+        {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
       </div>
     </div>
   )

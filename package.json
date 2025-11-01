@@ -10,11 +10,19 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/openai": "^0.3.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "langchain": "^0.3.0",
+    "lru-cache": "^10.0.0",
+    "lucide-react": "^0.552.0",
     "next": "^15.1.8",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sonner": "^2.0.7",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
