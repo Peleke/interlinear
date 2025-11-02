@@ -1,0 +1,151 @@
+id: 1
+title: "Saludos y Presentaciones"
+title_english: "Greetings & Introductions"
+level: "A1"
+lesson_number: 1
+description: "Learn to greet people and introduce yourself in Spanish using the verb SER"
+
+# Grammar concepts (natural keys for lookup)
+grammar_concepts:
+  - "verb_ser_present"
+
+# Core dialog demonstrating target grammar and vocabulary
+dialog:
+  context: "Two students meet at a university café in Madrid"
+  setting: "Universidad Complutense de Madrid"
+
+  exchanges:
+    - speaker: "María"
+      spanish: "¡Hola! ¿Cómo te llamas?"
+      english: "Hello! What's your name?"
+
+    - speaker: "Juan"
+      spanish: "Me llamo Juan. Mucho gusto."
+      english: "My name is Juan. Nice to meet you."
+
+    - speaker: "María"
+      spanish: "Mucho gusto, Juan. Yo soy María."
+      english: "Nice to meet you, Juan. I am María."
+
+    - speaker: "Juan"
+      spanish: "¿De dónde eres?"
+      english: "Where are you from?"
+
+    - speaker: "María"
+      spanish: "Soy de Barcelona. ¿Y tú?"
+      english: "I'm from Barcelona. And you?"
+
+    - speaker: "Juan"
+      spanish: "Soy de Madrid. ¡Bienvenida!"
+      english: "I'm from Madrid. Welcome!"
+
+# Vocabulary (natural keys for lookup-or-create)
+vocabulary:
+  - { spanish: "hola", english: "hello" }
+  - { spanish: "cómo", english: "how" }
+  - { spanish: "te llamas", english: "you are called" }
+  - { spanish: "me llamo", english: "I am called" }
+  - { spanish: "mucho gusto", english: "nice to meet you" }
+  - { spanish: "de dónde", english: "from where" }
+  - { spanish: "soy", english: "I am" }
+  - { spanish: "eres", english: "you are" }
+  - { spanish: "y", english: "and" }
+  - { spanish: "tú", english: "you" }
+  - { spanish: "bienvenida", english: "welcome (feminine)" }
+
+# Dialog-based translation exercises
+exercises:
+  - type: "translate_line_es_to_en"
+    dialog_line: 0
+    prompt: "Translate to English"
+    spanish_text: "¡Hola! ¿Cómo te llamas?"
+    answer: "Hello! What's your name?"
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 1
+    prompt: "Translate to Spanish"
+    english_text: "My name is Juan. Nice to meet you."
+    answer: "Me llamo Juan. Mucho gusto."
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 2
+    prompt: "Translate to English"
+    spanish_text: "Mucho gusto, Juan. Yo soy María."
+    answer: "Nice to meet you, Juan. I am María."
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 3
+    prompt: "Translate to Spanish"
+    english_text: "Where are you from?"
+    answer: "¿De dónde eres?"
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 4
+    prompt: "Translate to English"
+    spanish_text: "Soy de Barcelona. ¿Y tú?"
+    answer: "I'm from Barcelona. And you?"
+
+  - type: "translate_variation"
+    base_dialog_line: 2
+    prompt: "Translate this variation to English"
+    spanish_text: "¡Hola! Yo soy Pedro."
+    answer: "Hello! I am Pedro."
+
+# Content sections for lesson explanations
+content_sections:
+  - title: "Greetings in Spanish"
+    content: |
+      Spanish greetings vary by time of day and formality:
+
+      **Universal Greetings:**
+      - **¡Hola!** - Hello (can be used anytime)
+
+      **Time-based Greetings:**
+      - **Buenos días** - Good morning (until midday)
+      - **Buenas tardes** - Good afternoon (midday to evening)
+      - **Buenas noches** - Good evening/night
+
+      **Farewells:**
+      - **Adiós** - Goodbye
+      - **Hasta luego** - See you later
+      - **Hasta mañana** - See you tomorrow
+
+  - title: "Introducing Yourself"
+    content: |
+      There are two common ways to introduce yourself in Spanish:
+
+      **1. Using "llamarse" (to be called):**
+      - **Me llamo** [name] - My name is [name]
+      - **¿Cómo te llamas?** - What's your name?
+
+      **2. Using "ser" (to be):**
+      - **Yo soy** [name] - I am [name]
+      - **¿Quién eres?** - Who are you?
+
+      Both are correct and commonly used. "Me llamo" is more common for first introductions.
+
+  - title: "The Verb SER for Identity"
+    content: |
+      The verb **ser** is used to express identity, origin, and characteristics.
+
+      **For Introductions:**
+      - Yo soy María - I am María
+      - Tú eres Juan - You are Juan
+
+      **For Origin (where you're from):**
+      - Soy de Barcelona - I'm from Barcelona
+      - ¿De dónde eres? - Where are you from?
+
+      **Polite Expressions:**
+      - **Mucho gusto** - Nice to meet you (literally: much pleasure)
+      - **Encantado/a** - Delighted (masculine/feminine)
+
+  - title: "Cultural Note"
+    content: |
+      In Spanish-speaking cultures, greetings often include physical contact:
+      - A handshake for formal introductions
+      - One or two cheek kisses for friends (varies by country)
+      - A warm "mucho gusto" shows politeness and respect
+
+      When introducing yourself, Spaniards are generally warm and friendly. Don't be
+      surprised if people ask personal questions quickly - it's a sign of interest!

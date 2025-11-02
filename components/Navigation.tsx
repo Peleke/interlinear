@@ -14,6 +14,7 @@ export function Navigation() {
     { href: '/library', label: 'Library' },
     { href: '/flashcards', label: 'Flashcards' },
     { href: '/vocabulary', label: 'Vocabulary' },
+    { href: '/courses', label: 'Courses' },
     { href: '/profile', label: 'Profile' },
   ]
 

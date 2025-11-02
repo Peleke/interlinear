@@ -1,0 +1,181 @@
+id: 2
+title: "La Familia"
+title_english: "Family"
+level: "A1"
+lesson_number: 2
+description: "Talk about family members using possessive adjectives"
+
+# Grammar concepts
+grammar_concepts:
+  - "possessive_adjectives"
+
+# Core dialog
+dialog:
+  context: "María shows Juan a family photo on her phone"
+  setting: "University café, continued conversation"
+
+  exchanges:
+    - speaker: "María"
+      spanish: "Mira, esta es mi familia."
+      english: "Look, this is my family."
+
+    - speaker: "Juan"
+      spanish: "¡Qué bonita! ¿Quién es ella?"
+      english: "How nice! Who is she?"
+
+    - speaker: "María"
+      spanish: "Es mi madre. Se llama Carmen."
+      english: "That's my mother. Her name is Carmen."
+
+    - speaker: "Juan"
+      spanish: "¿Y él? ¿Es tu padre?"
+      english: "And him? Is that your father?"
+
+    - speaker: "María"
+      spanish: "Sí, mi padre se llama José. Y este es mi hermano pequeño, Luis."
+      english: "Yes, my father's name is José. And this is my little brother, Luis."
+
+    - speaker: "Juan"
+      spanish: "¿Tienes hermanos también?"
+      english: "Do you have siblings too?"
+
+    - speaker: "María"
+      spanish: "Sí, tengo una hermana. Se llama Ana."
+      english: "Yes, I have a sister. Her name is Ana."
+
+# Vocabulary
+vocabulary:
+  - { spanish: "familia", english: "family" }
+  - { spanish: "madre", english: "mother" }
+  - { spanish: "padre", english: "father" }
+  - { spanish: "hermano", english: "brother" }
+  - { spanish: "hermana", english: "sister" }
+  - { spanish: "hermanos", english: "siblings" }
+  - { spanish: "abuelo", english: "grandfather" }
+  - { spanish: "abuela", english: "grandmother" }
+  - { spanish: "mi", english: "my" }
+  - { spanish: "tu", english: "your (informal)" }
+  - { spanish: "su", english: "his/her/your (formal)" }
+  - { spanish: "mira", english: "look" }
+  - { spanish: "esta", english: "this (feminine)" }
+  - { spanish: "este", english: "this (masculine)" }
+  - { spanish: "quién", english: "who" }
+  - { spanish: "se llama", english: "is called/his-her name is" }
+  - { spanish: "pequeño", english: "little/small" }
+  - { spanish: "también", english: "also/too" }
+
+# Exercises
+exercises:
+  - type: "translate_line_es_to_en"
+    dialog_line: 0
+    prompt: "Translate to English"
+    spanish_text: "Mira, esta es mi familia."
+    answer: "Look, this is my family."
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 2
+    prompt: "Translate to Spanish"
+    english_text: "That's my mother. Her name is Carmen."
+    answer: "Es mi madre. Se llama Carmen."
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 4
+    prompt: "Translate to English"
+    spanish_text: "Sí, mi padre se llama José. Y este es mi hermano pequeño, Luis."
+    answer: "Yes, my father's name is José. And this is my little brother, Luis."
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 5
+    prompt: "Translate to Spanish"
+    english_text: "Do you have siblings too?"
+    answer: "¿Tienes hermanos también?"
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 6
+    prompt: "Translate to English"
+    spanish_text: "Sí, tengo una hermana. Se llama Ana."
+    answer: "Yes, I have a sister. Her name is Ana."
+
+  - type: "translate_variation"
+    base_dialog_line: 0
+    prompt: "Translate this variation to English"
+    spanish_text: "Este es mi abuelo. Se llama Carlos."
+    answer: "This is my grandfather. His name is Carlos."
+
+  - type: "translate_variation"
+    base_dialog_line: 4
+    prompt: "Translate this variation to Spanish"
+    english_text: "This is my little sister. Her name is Laura."
+    answer: "Esta es mi hermana pequeña. Se llama Laura."
+
+# Content sections
+content_sections:
+  - title: "Family Vocabulary"
+    content: |
+      **Immediate Family:**
+      - **padre** - father
+      - **madre** - mother
+      - **hermano** - brother
+      - **hermana** - sister
+      - **hermanos** - siblings (brothers and sisters)
+
+      **Extended Family:**
+      - **abuelo** - grandfather
+      - **abuela** - grandmother
+      - **abuelos** - grandparents
+      - **tío** - uncle
+      - **tía** - aunt
+      - **primo/prima** - cousin (m/f)
+
+      **Note on Gender:**
+      Spanish nouns have gender. Family words ending in **-o** are usually masculine,
+      and those ending in **-a** are usually feminine.
+
+  - title: "Possessive Adjectives"
+    content: |
+      Possessive adjectives show ownership or relationships:
+
+      **Singular:**
+      - **mi** - my (mi padre, mi madre)
+      - **tu** - your informal (tu hermano, tu hermana)
+      - **su** - his/her/your formal (su familia)
+
+      **Plural:**
+      - **mis** - my (mis padres, mis hermanos)
+      - **tus** - your informal (tus abuelos)
+      - **sus** - his/her/your formal (sus primos)
+
+      **Key Rule:**
+      Possessive adjectives match the NUMBER of what's possessed, not the gender:
+      - mi hermano (my brother)
+      - mi hermana (my sister)
+      - mis hermanos (my siblings)
+
+  - title: "Talking About Family"
+    content: |
+      **Introducing Family Members:**
+      - Este/Esta es mi... - This is my...
+      - Se llama... - His/Her name is...
+
+      **Asking About Family:**
+      - ¿Tienes hermanos? - Do you have siblings?
+      - ¿Quién es? - Who is it/he/she?
+      - ¿Cómo se llama? - What's his/her name?
+
+      **Describing Family:**
+      - Mi hermano pequeño - My little brother
+      - Mi hermana mayor - My older sister
+      - Mis abuelos - My grandparents
+
+  - title: "Cultural Note"
+    content: |
+      Family is extremely important in Spanish-speaking cultures. Extended family
+      often lives close together, and multi-generational gatherings are common.
+
+      It's very normal to ask about someone's family early in a conversation - it's
+      not considered too personal, but rather a sign of genuine interest.
+
+      **"Familia" includes:**
+      - Not just immediate family, but also aunts, uncles, cousins
+      - Often very close family friends (considered like family)
+      - Strong bonds and frequent family gatherings

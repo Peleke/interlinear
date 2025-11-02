@@ -1,0 +1,243 @@
+id: 3
+title: "Los Números y la Edad"
+title_english: "Numbers & Age"
+level: "A1"
+lesson_number: 3
+description: "Count from 0-20 and talk about age using the verb TENER"
+
+# Grammar concepts
+grammar_concepts:
+  - "numbers_0_20"
+
+# Core dialog
+dialog:
+  context: "Juan asks María about her brother's age and birthday party"
+  setting: "University café, conversation continues"
+
+  exchanges:
+    - speaker: "Juan"
+      spanish: "¿Cuántos años tiene tu hermano?"
+      english: "How old is your brother?"
+
+    - speaker: "María"
+      spanish: "Luis tiene doce años."
+      english: "Luis is twelve years old."
+
+    - speaker: "Juan"
+      spanish: "¿Y tu hermana Ana?"
+      english: "And your sister Ana?"
+
+    - speaker: "María"
+      spanish: "Ana tiene dieciocho años. Mañana es su cumpleaños."
+      english: "Ana is eighteen years old. Tomorrow is her birthday."
+
+    - speaker: "Juan"
+      spanish: "¡Qué bien! ¿Cuántos años va a cumplir?"
+      english: "How nice! How old will she turn?"
+
+    - speaker: "María"
+      spanish: "Va a cumplir diecinueve años. Vamos a hacer una fiesta."
+      english: "She's going to turn nineteen. We're going to have a party."
+
+    - speaker: "Juan"
+      spanish: "¿Cuántas personas van a la fiesta?"
+      english: "How many people are going to the party?"
+
+    - speaker: "María"
+      spanish: "Unas quince personas. Mis abuelos, mis tíos... toda la familia."
+      english: "About fifteen people. My grandparents, my aunts and uncles... the whole family."
+
+# Vocabulary
+vocabulary:
+  # Numbers 0-20
+  - { spanish: "cero", english: "zero" }
+  - { spanish: "uno", english: "one" }
+  - { spanish: "dos", english: "two" }
+  - { spanish: "tres", english: "three" }
+  - { spanish: "cuatro", english: "four" }
+  - { spanish: "cinco", english: "five" }
+  - { spanish: "seis", english: "six" }
+  - { spanish: "siete", english: "seven" }
+  - { spanish: "ocho", english: "eight" }
+  - { spanish: "nueve", english: "nine" }
+  - { spanish: "diez", english: "ten" }
+  - { spanish: "once", english: "eleven" }
+  - { spanish: "doce", english: "twelve" }
+  - { spanish: "trece", english: "thirteen" }
+  - { spanish: "catorce", english: "fourteen" }
+  - { spanish: "quince", english: "fifteen" }
+  - { spanish: "dieciséis", english: "sixteen" }
+  - { spanish: "diecisiete", english: "seventeen" }
+  - { spanish: "dieciocho", english: "eighteen" }
+  - { spanish: "diecinueve", english: "nineteen" }
+  - { spanish: "veinte", english: "twenty" }
+
+  # Age and time
+  - { spanish: "cuántos", english: "how many" }
+  - { spanish: "años", english: "years" }
+  - { spanish: "tiene", english: "has/is (age)" }
+  - { spanish: "tengo", english: "I have/am (age)" }
+  - { spanish: "tienes", english: "you have/are (age)" }
+  - { spanish: "edad", english: "age" }
+  - { spanish: "cumpleaños", english: "birthday" }
+  - { spanish: "cumplir", english: "to turn (age)" }
+  - { spanish: "mañana", english: "tomorrow" }
+  - { spanish: "fiesta", english: "party" }
+  - { spanish: "personas", english: "people" }
+  - { spanish: "unas", english: "about/some (feminine plural)" }
+  - { spanish: "toda", english: "all/whole" }
+
+# Exercises
+exercises:
+  - type: "translate_line_es_to_en"
+    dialog_line: 0
+    prompt: "Translate to English"
+    spanish_text: "¿Cuántos años tiene tu hermano?"
+    answer: "How old is your brother?"
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 1
+    prompt: "Translate to Spanish"
+    english_text: "Luis is twelve years old."
+    answer: "Luis tiene doce años."
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 3
+    prompt: "Translate to English"
+    spanish_text: "Ana tiene dieciocho años. Mañana es su cumpleaños."
+    answer: "Ana is eighteen years old. Tomorrow is her birthday."
+
+  - type: "translate_line_en_to_es"
+    dialog_line: 5
+    prompt: "Translate to Spanish"
+    english_text: "She's going to turn nineteen. We're going to have a party."
+    answer: "Va a cumplir diecinueve años. Vamos a hacer una fiesta."
+
+  - type: "translate_line_es_to_en"
+    dialog_line: 7
+    prompt: "Translate to English"
+    spanish_text: "Unas quince personas. Mis abuelos, mis tíos... toda la familia."
+    answer: "About fifteen people. My grandparents, my aunts and uncles... the whole family."
+
+  - type: "translate_variation"
+    base_dialog_line: 1
+    prompt: "Translate this variation to English"
+    spanish_text: "Mi hermana tiene dieciséis años."
+    answer: "My sister is sixteen years old."
+
+  - type: "translate_variation"
+    base_dialog_line: 0
+    prompt: "Translate this variation to Spanish"
+    english_text: "How old are you?"
+    answer: "¿Cuántos años tienes?"
+
+  - type: "translate_variation"
+    base_dialog_line: 1
+    prompt: "Translate this variation to Spanish"
+    english_text: "I am twenty years old."
+    answer: "Tengo veinte años."
+
+# Content sections
+content_sections:
+  - title: "Numbers 0-20"
+    content: |
+      **0-10:**
+      - 0 - cero
+      - 1 - uno
+      - 2 - dos
+      - 3 - tres
+      - 4 - cuatro
+      - 5 - cinco
+      - 6 - seis
+      - 7 - siete
+      - 8 - ocho
+      - 9 - nueve
+      - 10 - diez
+
+      **11-15:**
+      - 11 - once
+      - 12 - doce
+      - 13 - trece
+      - 14 - catorce
+      - 15 - quince
+
+      **16-20:**
+      Notice the pattern for 16-19: **dieci-** (ten and) + number
+      - 16 - dieciséis (diez + seis)
+      - 17 - diecisiete (diez + siete)
+      - 18 - dieciocho (diez + ocho)
+      - 19 - diecinueve (diez + nueve)
+      - 20 - veinte
+
+  - title: "Expressing Age with TENER"
+    content: |
+      In Spanish, we use **tener** (to have) for age, NOT **ser** (to be)!
+
+      **TENER conjugation:**
+      - Yo **tengo** - I have/am (age)
+      - Tú **tienes** - You have/are (age)
+      - Él/Ella **tiene** - He/She has/is (age)
+
+      **Asking about age:**
+      - **¿Cuántos años tienes?** - How old are you?
+      - **¿Cuántos años tiene?** - How old is he/she?
+
+      **Answering:**
+      - **Tengo [number] años** - I am [number] years old
+      - **Tiene [number] años** - He/She is [number] years old
+
+      **Always use "años" (years):**
+      ✅ Tengo veinte años
+      ❌ Tengo veinte
+
+  - title: "Birthday Vocabulary"
+    content: |
+      **Key Birthday Phrases:**
+      - **cumpleaños** - birthday (literally: fulfillment of years)
+      - **cumplir años** - to turn (an age)
+      - **¿Cuándo es tu cumpleaños?** - When is your birthday?
+      - **Mañana es mi cumpleaños** - Tomorrow is my birthday
+
+      **Birthday Activities:**
+      - **hacer una fiesta** - to have a party
+      - **celebrar** - to celebrate
+      - **invitar** - to invite
+
+      **Wishing Happy Birthday:**
+      - **¡Feliz cumpleaños!** - Happy birthday!
+      - **¡Felicidades!** - Congratulations!
+
+  - title: "Using 'Cuántos' (How Many)"
+    content: |
+      **¿Cuántos?** is used to ask "how many?" with countable things:
+
+      **With age:**
+      - ¿Cuántos años tienes? - How old are you?
+      - ¿Cuántos años tiene tu hermana? - How old is your sister?
+
+      **With people:**
+      - ¿Cuántas personas? - How many people?
+      - ¿Cuántos hermanos tienes? - How many siblings do you have?
+
+      **Note:**
+      - **Cuántos** (masculine/general)
+      - **Cuántas** (feminine)
+
+  - title: "Cultural Note"
+    content: |
+      **Birthday Celebrations in Spanish Culture:**
+
+      In many Spanish-speaking countries, birthdays are BIG celebrations:
+      - **Quinceañera** (15th birthday for girls) - major celebration
+      - **Eighteen** - coming of age, very important
+      - Family gatherings are common, often with extended family
+      - Traditional foods and music
+      - **"Las mañanitas"** - traditional birthday song in Mexico
+
+      **Age Milestones:**
+      - 15 (quinceañera) - transition to womanhood
+      - 18 (mayoría de edad) - legal adulthood
+      - Sweet sixteen is NOT celebrated in Hispanic cultures
+
+      It's very common to ask someone's age in Spanish-speaking cultures - it's not
+      considered rude like it sometimes is in English-speaking countries!

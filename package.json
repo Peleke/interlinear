@@ -12,7 +12,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "seed:lessons": "npx tsx scripts/parse-lessons.ts",
+    "seed:lessons:v2": "npx tsx scripts/seed-lessons-v2.ts"
   },
   "dependencies": {
     "@langchain/core": "^0.3.0",
@@ -20,13 +22,17 @@
     "@langchain/openai": "^0.3.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "@types/marked": "^5.0.2",
+    "gray-matter": "^4.0.3",
     "langchain": "^0.3.0",
     "lru-cache": "^10.0.0",
     "lucide-react": "^0.552.0",
+    "marked": "^16.4.1",
     "next": "^15.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^2.0.7",
+    "yaml": "^2.8.1",
     "zod": "^3.22.0"
   },
   "devDependencies": {

@@ -1,0 +1,69 @@
+---
+id: lesson_test_01
+title: "Test Lesson - Saludos"
+level: A1
+xp_value: 100
+grammar_points:
+  - id: gp_ser_present
+    name: "El verbo SER (presente)"
+    overview: "The verb 'to be' in present tense"
+    examples:
+      - "Yo soy estudiante"
+      - "Ella es de México"
+      - "Nosotros somos amigos"
+vocabulary:
+  - word: "hola"
+    translation: "hello"
+    example: "Hola, ¿cómo estás?"
+  - word: "adiós"
+    translation: "goodbye"
+    example: "Adiós, hasta luego"
+  - word: "gracias"
+    translation: "thank you"
+    example: "Gracias por tu ayuda"
+exercises:
+  - type: fill_blank
+    prompt: "Yo ___ estudiante"
+    answer: "soy"
+    xp_value: 10
+  - type: multiple_choice
+    prompt: "How do you say 'hello' in Spanish?"
+    answer: "hola"
+    options:
+      - "hola"
+      - "adiós"
+      - "gracias"
+    xp_value: 10
+  - type: fill_blank
+    prompt: "Ella ___ de México"
+    answer: "es"
+    xp_value: 10
+---
+# Saludos y Presentaciones
+
+## Introducción
+
+In this lesson, we'll learn basic greetings and introductions in Spanish. These are essential phrases you'll use every day when speaking Spanish.
+
+## El verbo SER
+
+The verb "ser" (to be) is one of the most important verbs in Spanish. Here's how to conjugate it in the present tense:
+
+- Yo soy (I am)
+- Tú eres (You are - informal)
+- Él/Ella/Usted es (He/She is, You are - formal)
+- Nosotros somos (We are)
+- Ellos/Ellas/Ustedes son (They are, You are - plural)
+
+## Vocabulario Básico
+
+Let's learn some basic greeting words:
+
+- **Hola** - Hello
+- **Adiós** - Goodbye
+- **Gracias** - Thank you
+- **Por favor** - Please
+
+## Practice
+
+Try using these phrases in your daily life to practice!

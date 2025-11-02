@@ -1,0 +1,40 @@
+name: "verb_ser_present"
+display_name: "El verbo SER - Present Tense"
+description: "The verb 'to be' for identity, characteristics, and origin"
+
+content: |
+  ## SER - To Be (Present Tense)
+
+  The verb **ser** expresses identity, characteristics, origin, and profession.
+
+  ### Conjugation Table
+  | Person | Spanish | English |
+  |--------|---------|---------|
+  | Yo | soy | I am |
+  | Tú | eres | you are (informal) |
+  | Él/Ella/Usted | es | he/she is, you are (formal) |
+  | Nosotros/Nosotras | somos | we are |
+  | Ellos/Ellas/Ustedes | son | they are, you are (plural) |
+
+  ### Usage Examples
+  **Identity**: "Yo soy María" (I am María)
+  **Characteristics**: "Ella es inteligente" (She is intelligent)
+  **Origin**: "Somos de España" (We are from Spain)
+  **Profession**: "Él es profesor" (He is a teacher)
+
+  ### Common Phrases
+  - ¿Cómo te llamas? - What's your name? (literally: How do you call yourself?)
+  - Me llamo... - My name is... (I call myself...)
+  - ¿De dónde eres? - Where are you from?
+  - Soy de... - I'm from...
+
+associated_vocabulary:
+  - { spanish: "soy", english: "I am" }
+  - { spanish: "eres", english: "you are" }
+  - { spanish: "es", english: "he/she is" }
+  - { spanish: "somos", english: "we are" }
+  - { spanish: "son", english: "they are" }
+
+related_grammar:
+  - "verb_estar_present"
+  - "subject_pronouns"

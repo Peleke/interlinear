@@ -1,0 +1,51 @@
+name: "possessive_adjectives"
+display_name: "Possessive Adjectives (mi, tu, su)"
+description: "Expressing ownership and relationships in Spanish"
+
+content: |
+  ## Possessive Adjectives
+
+  Possessive adjectives show ownership or relationships between people and things.
+
+  ### Singular Forms
+  | Person | Spanish | English | Example |
+  |--------|---------|---------|---------|
+  | 1st person | mi | my | mi padre (my father) |
+  | 2nd person | tu | your (informal) | tu hermana (your sister) |
+  | 3rd person | su | his/her/your (formal) | su abuela (his/her/your grandmother) |
+
+  ### Plural Forms
+  | Person | Spanish | English | Example |
+  |--------|---------|---------|---------|
+  | 1st person | mis | my (plural) | mis padres (my parents) |
+  | 2nd person | tus | your (informal, plural) | tus hermanos (your siblings) |
+  | 3rd person | sus | his/her/your (plural) | sus abuelos (his/her/your grandparents) |
+
+  ### Key Rules
+  1. **Agreement**: Possessive adjectives agree in NUMBER with the thing possessed, not the possessor
+     - mi hermano (my brother) - singular
+     - mis hermanos (my brothers) - plural
+
+  2. **No gender agreement**: Unlike regular adjectives, possessives don't change for gender
+     - mi padre (my father - masculine)
+     - mi madre (my mother - feminine)
+
+  3. **Ambiguity with 'su'**: Since 'su' can mean his/her/your/their, context is important
+     - su hermano = his brother, her brother, your brother, or their brother
+
+  ### Common Phrases
+  - Mi familia - My family
+  - Tu nombre - Your name
+  - Su casa - His/her/your/their house
+
+associated_vocabulary:
+  - { spanish: "mi", english: "my" }
+  - { spanish: "tu", english: "your (informal)" }
+  - { spanish: "su", english: "his/her/your (formal)" }
+  - { spanish: "mis", english: "my (plural)" }
+  - { spanish: "tus", english: "your (plural)" }
+  - { spanish: "sus", english: "his/her/your (plural)" }
+
+related_grammar:
+  - "noun_gender"
+  - "noun_number"

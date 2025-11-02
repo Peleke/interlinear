@@ -73,10 +73,32 @@ export async function middleware(request: NextRequest) {
   // This prevents middleware crashes when tokens are stale/invalid
   const isAuthenticated = user && !error
 
+  // Public paths that don't require onboarding check
+  const publicPaths = ['/login', '/signup', '/onboarding', '/api']
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
+
+  // Check onboarding completion for authenticated users (but not on onboarding/api pages)
+  if (isAuthenticated && !isPublicPath) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('onboarding_completed')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    // Redirect to onboarding if profile doesn't exist or onboarding not completed
+    if (!profile?.onboarding_completed) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
+  }
+
   // Protected routes requiring authentication
   if (request.nextUrl.pathname.startsWith('/reader') ||
       request.nextUrl.pathname.startsWith('/vocabulary') ||
-      request.nextUrl.pathname.startsWith('/library')) {
+      request.nextUrl.pathname.startsWith('/library') ||
+      request.nextUrl.pathname.startsWith('/courses') ||
+      request.nextUrl.pathname.startsWith('/dashboard') ||
+      request.nextUrl.pathname.startsWith('/flashcards') ||
+      request.nextUrl.pathname.startsWith('/profile')) {
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -86,7 +108,7 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/signup')) {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/reader', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 

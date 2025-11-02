@@ -1,0 +1,76 @@
+name: "numbers_0_20"
+display_name: "Numbers 0-20 and Expressing Age"
+description: "Counting in Spanish and using TENER for age"
+
+content: |
+  ## Numbers 0-20
+
+  ### Basic Numbers
+  | Number | Spanish | Pronunciation Guide |
+  |--------|---------|---------------------|
+  | 0 | cero | SEH-roh |
+  | 1 | uno | OO-noh |
+  | 2 | dos | dohs |
+  | 3 | tres | trehs |
+  | 4 | cuatro | KWAH-troh |
+  | 5 | cinco | SEEN-koh |
+  | 6 | seis | says |
+  | 7 | siete | see-EH-teh |
+  | 8 | ocho | OH-choh |
+  | 9 | nueve | NWEH-veh |
+  | 10 | diez | dee-EHS |
+  | 11 | once | OHN-seh |
+  | 12 | doce | DOH-seh |
+  | 13 | trece | TREH-seh |
+  | 14 | catorce | kah-TOR-seh |
+  | 15 | quince | KEEN-seh |
+  | 16 | dieciséis | dee-eh-see-SAYS |
+  | 17 | diecisiete | dee-eh-see-see-EH-teh |
+  | 18 | dieciocho | dee-eh-see-OH-choh |
+  | 19 | diecinueve | dee-eh-see-NWEH-veh |
+  | 20 | veinte | VAYN-teh |
+
+  ## Expressing Age with TENER
+
+  In Spanish, we use the verb **tener** (to have) to express age, not **ser** (to be).
+
+  ### TENER Conjugation (Present Tense)
+  | Person | Spanish | English |
+  |--------|---------|---------|
+  | Yo | tengo | I have |
+  | Tú | tienes | you have |
+  | Él/Ella/Usted | tiene | he/she has, you have |
+  | Nosotros | tenemos | we have |
+  | Ellos/Ustedes | tienen | they/you have |
+
+  ### Age Expressions
+  - **¿Cuántos años tienes?** - How old are you? (literally: How many years do you have?)
+  - **Tengo [number] años** - I am [number] years old (literally: I have [number] years)
+
+  ### Examples
+  - Tengo veinte años - I am 20 years old
+  - Mi hermano tiene diez años - My brother is 10 years old
+  - ¿Cuántos años tiene ella? - How old is she?
+
+  ### Key Points
+  1. Always use **años** (years) when talking about age
+  2. Use **tener**, not **ser**, for age
+  3. **¿Cuántos?** means "how many?" and is used for countable things
+
+associated_vocabulary:
+  - { spanish: "uno", english: "one" }
+  - { spanish: "cinco", english: "five" }
+  - { spanish: "diez", english: "ten" }
+  - { spanish: "quince", english: "fifteen" }
+  - { spanish: "veinte", english: "twenty" }
+  - { spanish: "año", english: "year" }
+  - { spanish: "años", english: "years" }
+  - { spanish: "edad", english: "age" }
+  - { spanish: "tengo", english: "I have" }
+  - { spanish: "tienes", english: "you have" }
+  - { spanish: "tiene", english: "he/she has" }
+  - { spanish: "cuántos", english: "how many" }
+
+related_grammar:
+  - "verb_tener_present"
+  - "question_words"
