@@ -8,6 +8,7 @@ export default function CompletePage() {
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [level, setLevel] = useState<string>('')
+  const [isEnrolling, setIsEnrolling] = useState(false)
 
   useEffect(() => {
     const completeOnboarding = async () => {
@@ -90,8 +91,6 @@ export default function CompletePage() {
       </div>
     )
   }
-
-  const [isEnrolling, setIsEnrolling] = useState(false)
 
   const handleStartJourney = async () => {
     setIsEnrolling(true)

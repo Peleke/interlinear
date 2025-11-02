@@ -20,28 +20,46 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle()
 
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Profile already exists' },
-        { status: 400 }
-      )
-    }
+    let profile
+    let error
 
-    // Create user profile
-    const { data: profile, error } = await supabase
-      .from('user_profiles')
-      .insert({
-        user_id: user.id,
-        level: assessed_level,
-        assessed_level,
-        goals: goals || [],
-        timezone: timezone || 'UTC',
-        onboarding_completed: true,
-        xp: 0,
-        streak: 0
-      })
-      .select()
-      .single()
+    if (existing) {
+      // Update existing profile
+      const result = await supabase
+        .from('user_profiles')
+        .update({
+          level: assessed_level,
+          assessed_level,
+          goals: goals || [],
+          timezone: timezone || 'UTC',
+          onboarding_completed: true
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      profile = result.data
+      error = result.error
+    } else {
+      // Create new profile
+      const result = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: user.id,
+          level: assessed_level,
+          assessed_level,
+          goals: goals || [],
+          timezone: timezone || 'UTC',
+          onboarding_completed: true,
+          xp: 0,
+          streak: 0
+        })
+        .select()
+        .single()
+
+      profile = result.data
+      error = result.error
+    }
 
     if (error) {
       console.error('Profile creation error:', error)

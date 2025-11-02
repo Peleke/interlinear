@@ -39,6 +39,13 @@ export default async function LessonPage({
     .eq('lesson_id', lessonId)
     .order('sequence_order', { ascending: true })
 
+  // Get exercises for this lesson
+  const { data: exercises } = await supabase
+    .from('exercises')
+    .select('*')
+    .eq('lesson_id', lessonId)
+    .order('sequence_order', { ascending: true })
+
   // Check if completed
   const { data: completion } = await supabase
     .from('lesson_completions')
@@ -53,6 +60,7 @@ export default async function LessonPage({
     <LessonViewer
       lesson={lesson}
       contentBlocks={contentBlocks || []}
+      exercises={exercises || []}
       courseId={courseId}
       lessonId={lessonId}
       isCompleted={isCompleted}

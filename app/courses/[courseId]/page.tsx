@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LessonCard from '@/components/courses/LessonCard'
 import { BookOpen, Target, Clock } from 'lucide-react'
+import { Navigation } from '@/components/Navigation'
 
 export default async function CoursePage({
   params
@@ -61,6 +62,11 @@ export default async function CoursePage({
 
   return (
     <div className="min-h-screen bg-parchment">
+      {/* Navigation */}
+      <div className="max-w-4xl mx-auto px-6 pt-6">
+        <Navigation />
+      </div>
+
       {/* Hero section */}
       <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
         <div className="max-w-4xl mx-auto px-6 py-12">
@@ -111,6 +117,11 @@ export default async function CoursePage({
                 style={{ width: `${progress}%` }}
               />
             </div>
+            {progress === 0 && totalLessons > 0 && (
+              <p className="text-sm text-sepia-600 mt-2 italic">
+                Ready to begin? Start with Lesson 1 below!
+              </p>
+            )}
           </div>
         </div>
       </div>

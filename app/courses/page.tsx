@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import CourseCard from '@/components/courses/CourseCard'
 import { BookOpen } from 'lucide-react'
+import { Navigation } from '@/components/Navigation'
 
 export default async function CoursesPage() {
   const supabase = await createClient()
@@ -56,6 +57,11 @@ export default async function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-parchment">
+      {/* Navigation */}
+      <div className="max-w-6xl mx-auto px-6 pt-6">
+        <Navigation />
+      </div>
+
       {/* Hero section */}
       <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
         <div className="max-w-6xl mx-auto px-6 py-12">

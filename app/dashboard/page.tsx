@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import CourseCard from '@/components/courses/CourseCard'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
+import { Navigation } from '@/components/Navigation'
+import StatsWidget from '@/components/dashboard/StatsWidget'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -15,6 +17,27 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/auth/signin')
   }
+
+  // Get user profile for gamification stats
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('xp, streak, level')
+    .eq('user_id', user.id)
+    .single()
+
+  const userStats = {
+    xp: profile?.xp || 0,
+    streak: profile?.streak || 0,
+    level: profile?.level || 1
+  }
+
+  // Get total completed lessons count
+  const { data: allCompletions } = await supabase
+    .from('lesson_completions')
+    .select('id')
+    .eq('user_id', user.id)
+
+  const completedLessonsCount = allCompletions?.length || 0
 
   // Get enrolled courses
   const { data: enrollments, error: enrollmentsError } = await supabase
@@ -70,20 +93,35 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-parchment">
+      {/* Navigation */}
+      <div className="max-w-6xl mx-auto px-6 pt-6">
+        <Navigation />
+      </div>
+
       {/* Hero section */}
       <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <h1 className="text-4xl font-serif text-sepia-900 mb-4">
-            My Courses
+            Dashboard
           </h1>
           <p className="text-lg text-sepia-700">
-            Continue your Spanish learning journey
+            Track your progress and continue learning
           </p>
         </div>
       </div>
 
+      {/* Stats Widgets */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <StatsWidget
+          xp={userStats.xp}
+          streak={userStats.streak}
+          level={userStats.level}
+          completedLessons={completedLessonsCount}
+        />
+      </div>
+
       {/* Courses grid */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto px-6 pb-12">
         {coursesWithProgress && coursesWithProgress.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

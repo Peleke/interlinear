@@ -5,6 +5,14 @@ import { marked } from 'marked'
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Navigation } from '@/components/Navigation'
+import FillBlankExercise from '@/components/exercises/FillBlankExercise'
+
+// Configure marked for proper rendering
+marked.setOptions({
+  breaks: true,
+  gfm: true
+})
 
 interface LessonViewerProps {
   lesson: {
@@ -21,6 +29,13 @@ interface LessonViewerProps {
     content_type: string
     content?: string | null
   }>
+  exercises: Array<{
+    id: string
+    prompt: string
+    type: string
+    spanish_text?: string | null
+    english_text?: string | null
+  }>
   courseId: string
   lessonId: string
   isCompleted: boolean
@@ -29,6 +44,7 @@ interface LessonViewerProps {
 export default function LessonViewer({
   lesson,
   contentBlocks,
+  exercises,
   courseId,
   lessonId,
   isCompleted: initialIsCompleted
@@ -36,6 +52,17 @@ export default function LessonViewer({
   const router = useRouter()
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
   const [isCompleting, setIsCompleting] = useState(false)
+  const [completedExercises, setCompletedExercises] = useState<Set<string>>(
+    new Set()
+  )
+  const [totalXpEarned, setTotalXpEarned] = useState(0)
+
+  const handleExerciseComplete = (exerciseId: string, isCorrect: boolean, xpEarned: number) => {
+    if (isCorrect) {
+      setCompletedExercises((prev) => new Set(prev).add(exerciseId))
+      setTotalXpEarned((prev) => prev + xpEarned)
+    }
+  }
 
   const handleComplete = async () => {
     setIsCompleting(true)
@@ -61,6 +88,11 @@ export default function LessonViewer({
 
   return (
     <div className="min-h-screen bg-parchment">
+      {/* Navigation */}
+      <div className="max-w-4xl mx-auto px-6 pt-6">
+        <Navigation />
+      </div>
+
       {/* Header */}
       <div className="bg-white border-b border-sepia-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4">
@@ -184,6 +216,38 @@ export default function LessonViewer({
             <p className="text-sepia-600">
               Lesson content is being prepared. Check back soon!
             </p>
+          </div>
+        )}
+
+        {/* Exercises Section */}
+        {exercises && exercises.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-serif text-sepia-900">
+                Practice Exercises
+              </h2>
+              {totalXpEarned > 0 && (
+                <div className="px-4 py-2 bg-green-100 border border-green-200 rounded-lg">
+                  <p className="text-sm font-medium text-green-900">
+                    +{totalXpEarned} XP earned
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="space-y-6">
+              {exercises.map((exercise) => (
+                <FillBlankExercise
+                  key={exercise.id}
+                  exerciseId={exercise.id}
+                  prompt={exercise.prompt}
+                  spanishText={exercise.spanish_text || undefined}
+                  englishText={exercise.english_text || undefined}
+                  onComplete={(isCorrect, xpEarned) =>
+                    handleExerciseComplete(exercise.id, isCorrect, xpEarned)
+                  }
+                />
+              ))}
+            </div>
           </div>
         )}
 
