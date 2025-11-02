@@ -44,7 +44,14 @@ export default async function LessonPage({
     .from('exercises')
     .select('*')
     .eq('lesson_id', lessonId)
-    .order('sequence_order', { ascending: true })
+    .order('created_at', { ascending: true })
+
+  // Get readings for this lesson
+  const { data: readings } = await supabase
+    .from('lesson_readings')
+    .select('reading_id, library_readings(id, title, content, word_count)')
+    .eq('lesson_id', lessonId)
+    .order('display_order', { ascending: true })
 
   // Check if completed
   const { data: completion } = await supabase
@@ -56,11 +63,17 @@ export default async function LessonPage({
 
   const isCompleted = !!completion
 
+  // Transform readings data - properly type the nested array
+  const lessonReadings = readings
+    ?.map(r => r.library_readings)
+    .filter((r): r is { id: string; title: string; content: string; word_count: number } => r !== null) || []
+
   return (
     <LessonViewer
       lesson={lesson}
       contentBlocks={contentBlocks || []}
       exercises={exercises || []}
+      readings={lessonReadings}
       courseId={courseId}
       lessonId={lessonId}
       isCompleted={isCompleted}
