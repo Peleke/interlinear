@@ -23,3 +23,90 @@ body {
     display: none;  /* Chrome, Safari, Opera */
   }
 }
+
+/* Prose styles for markdown content */
+@layer components {
+  .prose {
+    @apply text-sepia-900 leading-relaxed;
+  }
+
+  .prose h1 {
+    @apply text-3xl font-serif font-bold text-sepia-900 mt-8 mb-4;
+  }
+
+  .prose h2 {
+    @apply text-2xl font-serif font-bold text-sepia-900 mt-6 mb-3;
+  }
+
+  .prose h3 {
+    @apply text-xl font-semibold text-sepia-900 mt-4 mb-2;
+  }
+
+  .prose p {
+    @apply mb-4 text-sepia-800;
+  }
+
+  .prose ul {
+    @apply list-disc list-outside ml-6 mb-4 space-y-2;
+  }
+
+  .prose ol {
+    @apply list-decimal list-outside ml-6 mb-4 space-y-2;
+  }
+
+  .prose li {
+    @apply text-sepia-800;
+  }
+
+  .prose strong {
+    @apply font-semibold text-sepia-900;
+  }
+
+  .prose em {
+    @apply italic;
+  }
+
+  .prose code {
+    @apply bg-sepia-100 px-1.5 py-0.5 rounded text-sm font-mono text-sepia-900;
+  }
+
+  .prose pre {
+    @apply bg-sepia-900 text-sepia-50 p-4 rounded-lg overflow-x-auto mb-4;
+  }
+
+  .prose pre code {
+    @apply bg-transparent p-0 text-sepia-50;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-sepia-300 pl-4 italic text-sepia-700 my-4;
+  }
+
+  .prose table {
+    @apply w-full border-collapse mb-4;
+  }
+
+  .prose thead {
+    @apply bg-sepia-100;
+  }
+
+  .prose th {
+    @apply border border-sepia-300 px-4 py-2 text-left font-semibold text-sepia-900;
+  }
+
+  .prose td {
+    @apply border border-sepia-300 px-4 py-2 text-sepia-800;
+  }
+
+  .prose tr:nth-child(even) {
+    @apply bg-sepia-50;
+  }
+
+  .prose a {
+    @apply text-sepia-700 underline hover:text-sepia-900 transition-colors;
+  }
+
+  .prose hr {
+    @apply border-t border-sepia-300 my-6;
+  }
+}

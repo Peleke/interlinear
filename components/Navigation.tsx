@@ -10,6 +10,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const links = [
+    { href: '/dashboard', label: 'Home' },
     { href: '/reader', label: 'Reader' },
     { href: '/library', label: 'Library' },
     { href: '/flashcards', label: 'Flashcards' },
