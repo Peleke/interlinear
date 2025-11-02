@@ -399,14 +399,24 @@ async function seedLesson(filePath: string, grammarMap: Map<string, string>): Pr
       .delete()
       .eq('lesson_id', lessonId);
 
+    // Map YAML exercise types to DB-allowed types
+    const normalizeExerciseType = (type: string): 'fill_blank' | 'multiple_choice' | 'translation' => {
+      if (type.startsWith('translate')) return 'translation';
+      if (type === 'fill_blank') return 'fill_blank';
+      if (type === 'multiple_choice') return 'multiple_choice';
+      return 'translation'; // default fallback
+    };
+
     for (const exercise of lessonData.exercises) {
       const { error: exerciseError } = await supabase
         .from('exercises')
         .insert({
           lesson_id: lessonId,
-          type: 'translation',  // Default type for now
+          type: normalizeExerciseType(exercise.type || 'translation'),
           prompt: exercise.prompt,
           answer: exercise.answer,
+          spanish_text: exercise.spanish_text || null,
+          english_text: exercise.english_text || null,
           xp_value: 10
         });
 
@@ -509,6 +519,62 @@ async function seedLesson(filePath: string, grammarMap: Map<string, string>): Pr
   }
 
   console.log(`    ✓ Created ${sequenceOrder} lesson content blocks`);
+
+  // Step 8: Create library reading for this lesson
+  console.log(`\n  📖 Creating library reading for lesson...`);
+
+  // Generate reading content from dialog
+  let readingContent = '';
+  if (lessonData.dialog && lessonData.dialog.exchanges) {
+    // Use dialog as the reading content
+    readingContent = lessonData.dialog.exchanges
+      .map(exchange => exchange.spanish)
+      .join(' ');
+  } else {
+    // Fallback: use description or placeholder
+    readingContent = lessonData.description || `Contenido de práctica para ${lessonData.title}`;
+  }
+
+  const wordCount = readingContent.split(/\s+/).length;
+
+  // Create library reading
+  const { data: reading, error: readingError } = await supabase
+    .from('library_readings')
+    .upsert({
+      title: `${lessonData.title} - Lectura`,
+      author: 'Interlinear Team',
+      source: 'Lesson Content',
+      content: readingContent,
+      language: 'es',
+      difficulty_level: lessonData.level,
+      word_count: wordCount
+    }, {
+      onConflict: 'title'
+    })
+    .select('id')
+    .single();
+
+  if (readingError) {
+    console.warn(`    ⚠️  Failed to create reading: ${readingError.message}`);
+  } else if (reading) {
+    // Associate reading with lesson
+    const { error: junctionError } = await supabase
+      .from('lesson_readings')
+      .upsert({
+        lesson_id: lessonId,
+        reading_id: reading.id,
+        display_order: 0,
+        is_required: false
+      }, {
+        onConflict: 'lesson_id,reading_id'
+      });
+
+    if (junctionError) {
+      console.warn(`    ⚠️  Failed to link reading to lesson: ${junctionError.message}`);
+    } else {
+      console.log(`    ✓ Created and linked reading (${wordCount} words)`);
+    }
+  }
 
   console.log(`\n✅ Lesson "${lessonData.title}" seeded successfully!\n`);
 }

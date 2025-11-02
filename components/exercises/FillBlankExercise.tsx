@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Loader2, CheckCircle, XCircle, BookmarkPlus } from 'lucide-react'
 
 interface FillBlankExerciseProps {
   exerciseId: string
@@ -20,6 +20,12 @@ export default function FillBlankExercise({
 }: FillBlankExerciseProps) {
   const [userAnswer, setUserAnswer] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingFlashcard, setIsSavingFlashcard] = useState(false)
+  const [flashcardSaved, setFlashcardSaved] = useState(false)
+  const [showDeckModal, setShowDeckModal] = useState(false)
+  const [decks, setDecks] = useState<any[]>([])
+  const [isCreatingDeck, setIsCreatingDeck] = useState(false)
+  const [newDeckName, setNewDeckName] = useState('')
   const [result, setResult] = useState<{
     is_correct: boolean
     correct_answer?: string
@@ -61,6 +67,73 @@ export default function FillBlankExercise({
   const handleTryAgain = () => {
     setUserAnswer('')
     setResult(null)
+    setFlashcardSaved(false)
+  }
+
+  const openDeckModal = async () => {
+    try {
+      const res = await fetch('/api/flashcards/decks')
+      const { decks: userDecks } = await res.json()
+      setDecks(userDecks || [])
+      setShowDeckModal(true)
+    } catch (error) {
+      console.error('Load decks error:', error)
+      alert('Failed to load decks. Please try again.')
+    }
+  }
+
+  const handleCreateDeck = async () => {
+    if (!newDeckName.trim()) return
+
+    setIsCreatingDeck(true)
+    try {
+      const res = await fetch('/api/flashcards/decks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newDeckName,
+          description: 'Custom lesson deck'
+        })
+      })
+      const { deck } = await res.json()
+
+      await saveCardToDeck(deck.id)
+      setNewDeckName('')
+    } catch (error) {
+      console.error('Create deck error:', error)
+      alert('Failed to create deck. Please try again.')
+    } finally {
+      setIsCreatingDeck(false)
+    }
+  }
+
+  const saveCardToDeck = async (deckId: string) => {
+    if (!spanishText || !englishText) return
+
+    setIsSavingFlashcard(true)
+    try {
+      await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deck_id: deckId,
+          card_type: 'basic',
+          front: englishText,
+          back: spanishText,
+          notes: prompt,
+          source: 'lesson_exercise',
+          source_id: exerciseId
+        })
+      })
+
+      setFlashcardSaved(true)
+      setShowDeckModal(false)
+    } catch (error) {
+      console.error('Save flashcard error:', error)
+      alert('Failed to save flashcard. Please try again.')
+    } finally {
+      setIsSavingFlashcard(false)
+    }
   }
 
   return (
@@ -168,14 +241,120 @@ export default function FillBlankExercise({
             </div>
           </div>
 
-          {!result.is_correct && (
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            {!result.is_correct && (
+              <button
+                onClick={handleTryAgain}
+                className="flex-1 px-4 py-2 bg-white text-red-700 border-2 border-red-200 font-medium rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Try Again
+              </button>
+            )}
+
+            {/* Send to Flashcard button */}
+            {spanishText && englishText && (
+              <button
+                onClick={openDeckModal}
+                disabled={flashcardSaved || isSavingFlashcard}
+                className={`${result.is_correct ? 'flex-1' : 'flex-1'} px-4 py-2 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  flashcardSaved
+                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-2 border-gray-200'
+                    : 'bg-white text-sepia-700 border-2 border-sepia-300 hover:bg-sepia-50'
+                }`}
+              >
+                {flashcardSaved ? (
+                  <>
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Saved to Deck</span>
+                  </>
+                ) : (
+                  <>
+                    <BookmarkPlus className="h-4 w-4" />
+                    <span>Save to Flashcard</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Deck Selection Modal */}
+      {showDeckModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-serif text-sepia-900 mb-4">
+              Save to Flashcard Deck
+            </h3>
+
+            {/* Existing Decks */}
+            {decks.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-sepia-700 mb-2">
+                  Select a deck:
+                </h4>
+                <div className="space-y-2">
+                  {decks.map((deck) => (
+                    <button
+                      key={deck.id}
+                      onClick={() => saveCardToDeck(deck.id)}
+                      disabled={isSavingFlashcard}
+                      className="w-full text-left px-4 py-3 border-2 border-sepia-200 rounded-lg hover:border-sepia-400 hover:bg-sepia-50 transition-colors disabled:opacity-50"
+                    >
+                      <p className="font-medium text-sepia-900">{deck.name}</p>
+                      {deck.description && (
+                        <p className="text-sm text-sepia-600">
+                          {deck.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-sepia-500 mt-1">
+                        {deck.card_count || 0} cards
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Create New Deck */}
+            <div className="border-t border-sepia-200 pt-4">
+              <h4 className="text-sm font-medium text-sepia-700 mb-2">
+                Or create a new deck:
+              </h4>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newDeckName}
+                  onChange={(e) => setNewDeckName(e.target.value)}
+                  placeholder="Deck name..."
+                  className="flex-1 px-3 py-2 border-2 border-sepia-200 rounded-lg focus:border-sepia-700 focus:outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateDeck()
+                  }}
+                />
+                <button
+                  onClick={handleCreateDeck}
+                  disabled={!newDeckName.trim() || isCreatingDeck}
+                  className="px-4 py-2 bg-sepia-700 text-white font-medium rounded-lg hover:bg-sepia-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreatingDeck ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    'Create'
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Cancel button */}
             <button
-              onClick={handleTryAgain}
-              className="w-full px-4 py-2 bg-white text-red-700 border-2 border-red-200 font-medium rounded-lg hover:bg-red-50 transition-colors"
+              onClick={() => setShowDeckModal(false)}
+              className="w-full mt-4 px-4 py-2 border-2 border-sepia-200 text-sepia-700 font-medium rounded-lg hover:bg-sepia-50 transition-colors"
             >
-              Try Again
+              Cancel
             </button>
-          )}
+          </div>
         </div>
       )}
     </div>
