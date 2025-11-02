@@ -418,6 +418,98 @@ async function seedLesson(filePath: string, grammarMap: Map<string, string>): Pr
     console.log(`    ✓ Created ${lessonData.exercises.length} exercises`);
   }
 
+  // Step 7: Create lesson_content blocks
+  console.log(`\n  📄 Creating lesson content blocks...`);
+
+  // Delete existing lesson_content first
+  await supabase
+    .from('lesson_content')
+    .delete()
+    .eq('lesson_id', lessonId);
+
+  let sequenceOrder = 0;
+
+  // 1. Introduction/Overview (markdown)
+  if (lessonData.description) {
+    const { error: contentError } = await supabase
+      .from('lesson_content')
+      .insert({
+        lesson_id: lessonId,
+        content_type: 'markdown',
+        content: `## ${lessonData.title_english}\n\n${lessonData.description}`,
+        sequence_order: sequenceOrder++
+      });
+
+    if (contentError) {
+      console.warn(`    ⚠️  Failed to insert intro content: ${contentError.message}`);
+    }
+  }
+
+  // 2. Dialog as interlinear content
+  if (lessonData.dialog && lessonData.dialog.exchanges) {
+    let dialogContent = `**${lessonData.dialog.context}**\n\n`;
+
+    for (const exchange of lessonData.dialog.exchanges) {
+      dialogContent += `**${exchange.speaker}:** ${exchange.spanish}\n`;
+      dialogContent += `*${exchange.english}*\n\n`;
+    }
+
+    const { error: contentError } = await supabase
+      .from('lesson_content')
+      .insert({
+        lesson_id: lessonId,
+        content_type: 'interlinear',
+        content: dialogContent,
+        sequence_order: sequenceOrder++
+      });
+
+    if (contentError) {
+      console.warn(`    ⚠️  Failed to insert dialog content: ${contentError.message}`);
+    }
+  }
+
+  // 3. Vocabulary section
+  if (lessonData.vocabulary && lessonData.vocabulary.length > 0) {
+    let vocabContent = '| Spanish | English |\n|---------|----------|\n';
+
+    for (const vocab of lessonData.vocabulary) {
+      vocabContent += `| ${vocab.spanish} | ${vocab.english} |\n`;
+    }
+
+    const { error: contentError } = await supabase
+      .from('lesson_content')
+      .insert({
+        lesson_id: lessonId,
+        content_type: 'vocabulary',
+        content: vocabContent,
+        sequence_order: sequenceOrder++
+      });
+
+    if (contentError) {
+      console.warn(`    ⚠️  Failed to insert vocabulary content: ${contentError.message}`);
+    }
+  }
+
+  // 4. Grammar sections (if any content_sections exist)
+  if (lessonData.content_sections && lessonData.content_sections.length > 0) {
+    for (const section of lessonData.content_sections) {
+      const { error: contentError } = await supabase
+        .from('lesson_content')
+        .insert({
+          lesson_id: lessonId,
+          content_type: 'grammar',
+          content: `## ${section.title}\n\n${section.content}`,
+          sequence_order: sequenceOrder++
+        });
+
+      if (contentError) {
+        console.warn(`    ⚠️  Failed to insert grammar section: ${contentError.message}`);
+      }
+    }
+  }
+
+  console.log(`    ✓ Created ${sequenceOrder} lesson content blocks`);
+
   console.log(`\n✅ Lesson "${lessonData.title}" seeded successfully!\n`);
 }
 
