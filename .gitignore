@@ -29,6 +29,10 @@ yarn-error.log*
 .env*.local
 .env
 
+# GCP service account keys
+*-key.json
+github-actions-*.json
+
 # vercel
 .vercel
 
