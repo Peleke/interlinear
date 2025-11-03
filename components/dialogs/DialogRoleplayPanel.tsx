@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Theater, X, Send, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Volume2 } from 'lucide-react'
+import { Loader2, Theater, X, Send, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Volume2, BookmarkPlus } from 'lucide-react'
 import { RoleSelector } from './RoleSelector'
 import { LevelSelector } from '@/components/tutor/LevelSelector'
 import type { CEFRLevel, TurnCorrection } from '@/types/tutor'
@@ -30,6 +30,7 @@ interface DialogRoleplayPanelProps {
   context: string
   setting?: string
   exchanges: DialogExchange[]
+  courseDeckId?: string
   onClose: () => void
 }
 
@@ -40,6 +41,7 @@ export function DialogRoleplayPanel({
   context,
   setting,
   exchanges,
+  courseDeckId,
   onClose
 }: DialogRoleplayPanelProps) {
   const [stage, setStage] = useState<RoleplayStage>('selection')
@@ -226,13 +228,13 @@ export function DialogRoleplayPanel({
   }
 
   return (
-    <Card className="w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border-2 border-sepia-300 shadow-lg">
+    <Card className="w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border-2 border-sepia-300 shadow-lg bg-white">
       <CardHeader className="bg-sepia-100 border-b border-sepia-200 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Theater className="h-6 w-6 text-sepia-700" />
             <CardTitle className="text-sepia-900">
-              {stage === 'active' ? `Dialog Practice (Turn ${messages.length})` : 'Practice This Dialog'}
+              {stage === 'active' ? 'Dialog Practice' : 'Practice This Dialog'}
             </CardTitle>
           </div>
           <Button
@@ -246,7 +248,7 @@ export function DialogRoleplayPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 overflow-y-auto flex-1">
+      <CardContent className="p-6 overflow-y-auto flex-1 bg-white">
         {stage === 'selection' && (
           <div className="space-y-6">
             {/* Context display */}
@@ -314,7 +316,7 @@ export function DialogRoleplayPanel({
                     <p className="text-sm text-gray-900">{msg.content}</p>
 
                     {msg.correction && (
-                      <CorrectionFeedback correction={msg.correction} />
+                      <CorrectionFeedback correction={msg.correction} courseDeckId={courseDeckId} />
                     )}
                   </div>
                 </div>
@@ -338,7 +340,7 @@ export function DialogRoleplayPanel({
                 <Button
                   type="submit"
                   disabled={!canSend}
-                  className="flex-1 bg-sepia-700 hover:bg-sepia-800"
+                  className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white"
                 >
                   {isSending ? (
                     <>
@@ -357,7 +359,7 @@ export function DialogRoleplayPanel({
                   type="button"
                   onClick={() => handleEndSession()}
                   variant="outline"
-                  className="border-red-300 text-red-700 hover:bg-red-50"
+                  className="border-red-500 bg-white text-red-700 hover:bg-red-50"
                 >
                   Terminar Diálogo
                 </Button>
@@ -366,30 +368,39 @@ export function DialogRoleplayPanel({
 
             {/* End confirmation modal */}
             {showEndConfirm && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <Card className="w-full max-w-md mx-4">
-                  <CardHeader>
+              <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                <Card className="w-full max-w-md mx-4 bg-white">
+                  <CardHeader className="bg-white">
                     <CardTitle>End Dialog Practice?</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-gray-700">
-                      Are you sure you want to end now? You can continue practicing to get more feedback.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setShowEndConfirm(false)}
-                        variant="outline"
-                        className="flex-1"
-                      >
-                        Keep Practicing
-                      </Button>
-                      <Button
-                        onClick={() => handleEndSession(true)}
-                        className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        End & Review
-                      </Button>
-                    </div>
+                  <CardContent className="space-y-4 bg-white">
+                    {isGeneratingReview ? (
+                      <div className="flex flex-col items-center gap-3 py-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-sepia-700" />
+                        <p className="text-sm text-gray-700">Professor is reviewing your practice...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-700">
+                          Are you sure you want to end now? You can continue practicing to get more feedback.
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => setShowEndConfirm(false)}
+                            variant="outline"
+                            className="flex-1 bg-white"
+                          >
+                            Keep Practicing
+                          </Button>
+                          <Button
+                            onClick={() => handleEndSession(true)}
+                            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            End & Review
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -526,8 +537,45 @@ export function DialogRoleplayPanel({
   )
 }
 
-function CorrectionFeedback({ correction }: { correction: TurnCorrection }) {
+function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorrection, courseDeckId?: string }) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [savedErrors, setSavedErrors] = useState<Set<number>>(new Set())
+  const [savingError, setSavingError] = useState<number | null>(null)
+
+  const saveToFlashcard = async (errorText: string, correction: string, idx: number) => {
+    if (!courseDeckId) {
+      alert('Course deck not available')
+      return
+    }
+
+    setSavingError(idx)
+
+    try {
+      const response = await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deck_id: courseDeckId,
+          card_type: 'basic',
+          front: errorText,
+          back: correction,
+          source: 'dialog_roleplay',
+          source_id: `error_${idx}`
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save flashcard')
+      }
+
+      setSavedErrors(prev => new Set(prev).add(idx))
+    } catch (error) {
+      console.error('Save flashcard error:', error)
+      alert('Failed to save flashcard. Please try again.')
+    } finally {
+      setSavingError(null)
+    }
+  }
 
   if (!correction.hasErrors) {
     return (
@@ -553,12 +601,32 @@ function CorrectionFeedback({ correction }: { correction: TurnCorrection }) {
         <div className="mt-2 space-y-2">
           {correction.errors.map((err, idx) => (
             <div key={idx} className="text-xs bg-amber-50 border border-amber-200 rounded p-2">
-              <p><strong>Error:</strong> {err.errorText}</p>
-              <p className="text-green-700"><strong>Correction:</strong> {err.correction}</p>
-              <p className="text-gray-600 italic">{err.explanation}</p>
-              <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 rounded text-[10px] font-semibold">
-                {err.category}
-              </span>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1">
+                  <p><strong>Error:</strong> {err.errorText}</p>
+                  <p className="text-green-700"><strong>Correction:</strong> {err.correction}</p>
+                  <p className="text-gray-600 italic">{err.explanation}</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-amber-100 rounded text-[10px] font-semibold">
+                    {err.category}
+                  </span>
+                </div>
+                {courseDeckId && (
+                  <button
+                    onClick={() => saveToFlashcard(err.errorText, err.correction, idx)}
+                    disabled={savedErrors.has(idx) || savingError === idx}
+                    className="p-1 text-sepia-700 hover:bg-sepia-100 rounded transition-colors disabled:opacity-50"
+                    title={savedErrors.has(idx) ? 'Saved to deck' : 'Save to flashcard deck'}
+                  >
+                    {savingError === idx ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : savedErrors.has(idx) ? (
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                    ) : (
+                      <BookmarkPlus className="h-3 w-3" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

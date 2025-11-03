@@ -78,6 +78,8 @@ export default function LessonViewer({
   )
   const [totalXpEarned, setTotalXpEarned] = useState(0)
   const [exercisesExpanded, setExercisesExpanded] = useState(false)
+  const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
+  const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
 
   // Auto-fetch or create course deck on mount
@@ -218,16 +220,30 @@ export default function LessonViewer({
                   return (
                     <div
                       key={block.id}
-                      className="bg-amber-50 rounded-lg border border-amber-200 p-6"
+                      className="bg-amber-50 rounded-lg border border-amber-200"
                     >
-                      <h3 className="text-lg font-semibold text-sepia-900 mb-4">
-                        📚 Vocabulary
-                      </h3>
-                      <div className="prose prose-sepia max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {block.content || ''}
-                        </ReactMarkdown>
-                      </div>
+                      <button
+                        onClick={() => setVocabularyExpanded(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
+                        className="w-full flex items-center justify-between p-4 hover:bg-amber-100 transition-colors rounded-t-lg"
+                      >
+                        <h3 className="text-lg font-semibold text-sepia-900">
+                          📚 Vocabulary
+                        </h3>
+                        {vocabularyExpanded[block.id] ? (
+                          <ChevronUp className="h-5 w-5 text-sepia-700" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-sepia-700" />
+                        )}
+                      </button>
+                      {vocabularyExpanded[block.id] && (
+                        <div className="px-6 pb-6">
+                          <div className="prose prose-sepia max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {block.content || ''}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
 
@@ -235,16 +251,30 @@ export default function LessonViewer({
                   return (
                     <div
                       key={block.id}
-                      className="bg-blue-50 rounded-lg border border-blue-200 p-6"
+                      className="bg-blue-50 rounded-lg border border-blue-200"
                     >
-                      <h3 className="text-lg font-semibold text-sepia-900 mb-4">
-                        ✏️ Grammar Note
-                      </h3>
-                      <div className="prose prose-sepia max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {block.content || ''}
-                        </ReactMarkdown>
-                      </div>
+                      <button
+                        onClick={() => setGrammarExpanded(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
+                        className="w-full flex items-center justify-between p-4 hover:bg-blue-100 transition-colors rounded-t-lg"
+                      >
+                        <h3 className="text-lg font-semibold text-sepia-900">
+                          ✏️ Grammar Note
+                        </h3>
+                        {grammarExpanded[block.id] ? (
+                          <ChevronUp className="h-5 w-5 text-sepia-700" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-sepia-700" />
+                        )}
+                      </button>
+                      {grammarExpanded[block.id] && (
+                        <div className="px-6 pb-6">
+                          <div className="prose prose-sepia max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {block.content || ''}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
 

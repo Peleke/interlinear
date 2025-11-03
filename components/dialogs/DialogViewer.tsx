@@ -362,6 +362,7 @@ export default function DialogViewer({ dialogId, context, setting, exchanges, co
             context={context}
             setting={setting}
             exchanges={exchanges}
+            courseDeckId={courseDeckId}
             onClose={() => setShowRoleplayPanel(false)}
           />
         </div>
