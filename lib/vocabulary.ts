@@ -73,11 +73,7 @@ export class VocabularyService {
           updated_at: new Date().toISOString(),
           // Update definition if provided and different
           ...(definition && { definition }),
-          // Update source info only if not already set (first encounter wins)
-          ...(sourceTextId && !existing.source_text_id && {
-            source_text_id: sourceTextId,
-            original_sentence: originalSentence
-          })
+          // Skip source_text_id updates to avoid FK errors with readings
         })
         .eq('id', existing.id)
         .select()
@@ -87,6 +83,8 @@ export class VocabularyService {
       return data
     } else {
       // Create new entry
+      // Note: Don't set source_text_id for lesson readings to avoid foreign key errors
+      // (library_readings IDs aren't in library_texts table)
       const { data, error } = await supabase
         .from('vocabulary')
         .insert({
@@ -94,7 +92,8 @@ export class VocabularyService {
           word: normalizedWord,
           definition: definition || null,
           click_count: 1,
-          source_text_id: sourceTextId,
+          // Only set source_text_id if it exists (skip for readings)
+          ...(sourceTextId && { source_text_id: null }),  // Always null for now to avoid FK errors
           original_sentence: originalSentence
         })
         .select()
