@@ -49,6 +49,8 @@ export async function POST(request: Request) {
       }
     }
 
+    console.log('[API] Inserting flashcard with deck_id:', deck_id, 'type:', typeof deck_id)
+
     const { data: card, error } = await supabase
       .from('flashcards')
       .insert({
@@ -66,7 +68,8 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('Database insert error:', error)
+      console.error('[API] Database insert error:', error)
+      console.error('[API] Error code:', error.code, 'Message:', error.message)
       // Check for foreign key constraint on deck_id
       if (error.code === '23503' && error.message.includes('deck_id')) {
         return NextResponse.json(

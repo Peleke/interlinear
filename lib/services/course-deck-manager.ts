@@ -40,6 +40,7 @@ export async function getOrCreateCourseDeck(
 
     // Return existing deck if found
     if (existingDeck) {
+      console.log('[CourseDeck] Found existing deck:', existingDeck.id, 'for course:', courseId)
       return existingDeck as CourseDeck
     }
 
@@ -53,6 +54,8 @@ export async function getOrCreateCourseDeck(
     const deckName = `${courseTitle} - Flashcards`
     const deckDescription = `Auto-generated flashcard deck for ${courseTitle} course lessons`
 
+    console.log('[CourseDeck] Creating new deck for course:', courseId, 'user:', user.user.id)
+
     const { data: newDeck, error: createError } = await supabase
       .from('flashcard_decks')
       .insert({
@@ -65,10 +68,11 @@ export async function getOrCreateCourseDeck(
       .single()
 
     if (createError) {
-      console.error('Error creating course deck:', createError)
+      console.error('[CourseDeck] Error creating course deck:', createError)
       return null
     }
 
+    console.log('[CourseDeck] Created new deck:', newDeck.id, 'for course:', courseId)
     return newDeck as CourseDeck
   } catch (error) {
     console.error('Unexpected error in getOrCreateCourseDeck:', error)
