@@ -610,7 +610,7 @@ function AIMessageActions({ messageId, content, courseDeckId }: { messageId: str
           front: content,
           back: '(Dialog practice phrase)',
           source: 'dialog_roleplay',
-          source_id: messageId
+          source_id: null // Message ID is not a valid UUID, set to null
         })
       })
 
