@@ -70,7 +70,6 @@ export default function LessonViewer({
   lessonId,
   isCompleted: initialIsCompleted
 }: LessonViewerProps) {
-  console.log('🎨 LessonViewer received dialog:', JSON.stringify(dialog, null, 2))
   const router = useRouter()
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
   const [isCompleting, setIsCompleting] = useState(false)

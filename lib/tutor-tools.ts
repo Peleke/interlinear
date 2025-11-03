@@ -704,7 +704,7 @@ export const startDialogRoleplayTool = tool(
     // Fetch dialog with exchanges
     const { data: dialog, error: dialogError } = await supabase
       .from('lesson_dialogs')
-      .select('*, lesson_dialog_exchanges(*)')
+      .select('*, dialog_exchanges(*)')
       .eq('id', dialogId)
       .single()
 
@@ -713,7 +713,7 @@ export const startDialogRoleplayTool = tool(
     }
 
     // Sort exchanges by sequence_order
-    const exchanges = (dialog.lesson_dialog_exchanges || []).sort(
+    const exchanges = (dialog.dialog_exchanges || []).sort(
       (a: any, b: any) => a.sequence_order - b.sequence_order
     )
 
@@ -855,7 +855,7 @@ export const continueDialogRoleplayTool = tool(
 
     // Find opposite character from dialog exchanges
     const { data: exchanges } = await supabase
-      .from('lesson_dialog_exchanges')
+      .from('dialog_exchanges')
       .select('speaker')
       .eq('dialog_id', session.dialog_id)
 
