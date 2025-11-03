@@ -13,7 +13,7 @@ BEGIN
   -- Find user by email (CHANGE THIS!)
   SELECT id INTO demo_user_id
   FROM auth.users
-  WHERE email = 'YOUR_USER_EMAIL@example.com';
+  WHERE email = 'kwayet.f@gmail.com';
 
   IF demo_user_id IS NULL THEN
     RAISE NOTICE 'User not found! Update the email in this script.';
@@ -25,7 +25,9 @@ BEGIN
   -- ============================================================================
   -- RESET ONBOARDING
   -- ============================================================================
-  DELETE FROM public.user_onboarding WHERE user_id = demo_user_id;
+  UPDATE public.users
+  SET onboarding_completed = FALSE
+  WHERE id = demo_user_id;
   RAISE NOTICE '✓ Onboarding reset';
 
   -- ============================================================================
@@ -69,6 +71,19 @@ BEGIN
   -- ============================================================================
   DELETE FROM public.reader_sessions WHERE user_id = demo_user_id;
   RAISE NOTICE '✓ Reader sessions cleared';
+
+  -- ============================================================================
+  -- RESET VOCABULARY
+  -- ============================================================================
+  DELETE FROM public.vocabulary WHERE user_id = demo_user_id;
+  RAISE NOTICE '✓ Vocabulary cleared';
+
+  -- ============================================================================
+  -- RESET LIBRARY (texts and readings)
+  -- ============================================================================
+  DELETE FROM public.library_texts WHERE user_id = demo_user_id;
+  DELETE FROM public.library_readings WHERE user_id = demo_user_id;
+  RAISE NOTICE '✓ Library texts and readings cleared';
 
   RAISE NOTICE '========================================';
   RAISE NOTICE 'Demo reset complete for user: %', demo_user_id;
