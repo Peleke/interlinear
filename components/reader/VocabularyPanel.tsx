@@ -30,10 +30,12 @@ export function VocabularyPanel({ textId }: VocabularyPanelProps) {
         VocabularyService.getStats()
       ])
 
-      // Filter by textId if provided
+      // Filter by textId if provided, but fall back to all vocab if none found
       let filteredEntries = vocabData
       if (textId) {
-        filteredEntries = vocabData.filter(entry => entry.source_text_id === textId)
+        const textSpecificEntries = vocabData.filter(entry => entry.source_text_id === textId)
+        // If no vocab for this specific text, show all vocab instead of empty list
+        filteredEntries = textSpecificEntries.length > 0 ? textSpecificEntries : vocabData
       }
 
       setEntries(filteredEntries)
@@ -71,13 +73,8 @@ export function VocabularyPanel({ textId }: VocabularyPanelProps) {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-serif text-sepia-900">
-        {textId ? 'Vocabulary from This Text' : 'Your Vocabulary'}
+        Your Vocabulary
       </h2>
-      {textId && entries.length === 0 && !loading && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-900 text-sm">
-          💡 No words saved from this text yet. Words you save while reading will appear here.
-        </div>
-      )}
 
       {loading && (
         <div className="flex items-center justify-center py-12">
