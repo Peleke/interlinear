@@ -8,7 +8,23 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
+import DialogViewer from '@/components/dialogs/DialogViewer'
 import { getOrCreateCourseDeck, type CourseDeck } from '@/lib/services/course-deck-manager'
+
+interface DialogExchange {
+  id: string
+  sequence_order: number
+  speaker: string
+  spanish: string
+  english: string
+}
+
+interface Dialog {
+  id: string
+  context: string
+  setting?: string | null
+  exchanges: DialogExchange[]
+}
 
 interface LessonViewerProps {
   lesson: {
@@ -38,6 +54,7 @@ interface LessonViewerProps {
     content: string
     word_count: number
   }>
+  dialog: Dialog | null
   courseId: string
   lessonId: string
   isCompleted: boolean
@@ -48,6 +65,7 @@ export default function LessonViewer({
   contentBlocks,
   exercises,
   readings,
+  dialog,
   courseId,
   lessonId,
   isCompleted: initialIsCompleted
@@ -59,7 +77,7 @@ export default function LessonViewer({
     new Set()
   )
   const [totalXpEarned, setTotalXpEarned] = useState(0)
-  const [exercisesExpanded, setExercisesExpanded] = useState(true)
+  const [exercisesExpanded, setExercisesExpanded] = useState(false)
   const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
 
   // Auto-fetch or create course deck on mount
@@ -158,20 +176,28 @@ export default function LessonViewer({
           )}
         </div>
 
-        {/* Content blocks */}
-        {contentBlocks && contentBlocks.length > 0 ? (
+        {/* Dialog Section - Now at top! */}
+        {dialog && (
+          <div className="mb-12">
+            <DialogViewer
+              context={dialog.context}
+              setting={dialog.setting || undefined}
+              exchanges={dialog.exchanges}
+              courseDeckId={courseDeck?.id}
+            />
+          </div>
+        )}
+
+        {/* Content blocks - Grammar & Vocabulary only (markdown dialog removed) */}
+        {contentBlocks && contentBlocks.length > 0 && (
           <div className="space-y-8">
             {contentBlocks.map((block) => {
-              switch (block.content_type) {
-                case 'markdown':
-                  return (
-                    <div key={block.id} className="prose prose-sepia max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {block.content || ''}
-                      </ReactMarkdown>
-                    </div>
-                  )
+              // Skip markdown content (old dialog was here)
+              if (block.content_type === 'markdown') {
+                return null
+              }
 
+              switch (block.content_type) {
                 case 'interlinear':
                   return (
                     <div
@@ -225,12 +251,6 @@ export default function LessonViewer({
                   return null
               }
             })}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-sepia-600">
-              Lesson content is being prepared. Check back soon!
-            </p>
           </div>
         )}
 

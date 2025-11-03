@@ -53,6 +53,24 @@ export default async function LessonPage({
     .eq('lesson_id', lessonId)
     .order('display_order', { ascending: true })
 
+  // Get dialog data
+  const { data: dialogData } = await supabase
+    .from('lesson_dialogs')
+    .select(`
+      id,
+      context,
+      setting,
+      dialog_exchanges (
+        id,
+        sequence_order,
+        speaker,
+        spanish,
+        english
+      )
+    `)
+    .eq('lesson_id', lessonId)
+    .single()
+
   // Check if completed
   const { data: completion } = await supabase
     .from('lesson_completions')
@@ -69,12 +87,21 @@ export default async function LessonPage({
     ?.flatMap(r => Array.isArray(r.library_readings) ? r.library_readings : (r.library_readings ? [r.library_readings] : []))
     .filter((r): r is ReadingData => r !== null && r !== undefined) || []
 
+  // Transform dialog data - sort exchanges by sequence_order
+  const dialog = dialogData ? {
+    id: dialogData.id,
+    context: dialogData.context,
+    setting: dialogData.setting,
+    exchanges: (dialogData.dialog_exchanges || []).sort((a: any, b: any) => a.sequence_order - b.sequence_order)
+  } : null
+
   return (
     <LessonViewer
       lesson={lesson}
       contentBlocks={contentBlocks || []}
       exercises={exercises || []}
       readings={lessonReadings}
+      dialog={dialog}
       courseId={courseId}
       lessonId={lessonId}
       isCompleted={isCompleted}
