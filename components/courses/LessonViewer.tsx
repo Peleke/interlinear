@@ -30,7 +30,7 @@ interface LessonViewerProps {
   lesson: {
     id: string
     title: string
-    description?: string | null
+    overview?: string | null
     courses?: {
       title: string
       level: string
@@ -174,9 +174,9 @@ export default function LessonViewer({
             {lesson.title}
           </h1>
 
-          {lesson.description && (
+          {lesson.overview && (
             <p className="text-lg text-sepia-700 leading-relaxed">
-              {lesson.description}
+              {lesson.overview}
             </p>
           )}
         </div>
