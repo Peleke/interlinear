@@ -8,6 +8,7 @@ interface FillBlankExerciseProps {
   prompt: string
   spanishText?: string
   englishText?: string
+  courseDeckId?: string
   onComplete?: (isCorrect: boolean, xpEarned: number) => void
 }
 
@@ -16,6 +17,7 @@ export default function FillBlankExercise({
   prompt,
   spanishText,
   englishText,
+  courseDeckId,
   onComplete
 }: FillBlankExerciseProps) {
   const [userAnswer, setUserAnswer] = useState('')
@@ -71,6 +73,13 @@ export default function FillBlankExercise({
   }
 
   const openDeckModal = async () => {
+    // If course deck is available, auto-save to it directly
+    if (courseDeckId) {
+      await saveCardToDeck(courseDeckId)
+      return
+    }
+
+    // Otherwise, show deck selection modal
     try {
       const res = await fetch('/api/flashcards/decks')
       const { decks: userDecks } = await res.json()
@@ -260,6 +269,8 @@ export default function FillBlankExercise({
                 className={`${result.is_correct ? 'flex-1' : 'flex-1'} px-4 py-2 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
                   flashcardSaved
                     ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-2 border-gray-200'
+                    : isSavingFlashcard
+                    ? 'bg-white text-sepia-700 border-2 border-sepia-300 opacity-50 cursor-wait'
                     : 'bg-white text-sepia-700 border-2 border-sepia-300 hover:bg-sepia-50'
                 }`}
               >
@@ -268,10 +279,15 @@ export default function FillBlankExercise({
                     <CheckCircle className="h-4 w-4" />
                     <span>Saved to Deck</span>
                   </>
+                ) : isSavingFlashcard ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
                 ) : (
                   <>
                     <BookmarkPlus className="h-4 w-4" />
-                    <span>Save to Flashcard</span>
+                    <span>{courseDeckId ? 'Add to Course Deck' : 'Save to Flashcard'}</span>
                   </>
                 )}
               </button>

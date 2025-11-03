@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { TextInputPanel } from '@/components/reader/TextInputPanel'
 import { TextRenderPanel } from '@/components/reader/TextRenderPanel'
@@ -15,6 +17,8 @@ export function ReaderClient() {
   const searchParams = useSearchParams()
   const libraryId = searchParams.get('libraryId')
   const tabParam = searchParams.get('tab')
+  const lessonId = searchParams.get('lessonId')
+  const courseId = searchParams.get('courseId')
   const tabsRef = useRef<HTMLDivElement>(null)
 
   const [mode, setMode] = useState<Mode>('input')
@@ -120,6 +124,19 @@ export function ReaderClient() {
     <div className="max-w-6xl mx-auto py-8 px-4">
       {/* Navigation */}
       <Navigation />
+
+      {/* Back to Lesson link (if coming from a lesson) */}
+      {lessonId && courseId && (
+        <div className="mb-4">
+          <Link
+            href={`/courses/${courseId}/lessons/${lessonId}`}
+            className="inline-flex items-center gap-2 text-sepia-600 hover:text-sepia-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Lesson</span>
+          </Link>
+        </div>
+      )}
 
       {/* Title (if viewing library text) */}
       {title && currentLibraryId && (

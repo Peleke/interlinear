@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
+import { getOrCreateCourseDeck, type CourseDeck } from '@/lib/services/course-deck-manager'
 
 interface LessonViewerProps {
   lesson: {
@@ -58,6 +59,22 @@ export default function LessonViewer({
     new Set()
   )
   const [totalXpEarned, setTotalXpEarned] = useState(0)
+  const [exercisesExpanded, setExercisesExpanded] = useState(true)
+  const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
+
+  // Auto-fetch or create course deck on mount
+  useEffect(() => {
+    const initCourseDeck = async () => {
+      if (!lesson.courses?.title) return
+
+      const deck = await getOrCreateCourseDeck(courseId, lesson.courses.title)
+      if (deck) {
+        setCourseDeck(deck)
+      }
+    }
+
+    initCourseDeck()
+  }, [courseId, lesson.courses?.title])
 
   const handleExerciseComplete = (exerciseId: string, isCorrect: boolean, xpEarned: number) => {
     if (isCorrect) {
@@ -246,9 +263,27 @@ export default function LessonViewer({
         {exercises && exercises.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-serif text-sepia-900">
-                Practice Exercises
-              </h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-serif text-sepia-900">
+                  Practice Exercises
+                </h2>
+                <button
+                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-sepia-600 hover:text-sepia-900 hover:bg-sepia-100 rounded transition-colors"
+                >
+                  {exercisesExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span>Collapse All</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span>Expand All</span>
+                    </>
+                  )}
+                </button>
+              </div>
               {totalXpEarned > 0 && (
                 <div className="px-4 py-2 bg-green-100 border border-green-200 rounded-lg">
                   <p className="text-sm font-medium text-green-900">
@@ -257,20 +292,23 @@ export default function LessonViewer({
                 </div>
               )}
             </div>
-            <div className="space-y-6">
-              {exercises.map((exercise) => (
-                <FillBlankExercise
-                  key={exercise.id}
-                  exerciseId={exercise.id}
-                  prompt={exercise.prompt}
-                  spanishText={exercise.spanish_text || undefined}
-                  englishText={exercise.english_text || undefined}
-                  onComplete={(isCorrect, xpEarned) =>
-                    handleExerciseComplete(exercise.id, isCorrect, xpEarned)
-                  }
-                />
-              ))}
-            </div>
+            {exercisesExpanded && (
+              <div className="space-y-6">
+                {exercises.map((exercise) => (
+                  <FillBlankExercise
+                    key={exercise.id}
+                    exerciseId={exercise.id}
+                    prompt={exercise.prompt}
+                    spanishText={exercise.spanish_text || undefined}
+                    englishText={exercise.english_text || undefined}
+                    courseDeckId={courseDeck?.id}
+                    onComplete={(isCorrect, xpEarned) =>
+                      handleExerciseComplete(exercise.id, isCorrect, xpEarned)
+                    }
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
