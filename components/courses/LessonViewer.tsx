@@ -70,6 +70,7 @@ export default function LessonViewer({
   lessonId,
   isCompleted: initialIsCompleted
 }: LessonViewerProps) {
+  console.log('🎨 LessonViewer received dialog:', JSON.stringify(dialog, null, 2))
   const router = useRouter()
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
   const [isCompleting, setIsCompleting] = useState(false)
@@ -180,6 +181,7 @@ export default function LessonViewer({
         {dialog && (
           <div className="mb-12">
             <DialogViewer
+              dialogId={dialog.id}
               context={dialog.context}
               setting={dialog.setting || undefined}
               exchanges={dialog.exchanges}
@@ -264,7 +266,7 @@ export default function LessonViewer({
               {readings.map((reading) => (
                 <Link
                   key={reading.id}
-                  href={`/reader?text=${encodeURIComponent(reading.content)}&title=${encodeURIComponent(reading.title)}&lessonId=${lessonId}&courseId=${courseId}`}
+                  href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
                   className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
                 >
                   <p className="font-medium text-sepia-900">

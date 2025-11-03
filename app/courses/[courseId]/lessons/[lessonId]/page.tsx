@@ -53,7 +53,7 @@ export default async function LessonPage({
     .eq('lesson_id', lessonId)
     .order('display_order', { ascending: true })
 
-  // Get dialog data
+  // Get dialog data (maybeSingle returns null if not found, single would throw error)
   const { data: dialogData } = await supabase
     .from('lesson_dialogs')
     .select(`
@@ -69,7 +69,7 @@ export default async function LessonPage({
       )
     `)
     .eq('lesson_id', lessonId)
-    .single()
+    .maybeSingle()
 
   // Check if completed
   const { data: completion } = await supabase
@@ -77,15 +77,15 @@ export default async function LessonPage({
     .select('id')
     .eq('user_id', user.id)
     .eq('lesson_id', lessonId)
-    .single()
+    .maybeSingle()
 
   const isCompleted = !!completion
 
   // Transform readings data - flatten library_readings arrays
   type ReadingData = { id: string; title: string; content: string; word_count: number }
-  const lessonReadings: ReadingData[] = readings
+  const lessonReadings: ReadingData[] = (readings
     ?.flatMap(r => Array.isArray(r.library_readings) ? r.library_readings : (r.library_readings ? [r.library_readings] : []))
-    .filter((r): r is ReadingData => r !== null && r !== undefined) || []
+    .filter((r): r is ReadingData => r !== null && r !== undefined) || []) as ReadingData[]
 
   // Transform dialog data - sort exchanges by sequence_order
   const dialog = dialogData ? {

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { MessageCircle, Eye, EyeOff, Volume2, Play, Loader2, BookmarkPlus, CheckCircle } from 'lucide-react'
+import { MessageCircle, Eye, EyeOff, Volume2, Play, Loader2, BookmarkPlus, CheckCircle, Theater } from 'lucide-react'
+import { DialogRoleplayPanel } from './DialogRoleplayPanel'
 
 interface DialogExchange {
   id: string
@@ -12,13 +13,14 @@ interface DialogExchange {
 }
 
 interface DialogViewerProps {
+  dialogId?: string
   context: string
   setting?: string
   exchanges: DialogExchange[]
   courseDeckId?: string
 }
 
-export default function DialogViewer({ context, setting, exchanges, courseDeckId }: DialogViewerProps) {
+export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId }: DialogViewerProps) {
   const [showAllTranslations, setShowAllTranslations] = useState(false)
   const [revealedExchanges, setRevealedExchanges] = useState<Set<string>>(new Set())
   const [loadingAudio, setLoadingAudio] = useState<Set<string>>(new Set())
@@ -26,6 +28,7 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
   const [playingAll, setPlayingAll] = useState(false)
   const [savedFlashcards, setSavedFlashcards] = useState<Set<string>>(new Set())
   const [savingFlashcard, setSavingFlashcard] = useState<string | null>(null)
+  const [showRoleplayPanel, setShowRoleplayPanel] = useState(false)
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map())
 
   const toggleExchange = (exchangeId: string) => {
@@ -194,7 +197,7 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={playAllAudio}
               disabled={playingAll}
@@ -336,10 +339,33 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
 
       {/* Instructions */}
       <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded">
-        <p className="text-sm text-blue-900">
+        <p className="text-sm text-blue-900 mb-3">
           💡 <strong>Tip:</strong> Click on any line to reveal its English translation. Try to understand the Spanish first!
         </p>
+
+        {dialogId && (
+          <button
+            onClick={() => setShowRoleplayPanel(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            <Theater className="h-4 w-4" />
+            <span>Practice This Dialog</span>
+          </button>
+        )}
       </div>
+
+      {/* Roleplay Panel Modal */}
+      {showRoleplayPanel && dialogId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <DialogRoleplayPanel
+            dialogId={dialogId}
+            context={context}
+            setting={setting}
+            exchanges={exchanges}
+            onClose={() => setShowRoleplayPanel(false)}
+          />
+        </div>
+      )}
     </div>
   )
 }

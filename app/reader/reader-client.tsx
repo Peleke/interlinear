@@ -16,6 +16,7 @@ type Mode = 'input' | 'render' | 'vocabulary' | 'tutor' | 'flashcards'
 export function ReaderClient() {
   const searchParams = useSearchParams()
   const libraryId = searchParams.get('libraryId')
+  const readingId = searchParams.get('readingId')
   const tabParam = searchParams.get('tab')
   const lessonId = searchParams.get('lessonId')
   const courseId = searchParams.get('courseId')
@@ -43,12 +44,14 @@ export function ReaderClient() {
     return () => tabsElement.removeEventListener('wheel', handleWheel)
   }, [])
 
-  // Load library text if libraryId present
+  // Load reading if readingId present
   useEffect(() => {
-    if (libraryId) {
+    if (readingId) {
+      loadReadingText(readingId)
+    } else if (libraryId) {
       loadLibraryText(libraryId)
     }
-  }, [libraryId])
+  }, [readingId, libraryId])
 
   // Switch to tab if specified in URL
   useEffect(() => {
@@ -56,6 +59,29 @@ export function ReaderClient() {
       setMode(tabParam as Mode)
     }
   }, [tabParam])
+
+  const loadReadingText = async (id: string) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/readings/${id}`)
+      if (!response.ok) {
+        throw new Error('Failed to load reading')
+      }
+      const data = await response.json()
+      setText(data.content)
+      setTitle(data.title)
+      setCurrentLibraryId(data.id)
+      // Only set mode to 'render' if no tab param specified
+      if (!tabParam) {
+        setMode('render')
+      }
+    } catch (err) {
+      console.error('Failed to load reading:', err)
+      alert('Failed to load reading from database')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const loadLibraryText = async (id: string) => {
     setLoading(true)
