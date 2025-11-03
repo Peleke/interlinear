@@ -83,8 +83,8 @@ export class VocabularyService {
       return data
     } else {
       // Create new entry
-      // Note: Don't set source_text_id for lesson readings to avoid foreign key errors
-      // (library_readings IDs aren't in library_texts table)
+      // Note: source_text_id can reference either library_texts or library_readings
+      // We don't set it for now to avoid FK constraint issues (it's nullable)
       const { data, error } = await supabase
         .from('vocabulary')
         .insert({
@@ -92,8 +92,7 @@ export class VocabularyService {
           word: normalizedWord,
           definition: definition || null,
           click_count: 1,
-          // Only set source_text_id if it exists (skip for readings)
-          ...(sourceTextId && { source_text_id: null }),  // Always null for now to avoid FK errors
+          source_text_id: null,  // Set to null to avoid FK constraint errors
           original_sentence: originalSentence
         })
         .select()
