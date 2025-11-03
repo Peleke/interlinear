@@ -1,18 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { marked } from 'marked'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
-
-// Configure marked for proper rendering
-marked.setOptions({
-  breaks: true,
-  gfm: true
-})
 
 interface LessonViewerProps {
   lesson: {
@@ -153,13 +148,11 @@ export default function LessonViewer({
               switch (block.content_type) {
                 case 'markdown':
                   return (
-                    <div
-                      key={block.id}
-                      className="prose prose-sepia max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: marked(block.content || '')
-                      }}
-                    />
+                    <div key={block.id} className="prose prose-sepia max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {block.content || ''}
+                      </ReactMarkdown>
+                    </div>
                   )
 
                 case 'interlinear':
@@ -186,12 +179,11 @@ export default function LessonViewer({
                       <h3 className="text-lg font-semibold text-sepia-900 mb-4">
                         📚 Vocabulary
                       </h3>
-                      <div
-                        className="prose prose-sepia max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: marked(block.content || '')
-                        }}
-                      />
+                      <div className="prose prose-sepia max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {block.content || ''}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   )
 
@@ -204,12 +196,11 @@ export default function LessonViewer({
                       <h3 className="text-lg font-semibold text-sepia-900 mb-4">
                         ✏️ Grammar Note
                       </h3>
-                      <div
-                        className="prose prose-sepia max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: marked(block.content || '')
-                        }}
-                      />
+                      <div className="prose prose-sepia max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {block.content || ''}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   )
 
@@ -227,54 +218,26 @@ export default function LessonViewer({
         )}
 
         {/* Practice Resources Section */}
-        {(readings.length > 0 || contentBlocks.length > 0) && (
+        {readings.length > 0 && (
           <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
-              📚 Practice Resources
+              📚 Interactive Readings
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Reading Practice */}
-              {readings.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-sepia-900 mb-2">
-                    Interactive Readings
-                  </h3>
-                  <div className="space-y-2">
-                    {readings.map((reading) => (
-                      <Link
-                        key={reading.id}
-                        href={`/reader?text=${encodeURIComponent(reading.content)}&title=${encodeURIComponent(reading.title)}`}
-                        className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
-                      >
-                        <p className="font-medium text-sepia-900">
-                          {reading.title}
-                        </p>
-                        <p className="text-sm text-sepia-600">
-                          {reading.word_count} words
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* AI Tutor */}
-              <div>
-                <h3 className="font-semibold text-sepia-900 mb-2">
-                  AI Practice
-                </h3>
+            <div className="space-y-2">
+              {readings.map((reading) => (
                 <Link
-                  href={`/tutor?lesson=${lessonId}&context=${encodeURIComponent(lesson.title)}`}
+                  key={reading.id}
+                  href={`/reader?text=${encodeURIComponent(reading.content)}&title=${encodeURIComponent(reading.title)}&lessonId=${lessonId}&courseId=${courseId}`}
                   className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
                 >
                   <p className="font-medium text-sepia-900">
-                    🤖 Practice with AI Tutor
+                    {reading.title}
                   </p>
                   <p className="text-sm text-sepia-600">
-                    Conversational practice for this lesson
+                    {reading.word_count} words
                   </p>
                 </Link>
-              </div>
+              ))}
             </div>
           </div>
         )}

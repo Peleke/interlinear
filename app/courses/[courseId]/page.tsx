@@ -111,14 +111,15 @@ export default async function CoursePage({
                 {completedLessons} of {totalLessons} complete ({Math.round(progress)}%)
               </span>
             </div>
-            <div className="h-3 bg-white rounded-full overflow-hidden border border-sepia-200">
-              <div
-                className="h-full bg-gradient-to-r from-sepia-600 to-sepia-700 transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            {progress === 0 && totalLessons > 0 && (
-              <p className="text-sm text-sepia-600 mt-2 italic">
+            {progress > 0 ? (
+              <div className="h-3 bg-white rounded-full overflow-hidden border border-sepia-200">
+                <div
+                  className="h-full bg-gradient-to-r from-sepia-600 to-sepia-700 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-sepia-600 italic">
                 Ready to begin? Start with Lesson 1 below!
               </p>
             )}

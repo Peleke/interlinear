@@ -63,9 +63,11 @@ export default async function LessonPage({
 
   const isCompleted = !!completion
 
-  // Transform readings data - flatMap to unwrap nested structure
-  const lessonReadings = readings
-    ?.flatMap(r => r.library_readings ? [r.library_readings] : []) || []
+  // Transform readings data - flatten library_readings arrays
+  type ReadingData = { id: string; title: string; content: string; word_count: number }
+  const lessonReadings: ReadingData[] = readings
+    ?.flatMap(r => Array.isArray(r.library_readings) ? r.library_readings : (r.library_readings ? [r.library_readings] : []))
+    .filter((r): r is ReadingData => r !== null && r !== undefined) || []
 
   return (
     <LessonViewer
