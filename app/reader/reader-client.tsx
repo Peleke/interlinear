@@ -251,7 +251,7 @@ export function ReaderClient() {
         )}
         {mode === 'vocabulary' && <VocabularyPanel key={vocabKey} textId={currentLibraryId} />}
         {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
-        {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} />}
+        {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} courseId={courseId} />}
       </div>
     </div>
   )

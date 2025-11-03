@@ -9,6 +9,7 @@ import Link from 'next/link'
 interface FlashcardsPanelProps {
   textId: string | null
   textTitle?: string
+  courseId?: string | null
 }
 
 interface Deck {
@@ -16,16 +17,17 @@ interface Deck {
   name: string
   card_count: number
   due_count?: number
+  course_id?: string
 }
 
-export function FlashcardsPanel({ textId, textTitle }: FlashcardsPanelProps) {
+export function FlashcardsPanel({ textId, textTitle, courseId }: FlashcardsPanelProps) {
   const [decks, setDecks] = useState<Deck[]>([])
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadDecks()
-  }, [textId, textTitle])
+  }, [textId, textTitle, courseId])
 
   const loadDecks = async () => {
     try {
@@ -36,7 +38,16 @@ export function FlashcardsPanel({ textId, textTitle }: FlashcardsPanelProps) {
       const allDecks = data.decks || []
       setDecks(allDecks)
 
-      // Try to find deck for this text
+      // Priority 1: Match by courseId (most reliable)
+      if (courseId) {
+        const courseDeck = allDecks.find((d: Deck) => d.course_id === courseId)
+        if (courseDeck) {
+          setSelectedDeckId(courseDeck.id)
+          return
+        }
+      }
+
+      // Priority 2: Match by textTitle (fallback)
       if (textTitle) {
         const textDeck = allDecks.find((d: Deck) =>
           d.name.toLowerCase().includes(textTitle.toLowerCase()) ||
@@ -45,11 +56,12 @@ export function FlashcardsPanel({ textId, textTitle }: FlashcardsPanelProps) {
 
         if (textDeck) {
           setSelectedDeckId(textDeck.id)
-        } else if (allDecks.length > 0) {
-          // No matching deck, select first one
-          setSelectedDeckId(allDecks[0].id)
+          return
         }
-      } else if (allDecks.length > 0) {
+      }
+
+      // Priority 3: Select first deck if available
+      if (allDecks.length > 0) {
         setSelectedDeckId(allDecks[0].id)
       }
     } catch (error) {
@@ -91,22 +103,19 @@ export function FlashcardsPanel({ textId, textTitle }: FlashcardsPanelProps) {
     )
   }
 
-  // Check if there's a deck matching this text
-  const hasTextDeck = textTitle && decks.some(d =>
-    d.name.toLowerCase().includes(textTitle.toLowerCase()) ||
-    textTitle.toLowerCase().includes(d.name.toLowerCase())
-  )
+  // Check if we found a course deck
+  const hasCourseDeck = courseId && decks.some(d => d.course_id === courseId)
 
   return (
     <div className="space-y-6">
       {/* Deck Info */}
-      {!hasTextDeck && textTitle && (
+      {courseId && !hasCourseDeck && (
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <p className="text-sm text-blue-900">
-              💡 <strong>No deck found for "{textTitle}"</strong>
+              💡 <strong>No deck found for this course</strong>
               <br />
-              Showing all your decks instead. Create flashcards from words in Reader mode to build a deck for this text.
+              Showing all your decks. Flashcards you save from lessons will automatically create a course deck.
             </p>
           </CardContent>
         </Card>
