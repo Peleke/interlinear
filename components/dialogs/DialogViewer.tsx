@@ -105,6 +105,9 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
 
     for (const exchange of exchanges) {
       try {
+        // Highlight current exchange
+        setPlayingAudio(exchange.id)
+
         // Fetch and play audio
         const response = await fetch('/api/tts/synthesize', {
           method: 'POST',
@@ -131,13 +134,14 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
           audio.play()
         })
 
-        // Pause between exchanges (1 second)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        // Pause between exchanges (300ms)
+        await new Promise(resolve => setTimeout(resolve, 300))
       } catch (error) {
         console.error('Audio playback error:', error)
       }
     }
 
+    setPlayingAudio(null)
     setPlayingAll(false)
   }
 
@@ -254,7 +258,9 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
               className="group transition-all"
             >
               <div className={`p-4 rounded-lg border-2 transition-colors ${
-                isRevealed
+                isPlaying
+                  ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-200'
+                  : isRevealed
                   ? 'bg-green-50 border-green-200'
                   : 'bg-white border-sepia-200'
               }`}>

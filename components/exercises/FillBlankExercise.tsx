@@ -12,6 +12,12 @@ interface FillBlankExerciseProps {
   onComplete?: (isCorrect: boolean, xpEarned: number) => void
 }
 
+interface ExerciseResult {
+  is_correct: boolean
+  correct_answer?: string
+  xp_earned: number
+}
+
 export default function FillBlankExercise({
   exerciseId,
   prompt,
@@ -28,11 +34,7 @@ export default function FillBlankExercise({
   const [decks, setDecks] = useState<any[]>([])
   const [isCreatingDeck, setIsCreatingDeck] = useState(false)
   const [newDeckName, setNewDeckName] = useState('')
-  const [result, setResult] = useState<{
-    is_correct: boolean
-    correct_answer?: string
-    xp_earned: number
-  } | null>(null)
+  const [result, setResult] = useState<ExerciseResult | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -117,18 +119,25 @@ export default function FillBlankExercise({
   }
 
   const saveCardToDeck = async (deckId: string) => {
-    if (!spanishText || !englishText) return
-
     setIsSavingFlashcard(true)
     try {
+      // Use spanish/english text if available, otherwise use prompt and correct answer
+      const front = englishText || prompt
+      const back = spanishText || result?.correct_answer || ''
+
+      if (!back) {
+        alert('No answer available to save')
+        return
+      }
+
       await fetch('/api/flashcards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           deck_id: deckId,
           card_type: 'basic',
-          front: englishText,
-          back: spanishText,
+          front,
+          back,
           notes: prompt,
           source: 'lesson_exercise',
           source_id: exerciseId
@@ -261,9 +270,8 @@ export default function FillBlankExercise({
               </button>
             )}
 
-            {/* Send to Flashcard button */}
-            {spanishText && englishText && (
-              <button
+            {/* Send to Flashcard button - always available after result */}
+            <button
                 onClick={openDeckModal}
                 disabled={flashcardSaved || isSavingFlashcard}
                 className={`${result.is_correct ? 'flex-1' : 'flex-1'} px-4 py-2 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
@@ -291,7 +299,6 @@ export default function FillBlankExercise({
                   </>
                 )}
               </button>
-            )}
           </div>
         </div>
       )}
