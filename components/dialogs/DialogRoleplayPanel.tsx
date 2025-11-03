@@ -595,6 +595,7 @@ function AIMessageActions({ messageId, content, courseDeckId }: { messageId: str
     setIsSaving(true)
 
     try {
+      console.log('Saving flashcard with deck_id:', courseDeckId)
       const response = await fetch('/api/flashcards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

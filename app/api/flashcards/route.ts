@@ -65,13 +65,24 @@ export async function POST(request: Request) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Database insert error:', error)
+      // Check for foreign key constraint on deck_id
+      if (error.code === '23503' && error.message.includes('deck_id')) {
+        return NextResponse.json(
+          { error: 'Deck not found. The course deck may not exist yet.' },
+          { status: 400 }
+        )
+      }
+      throw error
+    }
 
     return NextResponse.json({ card })
   } catch (error) {
     console.error('Create card error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create card'
     return NextResponse.json(
-      { error: 'Failed to create card' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
