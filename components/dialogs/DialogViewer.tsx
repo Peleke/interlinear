@@ -104,20 +104,38 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
     setPlayingAll(true)
 
     for (const exchange of exchanges) {
-      await playAudio(exchange.id, exchange.spanish)
+      try {
+        // Fetch and play audio
+        const response = await fetch('/api/tts/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: exchange.spanish }),
+        })
 
-      // Wait for audio to finish
-      await new Promise<void>(resolve => {
-        const checkInterval = setInterval(() => {
-          if (!playingAudio || playingAudio !== exchange.id) {
-            clearInterval(checkInterval)
+        if (!response.ok) continue
+
+        const audioBlob = await response.blob()
+        const audioUrl = URL.createObjectURL(audioBlob)
+        const audio = new Audio(audioUrl)
+
+        // Wait for audio to finish playing
+        await new Promise<void>((resolve) => {
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl)
             resolve()
           }
-        }, 100)
-      })
+          audio.onerror = () => {
+            URL.revokeObjectURL(audioUrl)
+            resolve()
+          }
+          audio.play()
+        })
 
-      // Small pause between exchanges
-      await new Promise(resolve => setTimeout(resolve, 500))
+        // Pause between exchanges (1 second)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      } catch (error) {
+        console.error('Audio playback error:', error)
+      }
     }
 
     setPlayingAll(false)
@@ -132,7 +150,7 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
     setSavingFlashcard(exchangeId)
 
     try {
-      await fetch('/api/flashcards', {
+      const response = await fetch('/api/flashcards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -145,10 +163,17 @@ export default function DialogViewer({ context, setting, exchanges, courseDeckId
         })
       })
 
+      if (!response.ok) {
+        throw new Error('Failed to save flashcard')
+      }
+
       setSavedFlashcards(prev => new Set(prev).add(exchangeId))
+
+      // Optional: You can add a toast notification library here
+      // For now, we'll use the checkmark as visual feedback
     } catch (error) {
       console.error('Save flashcard error:', error)
-      alert('Failed to save flashcard')
+      alert('Failed to save flashcard. Please try again.')
     } finally {
       setSavingFlashcard(null)
     }
