@@ -198,26 +198,12 @@ export default function LessonViewer({
         {contentBlocks && contentBlocks.length > 0 && (
           <div className="space-y-8">
             {contentBlocks.map((block) => {
-              // Skip markdown content (old dialog was here)
-              if (block.content_type === 'markdown') {
+              // Skip markdown and interlinear content (dialog already rendered above)
+              if (block.content_type === 'markdown' || block.content_type === 'interlinear') {
                 return null
               }
 
               switch (block.content_type) {
-                case 'interlinear':
-                  return (
-                    <div
-                      key={block.id}
-                      className="bg-white rounded-lg border border-sepia-200 p-6"
-                    >
-                      <div className="space-y-4">
-                        {/* Render interlinear content (simplified for now) */}
-                        <div className="font-serif text-xl text-sepia-900">
-                          {block.content}
-                        </div>
-                      </div>
-                    </div>
-                  )
 
                 case 'vocabulary':
                   return (
