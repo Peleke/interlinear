@@ -58,19 +58,43 @@ export class LibraryService {
   }
 
   /**
-   * Get single text by ID
+   * Get single text by ID - checks both library_texts and library_readings tables
    */
   static async getText(id: string): Promise<LibraryText> {
     const supabase = await createClient()
 
-    const { data: text, error } = await supabase
+    // First try library_texts
+    const { data: libraryText, error: libraryError } = await supabase
       .from('library_texts')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (error) throw error
-    return text
+    if (libraryText) return libraryText
+
+    // If not found in library_texts, try library_readings
+    const { data: reading, error: readingError } = await supabase
+      .from('library_readings')
+      .select('id, title, content')
+      .eq('id', id)
+      .single()
+
+    if (reading) {
+      // Transform library_readings format to match LibraryText interface
+      return {
+        id: reading.id,
+        user_id: '', // Readings don't have user_id, but it's okay for tutor purposes
+        title: reading.title,
+        content: reading.content,
+        language: 'es',
+        created_at: new Date().toISOString()
+      }
+    }
+
+    // If not found in either table, throw the original error
+    if (libraryError) throw libraryError
+    if (readingError) throw readingError
+    throw new Error('Text not found')
   }
 
   /**
@@ -88,7 +112,7 @@ export class LibraryService {
   }
 
   /**
-   * Get all vocabulary entries for a specific text
+   * Get all vocabulary entries for a specific text (works for both library_texts and library_readings)
    */
   static async getVocabularyForText(textId: string): Promise<any[]> {
     const supabase = await createClient()

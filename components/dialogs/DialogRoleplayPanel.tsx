@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, Theater, X, Send, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Volume2, BookmarkPlus } from 'lucide-react'
+import { Loader2, Theater, X, Send, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Volume2, BookmarkPlus, Play } from 'lucide-react'
 import { RoleSelector } from './RoleSelector'
 import { LevelSelector } from '@/components/tutor/LevelSelector'
 import type { CEFRLevel, TurnCorrection } from '@/types/tutor'
@@ -315,6 +315,14 @@ export function DialogRoleplayPanel({
                     </p>
                     <p className="text-sm text-gray-900">{msg.content}</p>
 
+                    {msg.role === 'ai' && (
+                      <AIMessageActions
+                        messageId={msg.id}
+                        content={msg.content}
+                        courseDeckId={courseDeckId}
+                      />
+                    )}
+
                     {msg.correction && (
                       <CorrectionFeedback correction={msg.correction} courseDeckId={courseDeckId} />
                     )}
@@ -534,6 +542,109 @@ export function DialogRoleplayPanel({
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function AIMessageActions({ messageId, content, courseDeckId }: { messageId: string, content: string, courseDeckId?: string }) {
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const playAudio = async () => {
+    try {
+      setIsPlaying(true)
+
+      const response = await fetch('/api/tts/synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: content })
+      })
+
+      if (!response.ok) throw new Error('Failed to synthesize audio')
+
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
+
+      audio.onended = () => {
+        setIsPlaying(false)
+        URL.revokeObjectURL(audioUrl)
+      }
+
+      await audio.play()
+    } catch (error) {
+      console.error('Audio playback error:', error)
+      setIsPlaying(false)
+    }
+  }
+
+  const saveToFlashcard = async () => {
+    if (!courseDeckId) {
+      alert('Course deck not available')
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      const response = await fetch('/api/flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deck_id: courseDeckId,
+          card_type: 'basic',
+          front: content,
+          back: '(Dialog practice phrase)',
+          source: 'dialog_roleplay',
+          source_id: messageId
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save flashcard')
+      }
+
+      setIsSaved(true)
+    } catch (error) {
+      console.error('Save flashcard error:', error)
+      alert('Failed to save flashcard. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-2 border-t border-gray-200 pt-2">
+      <button
+        onClick={playAudio}
+        disabled={isPlaying}
+        className="p-1 text-sepia-700 hover:bg-sepia-100 rounded transition-colors disabled:opacity-50"
+        title="Play audio"
+      >
+        {isPlaying ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Volume2 className="h-3 w-3" />
+        )}
+      </button>
+
+      {courseDeckId && (
+        <button
+          onClick={saveToFlashcard}
+          disabled={isSaved || isSaving}
+          className="p-1 text-sepia-700 hover:bg-sepia-100 rounded transition-colors disabled:opacity-50"
+          title={isSaved ? 'Saved to deck' : 'Save to flashcard deck'}
+        >
+          {isSaving ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : isSaved ? (
+            <CheckCircle className="h-3 w-3 text-green-600" />
+          ) : (
+            <BookmarkPlus className="h-3 w-3" />
+          )}
+        </button>
+      )}
+    </div>
   )
 }
 

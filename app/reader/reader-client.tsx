@@ -27,6 +27,7 @@ export function ReaderClient() {
   const [title, setTitle] = useState('')
   const [currentLibraryId, setCurrentLibraryId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [vocabKey, setVocabKey] = useState(0)
 
   // Enable horizontal scroll with mouse wheel
   useEffect(() => {
@@ -197,7 +198,10 @@ export function ReaderClient() {
             Read
           </button>
           <button
-            onClick={() => setMode('vocabulary')}
+            onClick={() => {
+              setMode('vocabulary')
+              setVocabKey(prev => prev + 1) // Force remount to reload data
+            }}
             className={`px-6 py-3 font-serif transition-colors whitespace-nowrap flex-shrink-0 snap-start ${
               mode === 'vocabulary'
                 ? 'border-b-2 border-sepia-700 text-sepia-900'
@@ -245,7 +249,7 @@ export function ReaderClient() {
             libraryId={currentLibraryId}
           />
         )}
-        {mode === 'vocabulary' && <VocabularyPanel textId={currentLibraryId} />}
+        {mode === 'vocabulary' && <VocabularyPanel key={vocabKey} textId={currentLibraryId} />}
         {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
         {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} />}
       </div>

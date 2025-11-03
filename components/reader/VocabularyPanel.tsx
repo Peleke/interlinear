@@ -16,6 +16,7 @@ export function VocabularyPanel({ textId }: VocabularyPanelProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Always reload vocabulary when panel mounts OR textId changes
   useEffect(() => {
     loadVocabulary()
   }, [textId])
