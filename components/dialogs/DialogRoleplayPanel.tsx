@@ -402,9 +402,17 @@ export function DialogRoleplayPanel({
                           </Button>
                           <Button
                             onClick={() => handleEndSession(true)}
+                            disabled={isGeneratingReview}
                             className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                           >
-                            End & Review
+                            {isGeneratingReview ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                Generating Review...
+                              </>
+                            ) : (
+                              'End & Review'
+                            )}
                           </Button>
                         </div>
                       </>
@@ -580,7 +588,7 @@ function AIMessageActions({ messageId, content, courseDeckId }: { messageId: str
 
   const saveToFlashcard = async () => {
     if (!courseDeckId) {
-      alert('Course deck not available')
+      alert('Course deck not available. Please ensure you accessed this lesson from a course.')
       return
     }
 
@@ -601,13 +609,15 @@ function AIMessageActions({ messageId, content, courseDeckId }: { messageId: str
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save flashcard')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to save flashcard')
       }
 
       setIsSaved(true)
     } catch (error) {
       console.error('Save flashcard error:', error)
-      alert('Failed to save flashcard. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save flashcard'
+      alert(`Error: ${errorMessage}. Make sure you're viewing this from a course lesson.`)
     } finally {
       setIsSaving(false)
     }
