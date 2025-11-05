@@ -10,6 +10,7 @@ import { Navigation } from '@/components/Navigation'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
 import DialogViewer from '@/components/dialogs/DialogViewer'
 import { getOrCreateCourseDeck, type CourseDeck } from '@/lib/services/course-deck-manager'
+import { toast } from 'sonner'
 
 interface DialogExchange {
   id: string
@@ -106,23 +107,50 @@ export default function LessonViewer({
     }
   }
 
-  const handleComplete = async () => {
+  const handleToggleComplete = async () => {
     setIsCompleting(true)
     try {
-      const response = await fetch(`/api/lessons/${lessonId}/complete`, {
-        method: 'POST'
-      })
+      if (isCompleted) {
+        // Mark as incomplete (for debugging)
+        const response = await fetch(`/api/lessons/${lessonId}/incomplete`, {
+          method: 'POST'
+        })
 
-      if (!response.ok) {
-        throw new Error('Failed to complete lesson')
+        if (!response.ok) {
+          throw new Error('Failed to mark lesson as incomplete')
+        }
+
+        setIsCompleted(false)
+        toast.info('Lesson marked as incomplete', {
+          description: 'You can complete it again for testing.',
+          duration: 2000
+        })
+      } else {
+        // Mark as complete
+        const response = await fetch(`/api/lessons/${lessonId}/complete`, {
+          method: 'POST'
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to complete lesson')
+        }
+
+        setIsCompleted(true)
+
+        // Show success toast
+        toast.success('¡Felicidades! Lesson completed! 🎉', {
+          description: 'Great job! Keep up the excellent work.',
+          duration: 3000
+        })
+
+        // Navigate back to course after a short delay
+        setTimeout(() => {
+          router.push(`/courses/${courseId}`)
+        }, 1500)
       }
-
-      setIsCompleted(true)
-      // Refresh the page to update progress in the course view
-      router.refresh()
     } catch (error) {
-      console.error('Complete lesson error:', error)
-      alert('Failed to mark lesson as complete. Please try again.')
+      console.error('Toggle lesson completion error:', error)
+      toast.error(`Failed to ${isCompleted ? 'uncomplete' : 'complete'} lesson. Please try again.`)
     } finally {
       setIsCompleting(false)
     }
@@ -274,42 +302,17 @@ export default function LessonViewer({
           </div>
         )}
 
-        {/* Practice Resources Section */}
-        {readings.length > 0 && (
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
-              📚 Interactive Readings
-            </h2>
-            <div className="space-y-2">
-              {readings.map((reading) => (
-                <Link
-                  key={reading.id}
-                  href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
-                  className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
-                >
-                  <p className="font-medium text-sepia-900">
-                    {reading.title}
-                  </p>
-                  <p className="text-sm text-sepia-600">
-                    {reading.word_count} words
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Exercises Section */}
+        {/* Exercises Section - Now above readings, wrapped in panel */}
         {exercises && exercises.length > 0 && (
-          <div className="mt-12">
+          <div className="mt-12 bg-white rounded-lg border-2 border-sepia-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <h2 className="text-2xl font-serif text-sepia-900">
-                  Practice Exercises
+                  ✏️ Practice Exercises
                 </h2>
                 <button
                   onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-sepia-600 hover:text-sepia-900 hover:bg-sepia-100 rounded transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
                 >
                   {exercisesExpanded ? (
                     <>
@@ -352,21 +355,50 @@ export default function LessonViewer({
           </div>
         )}
 
-        {/* Complete lesson button */}
-        {!isCompleted && contentBlocks && contentBlocks.length > 0 && (
+        {/* Practice Resources Section - Now below exercises */}
+        {readings.length > 0 && (
+          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📚 Interactive Readings
+            </h2>
+            <div className="space-y-2">
+              {readings.map((reading) => (
+                <Link
+                  key={reading.id}
+                  href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
+                  className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
+                >
+                  <p className="font-medium text-sepia-900">
+                    {reading.title}
+                  </p>
+                  <p className="text-sm text-sepia-600">
+                    {reading.word_count} words
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Complete/Incomplete toggle button - Always visible for debugging */}
+        {contentBlocks && contentBlocks.length > 0 && (
           <div className="mt-12 flex justify-center">
             <button
-              onClick={handleComplete}
+              onClick={handleToggleComplete}
               disabled={isCompleting}
-              className="px-8 py-3 bg-sepia-700 text-white font-medium rounded-lg hover:bg-sepia-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className={`px-8 py-3 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
+                isCompleted
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'bg-sepia-700 hover:bg-sepia-800 text-white'
+              }`}
             >
               {isCompleting ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Completing...</span>
+                  <span>{isCompleted ? 'Unmarking...' : 'Completing...'}</span>
                 </>
               ) : (
-                <span>Mark as Complete</span>
+                <span>{isCompleted ? 'Mark as Incomplete (Debug)' : 'Mark as Complete'}</span>
               )}
             </button>
           </div>
