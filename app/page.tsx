@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FeatureCard } from '@/components/landing/FeatureCard'
 import { AnimatedDemo } from '@/components/landing/AnimatedDemo'
+import { DeviceMockup } from '@/components/landing/DeviceMockup'
 
 export default function LandingPage() {
   return (
@@ -9,47 +10,67 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gold-100/30 to-transparent pointer-events-none" />
-        <div className="relative max-w-6xl mx-auto px-6 py-24 lg:py-32">
-          <div className="text-center space-y-8">
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-ink leading-tight">
-              Stop switching tabs.
-              <br />
-              <span className="text-crimson">Start learning languages.</span>
-            </h1>
 
-            <p className="text-xl md:text-2xl text-sepia-700 max-w-3xl mx-auto leading-relaxed">
-              Every unknown word is one click away from becoming part of your permanent vocabulary.
-              No app switching. No copy-paste. No losing your place.
-              <span className="font-semibold text-ink"> Just pure, uninterrupted reading</span> that builds your language skills automatically.
-            </p>
+        {/* Hero Content + Device Mockup Grid */}
+        <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Hero Content */}
+            <div className="space-y-8">
+              <div className="inline-block">
+                <span className="px-4 py-2 bg-gold-100 text-gold-800 rounded-full text-sm font-semibold border border-gold-300">
+                  ✨ Interactive Reading + Structured Courses
+                </span>
+              </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Link href="/signup">
-                <Button
-                  size="lg"
-                  className="text-lg px-8 py-6 bg-crimson hover:bg-crimson/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  Try it free →
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
-                >
-                  Log in
-                </Button>
-              </Link>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-ink leading-tight">
+                Stop switching tabs.
+                <br />
+                <span className="text-crimson">Start learning languages.</span>
+              </h1>
+
+              <p className="text-lg md:text-xl text-sepia-700 leading-relaxed">
+                Click any word for instant translations. Track your vocabulary automatically.
+                Follow structured courses with interactive lessons.
+                <span className="font-semibold text-ink"> All in one seamless experience.</span>
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Link href="/signup">
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-6 bg-crimson hover:bg-crimson/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    Start learning free →
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
+                  >
+                    Log in
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="text-sm text-sepia-500">
+                No credit card required • Get started in 30 seconds
+              </p>
             </div>
 
-            <p className="text-sm text-sepia-500">
-              No credit card required.
-            </p>
+            {/* Right: Device Mockup */}
+            <div className="lg:pl-8">
+              <DeviceMockup />
+            </div>
           </div>
 
-          {/* Animated Demo */}
-          <div className="mt-16">
+          {/* Animated Demo - Below the hero grid */}
+          <div className="mt-20 pt-12 border-t border-sepia-200">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-serif font-bold text-ink mb-2">See it in action</h3>
+              <p className="text-sepia-600">Click any word to experience instant lookup</p>
+            </div>
             <AnimatedDemo />
           </div>
         </div>
@@ -152,50 +173,69 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-ink mb-6">
-              How It Works
+              Everything You Need to Master a Language
             </h2>
             <p className="text-xl text-sepia-600 max-w-3xl mx-auto">
-              The entire workflow collapses to a single click
+              From structured courses to free-form reading—all with instant word lookup
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <FeatureCard
+              icon="📚"
+              title="Structured Courses"
+              description="Follow guided learning paths with interactive lessons. Each lesson combines reading practice, vocabulary building, and comprehension exercises—all with one-click word lookup."
+            />
+            <FeatureCard
               icon="🎯"
-              title="Instant Lookup"
-              description="Click any word for instant dictionary definition with audio pronunciation powered by ElevenLabs neural TTS. No context switching, no tabs, no friction."
+              title="Interactive Reading"
+              description="Read anything in your target language. Click any word for instant dictionary definition with audio pronunciation. No context switching, no tabs, no friction."
             />
             <FeatureCard
               icon="📊"
-              title="Auto Tracking"
-              description="Every click is tracked, timestamped, and sorted by frequency. Your vocabulary list builds itself while you read. No flashcard management required."
+              title="Smart Vocabulary Tracking"
+              description="Every word you look up is automatically tracked, timestamped, and organized by frequency. Your vocabulary list builds itself while you read—no manual flashcard management."
             />
             <FeatureCard
               icon="🧠"
-              title="Stay in Flow"
-              description="Inline definitions preserve your reading context. No more losing your place. Just pure, immersive reading that feels effortless, not like homework."
+              title="AI Tutor Conversations"
+              description="Practice speaking with an AI tutor about what you're reading. Get instant feedback, learn natural conversation patterns, and reinforce new vocabulary in context."
+            />
+            <FeatureCard
+              icon="🎴"
+              title="Spaced Repetition"
+              description="Auto-generated flashcards from your reading with intelligent spacing. Review words when you're about to forget them. Built-in SRS keeps your vocabulary sharp."
+            />
+            <FeatureCard
+              icon="📈"
+              title="Progress Analytics"
+              description="Track your reading time, vocabulary growth, and course completion. See your improvement over time with detailed stats and insights."
             />
           </div>
 
           <div className="mt-16 text-center">
             <div className="inline-block p-8 bg-white rounded-2xl shadow-lg border border-sepia-200">
-              <h3 className="text-2xl font-serif font-bold text-ink mb-4">What You Get</h3>
+              <h3 className="text-2xl font-serif font-bold text-ink mb-4">The Complete Learning Experience</h3>
               <ul className="text-left space-y-3 text-sepia-700">
                 <li className="flex items-start gap-3">
                   <span className="text-gold text-xl">→</span>
-                  <span><strong>Read faster</strong> (no tab switching)</span>
+                  <span><strong>Learn with structure</strong> or explore freely—your choice</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gold text-xl">→</span>
-                  <span><strong>Learn more</strong> (every word is trackable)</span>
+                  <span><strong>One-click word lookup</strong> keeps you in flow, never breaking immersion</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gold text-xl">→</span>
-                  <span><strong>Remember better</strong> (frequency + recency data)</span>
+                  <span><strong>Automatic vocabulary tracking</strong> builds your word bank as you read</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-gold text-xl">→</span>
-                  <span><strong>Stay motivated</strong> (reading feels effortless)</span>
+                  <span><strong>AI tutor conversations</strong> turn passive reading into active practice</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-gold text-xl">→</span>
+                  <span><strong>Spaced repetition</strong> ensures words stick in long-term memory</span>
                 </li>
               </ul>
             </div>
@@ -207,21 +247,22 @@ export default function LandingPage() {
       <section className="py-24 bg-gradient-to-br from-crimson to-sepia-800">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6">
-            Start Reading Smarter
+            Your Language Journey Starts Here
           </h2>
           <p className="text-xl md:text-2xl text-sepia-100 mb-8">
-            This is reading the way it should be: immersive, intelligent, and completely frictionless.
+            Whether you follow structured courses or explore on your own, every word is one click away.
+            This is language learning the way it should be: immersive, intelligent, and effortless.
           </p>
           <Link href="/signup">
             <Button
               size="lg"
               className="text-xl px-12 py-8 !bg-white hover:!bg-sepia-50 !text-crimson shadow-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-semibold"
             >
-              Sign up free →
+              Start learning free →
             </Button>
           </Link>
           <p className="text-sepia-200 mt-6 text-lg">
-            No credit card required.
+            No credit card required • 30-second setup
           </p>
         </div>
       </section>
