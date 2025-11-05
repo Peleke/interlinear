@@ -36,11 +36,16 @@ export async function POST(
       .single()
 
     // Delete the completion record (for debugging purposes)
-    const { error: deleteError } = await supabase
+    console.log('[Incomplete] Attempting DELETE for user:', user.id, 'lesson:', lessonId)
+
+    const { data: deleteData, error: deleteError } = await supabase
       .from('lesson_completions')
       .delete()
       .eq('user_id', user.id)
       .eq('lesson_id', lessonId)
+      .select()
+
+    console.log('[Incomplete] DELETE result:', { deleteData, deleteError })
 
     if (deleteError) {
       console.error('Deletion error:', deleteError)
@@ -50,10 +55,19 @@ export async function POST(
       )
     }
 
-    // Revalidate the lesson page and course pages with actual courseId
+    if (!deleteData || deleteData.length === 0) {
+      console.warn('[Incomplete] No rows were deleted - completion might not exist')
+    }
+
+    // Revalidate ALL related pages
+    console.log('[Incomplete] Revalidating paths for course:', lesson?.course_id, 'lesson:', lessonId)
+
+    // Revalidate with 'page' type for specific paths with actual IDs
     if (lesson?.course_id) {
-      revalidatePath(`/courses/${lesson.course_id}/lessons/${lessonId}`, 'page')
       revalidatePath(`/courses/${lesson.course_id}`, 'page')
+      revalidatePath(`/courses/${lesson.course_id}/lessons/${lessonId}`, 'page')
+      console.log('[Incomplete] Revalidated:', `/courses/${lesson.course_id}`)
+      console.log('[Incomplete] Revalidated:', `/courses/${lesson.course_id}/lessons/${lessonId}`)
     }
     revalidatePath('/courses', 'page')
 
