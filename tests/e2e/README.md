@@ -23,19 +23,28 @@ The tests will use default credentials if environment variables are not set:
 
 ## Creating a Test User
 
-You can create a test user in one of these ways:
+**IMPORTANT:** You MUST create a test user before running E2E tests.
+
+The auth setup is currently failing with "Invalid login credentials" because the test user doesn't exist.
+
+### Quick Setup (Recommended):
 
 1. **Via Signup Page:**
+   - Start the dev server: `npm run dev`
    - Visit http://localhost:3000/signup
-   - Create an account with the test credentials
-   - Verify the email if required
+   - Create an account with these credentials:
+     - Email: `test@example.com`
+     - Password: `TestPassword123!`
+   - If email verification is required, verify the email
 
 2. **Via Direct Database Insert:**
-   - Use your database admin tool to create a user with the test credentials
-   - Make sure to hash the password appropriately
+   - Use your database admin tool (Supabase dashboard, pgAdmin, etc.)
+   - Create a user with email `test@example.com`
+   - Set password hash for `TestPassword123!`
 
-3. **Via Seed Script:**
+3. **Via Seed Script (TODO):**
    - Create a seed script that sets up test users (recommended for CI/CD)
+   - This is the long-term solution for automated testing
 
 ## Running Tests
 
