@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(
   request: Request,
@@ -27,6 +28,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get the course_id from the lesson first
+    const { data: lesson } = await supabase
+      .from('lessons')
+      .select('course_id')
+      .eq('id', lessonId)
+      .single()
+
     // Delete the completion record (for debugging purposes)
     const { error: deleteError } = await supabase
       .from('lesson_completions')
@@ -41,6 +49,13 @@ export async function POST(
         { status: 500 }
       )
     }
+
+    // Revalidate the lesson page and course pages with actual courseId
+    if (lesson?.course_id) {
+      revalidatePath(`/courses/${lesson.course_id}/lessons/${lessonId}`, 'page')
+      revalidatePath(`/courses/${lesson.course_id}`, 'page')
+    }
+    revalidatePath('/courses', 'page')
 
     return NextResponse.json({
       message: 'Lesson marked as incomplete successfully'

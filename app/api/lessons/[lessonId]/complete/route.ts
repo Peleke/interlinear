@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(
   request: Request,
@@ -43,6 +43,13 @@ export async function POST(
       })
     }
 
+    // Get the course_id from the lesson first
+    const { data: lesson } = await supabase
+      .from('lessons')
+      .select('course_id')
+      .eq('id', lessonId)
+      .single()
+
     // Mark as complete
     const { data: completion, error: completionError } = await supabase
       .from('lesson_completions')
@@ -62,6 +69,13 @@ export async function POST(
         { status: 500 }
       )
     }
+
+    // Revalidate the lesson page and course pages with actual courseId
+    if (lesson?.course_id) {
+      revalidatePath(`/courses/${lesson.course_id}/lessons/${lessonId}`, 'page')
+      revalidatePath(`/courses/${lesson.course_id}`, 'page')
+    }
+    revalidatePath('/courses', 'page')
 
     return NextResponse.json({
       message: 'Lesson completed successfully',

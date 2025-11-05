@@ -11,6 +11,7 @@ import FillBlankExercise from '@/components/exercises/FillBlankExercise'
 import DialogViewer from '@/components/dialogs/DialogViewer'
 import { getOrCreateCourseDeck, type CourseDeck } from '@/lib/services/course-deck-manager'
 import { toast } from 'sonner'
+import { Confetti } from '@/components/Confetti'
 
 interface DialogExchange {
   id: string
@@ -82,6 +83,7 @@ export default function LessonViewer({
   const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   // Auto-fetch or create course deck on mount
   useEffect(() => {
@@ -121,6 +123,10 @@ export default function LessonViewer({
         }
 
         setIsCompleted(false)
+
+        // Refresh the page data to update cache
+        router.refresh()
+
         toast.info('Lesson marked as incomplete', {
           description: 'You can complete it again for testing.',
           duration: 2000
@@ -137,16 +143,19 @@ export default function LessonViewer({
 
         setIsCompleted(true)
 
+        // Trigger confetti animation
+        setShowConfetti(true)
+
         // Show success toast
         toast.success('¡Felicidades! Lesson completed! 🎉', {
           description: 'Great job! Keep up the excellent work.',
           duration: 3000
         })
 
-        // Navigate back to course after a short delay
+        // Navigate back to course after a short delay (after confetti)
         setTimeout(() => {
           router.push(`/courses/${courseId}`)
-        }, 1500)
+        }, 2500)
       }
     } catch (error) {
       console.error('Toggle lesson completion error:', error)
@@ -158,6 +167,9 @@ export default function LessonViewer({
 
   return (
     <div className="min-h-screen bg-parchment">
+      {/* Confetti Animation */}
+      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+
       {/* Navigation */}
       <div className="max-w-4xl mx-auto px-6 pt-6">
         <Navigation />

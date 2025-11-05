@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle, Info } from 'lucide-react'
+import { Confetti } from '@/components/Confetti'
 
 export default function CompletePage() {
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [level, setLevel] = useState<string>('')
   const [isEnrolling, setIsEnrolling] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   useEffect(() => {
     const completeOnboarding = async () => {
@@ -45,6 +47,11 @@ export default function CompletePage() {
 
         setLevel(assessment.level)
         setStatus('success')
+
+        // Trigger confetti after a brief delay to let the page render
+        setTimeout(() => {
+          setShowConfetti(true)
+        }, 500)
 
         // Clear sessionStorage
         sessionStorage.removeItem('onboardingGoals')
@@ -130,6 +137,9 @@ export default function CompletePage() {
 
   return (
     <div className="min-h-screen bg-parchment flex items-center justify-center p-6">
+      {/* Confetti Animation */}
+      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+
       <div className="max-w-3xl w-full">
         {/* Success Header */}
         <div className="text-center mb-8">
