@@ -49,7 +49,8 @@ export async function POST(
       .insert({
         user_id: user.id,
         lesson_id: lessonId,
-        completed_at: new Date().toISOString()
+        completed_at: new Date().toISOString(),
+        xp_earned: 0 // Default to 0 XP for basic completion
       })
       .select()
       .single()
