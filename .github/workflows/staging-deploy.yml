@@ -61,6 +61,7 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
+            --service-account=interlinear-staging@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
             --set-env-vars="NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }},NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
             --update-secrets="ELEVENLABS_API_KEY=elevenlabs-api-key-staging:latest,OPENAI_API_KEY=openai-api-key-staging:latest,MERRIAM_WEBSTER_API_KEY=merriam-webster-api-key-staging:latest" \
             --cpu=1 \
