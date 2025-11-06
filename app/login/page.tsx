@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password)
-      router.push('/home')
+      router.push('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Failed to log in')
     } finally {
