@@ -33,6 +33,9 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
@@ -43,16 +46,18 @@ jobs:
           echo "timestamp=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
 
       - name: Build and push container
-        run: |
-          docker build \
-            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
-            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-${{ steps.vars.outputs.short_sha }} \
-            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-latest \
-            .
-
-          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-${{ steps.vars.outputs.short_sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-latest
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-${{ steps.vars.outputs.short_sha }}
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:staging-latest
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/interlinear/app:buildcache,mode=max
 
       - name: Deploy to Cloud Run
         run: |
