@@ -13,8 +13,8 @@
 2. Review [EPIC-01: Database Foundation](./EPIC-01-database-foundation.md)
 3. Begin implementation with first migration
 
-**Estimated Timeline**: 5 weeks (MVP)
-**Total Work**: 7 epics, 44 stories, ~123 story points
+**Estimated Timeline**: 6 weeks (MVP - includes Week 0 testing infrastructure)
+**Total Work**: 8 epics, 52 stories, ~168 story points
 
 ---
 
@@ -22,7 +22,8 @@
 
 | Epic | Title | Stories | Points | Status |
 |------|-------|---------|--------|--------|
-| [EPIC-01](./EPIC-01-database-foundation.md) | Database Foundation | 5 | 13 | 📋 Planned |
+| [EPIC-00](./EPIC-00-Testing-Infrastructure.md) | Testing Infrastructure Foundation | 8 | 45 | 📋 Planned |
+| [EPIC-01](./EPIC-01-database-foundation.md) | Database Foundation | 5 | 13 | ✅ Complete |
 | [EPIC-02](./EPIC-02-vocabulary-integration.md) | Vocabulary Integration | 6 | 21 | 📋 Planned |
 | [EPIC-03](./EPIC-03-lesson-crud-api.md) | Lesson CRUD API | 8 | 21 | 📋 Planned |
 | [EPIC-04](./EPIC-04-authoring-ui-core.md) | Authoring UI Core | 6 | 13 | 📋 Planned |
@@ -30,9 +31,32 @@
 | [EPIC-06](./EPIC-06-publish-workflow.md) | Publish Workflow | 4 | 13 | 📋 Planned |
 | [EPIC-07](./EPIC-07-learner-integration.md) | Learner Integration | 4 | 8 | 📋 Planned |
 
+**Total**: 8 epics, 52 stories, ~168 story points
+
 ---
 
 ## 🗓️ Week-by-Week Plan
+
+### Week 0: Testing Infrastructure (EPIC-00) - **PRIORITY**
+**Goal**: Automated E2E testing foundation
+
+**Critical Path** (Stories 1-4, complete first):
+- [ ] EPIC-00.1: Test User Factory & Supabase Service Client (5pts) - [#14](https://github.com/Peleke/interlinear/issues/14)
+- [ ] EPIC-00.2: Auth Setup Enhancement (3pts) - [#15](https://github.com/Peleke/interlinear/issues/15)
+- [ ] EPIC-00.3: Database State Management (8pts) - [#16](https://github.com/Peleke/interlinear/issues/16)
+- [ ] EPIC-00.4: Test Environment Configuration (3pts) - [#17](https://github.com/Peleke/interlinear/issues/17)
+
+**Secondary** (Can proceed in parallel after critical path):
+- [ ] EPIC-00.5: Shared Test Fixtures & Utilities (5pts) - [#18](https://github.com/Peleke/interlinear/issues/18)
+- [ ] EPIC-00.6: Page Object Models (8pts) - [#19](https://github.com/Peleke/interlinear/issues/19)
+- [ ] EPIC-00.7: API Route Testing Framework (5pts) - [#20](https://github.com/Peleke/interlinear/issues/20)
+- [ ] EPIC-00.8: CI/CD Integration (8pts) - [#21](https://github.com/Peleke/interlinear/issues/21)
+
+**Deliverable**: ✅ Zero manual setup for tests, automated user creation/cleanup, tests run in CI
+
+**Why Week 0?** This infrastructure unblocks testing for ALL feature epics. Without it, we can't write reliable E2E tests or enforce testing in PRs.
+
+---
 
 ### Week 1: Foundation (EPIC-01, EPIC-02)
 **Goal**: Database schema + vocabulary system
