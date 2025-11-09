@@ -77,7 +77,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
     if (open) {
       fetch('/api/courses')
         .then((res) => res.json())
-        .then((data) => setCourses(data || []))
+        .then((data) => setCourses(data?.courses || []))
         .catch((err) => console.error('Failed to fetch courses:', err))
     }
   }, [open])

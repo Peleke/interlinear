@@ -39,7 +39,7 @@ export function MetadataPanel({ values, onChange }: Props) {
     fetch('/api/courses')
       .then((res) => res.json())
       .then((data) => {
-        setCourses(data || [])
+        setCourses(data?.courses || [])
         setIsLoadingCourses(false)
       })
       .catch((err) => {
