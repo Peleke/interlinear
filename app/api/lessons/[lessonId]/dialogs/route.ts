@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * POST /api/lessons/:lessonId/dialogs
- * Story 3.6: Create dialog with exchanges
+ * GET /api/lessons/[id]/dialogs
+ * Fetch all dialogs for a lesson with their exchanges
  */
-export async function POST(
+export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ lessonId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { lessonId } = await params
+    const { id } = await params
     const supabase = await createClient()
 
     // Verify authentication
@@ -23,68 +23,114 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Verify lesson ownership
-    const { data: lesson } = await supabase
-      .from('lessons')
-      .select('author_id')
-      .eq('id', lessonId)
-      .single()
+    // Fetch dialogs
+    const { data: dialogsData, error: dialogsError } = await supabase
+      .from('lesson_dialogs')
+      .select('*')
+      .eq('lesson_id', id)
+      .order('created_at', { ascending: true })
 
-    if (!lesson || lesson.author_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Not authorized to modify this lesson' },
-        { status: 403 }
-      )
+    if (dialogsError) {
+      throw dialogsError
     }
 
-    const body = await request.json()
+    // Fetch exchanges for all dialogs
+    const dialogIds = dialogsData?.map((d) => d.id) || []
+    const { data: exchangesData, error: exchangesError } = await supabase
+      .from('dialog_exchanges')
+      .select('*')
+      .in('dialog_id', dialogIds)
+      .order('sequence_order', { ascending: true })
 
-    // Create dialog
-    const { data: dialog, error: dialogError } = await supabase
-      .from('lesson_dialogs')
-      .insert({
-        lesson_id: lessonId,
-        context: body.context || null,
-        setting: body.setting || null,
-      })
-      .select()
-      .single()
-
-    if (dialogError) throw dialogError
-
-    // Create exchanges if provided
-    if (body.exchanges && Array.isArray(body.exchanges)) {
-      const exchanges = body.exchanges.map((exchange: any, index: number) => ({
-        dialog_id: dialog.id,
-        speaker: exchange.speaker,
-        spanish_text: exchange.spanish_text,
-        english_translation: exchange.english_translation || null,
-        sequence_order: exchange.sequence_order ?? index,
-        audio_url: exchange.audio_url || null,
-      }))
-
-      const { error: exchangesError } = await supabase
-        .from('dialog_exchanges')
-        .insert(exchanges)
-
-      if (exchangesError) throw exchangesError
+    if (exchangesError) {
+      throw exchangesError
     }
 
-    // Return dialog with exchanges
-    const { data: fullDialog } = await supabase
-      .from('lesson_dialogs')
-      .select(`
-        *,
-        exchanges:dialog_exchanges(*)
-      `)
-      .eq('id', dialog.id)
-      .single()
+    // Combine dialogs with their exchanges
+    const dialogs = dialogsData?.map((dialog) => ({
+      ...dialog,
+      exchanges:
+        exchangesData?.filter((ex) => ex.dialog_id === dialog.id) || [],
+    }))
 
-    return NextResponse.json(fullDialog, { status: 201 })
+    return NextResponse.json({ dialogs })
   } catch (error) {
-    console.error('Error creating dialog:', error)
+    console.error('Error fetching dialogs:', error)
     return NextResponse.json(
-      { error: 'Failed to create dialog' },
+      { error: 'Failed to fetch dialogs' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PUT /api/lessons/[id]/dialogs
+ * Replace all dialogs for a lesson (bulk update)
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = await createClient()
+
+    // Verify authentication
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { dialogs } = await request.json()
+
+    // Delete all existing dialogs (cascade will delete exchanges)
+    await supabase.from('lesson_dialogs').delete().eq('lesson_id', id)
+
+    // Insert new dialogs and exchanges
+    for (const dialog of dialogs) {
+      const { data: newDialog, error: dialogError } = await supabase
+        .from('lesson_dialogs')
+        .insert({
+          lesson_id: id,
+          context: dialog.context,
+          setting: dialog.setting,
+        })
+        .select()
+        .single()
+
+      if (dialogError) {
+        throw dialogError
+      }
+
+      // Insert exchanges
+      if (dialog.exchanges && dialog.exchanges.length > 0) {
+        const exchangesToInsert = dialog.exchanges.map((ex: any) => ({
+          dialog_id: newDialog.id,
+          sequence_order: ex.sequence_order,
+          speaker: ex.speaker,
+          spanish: ex.spanish,
+          english: ex.english,
+        }))
+
+        const { error: exchangesError } = await supabase
+          .from('dialog_exchanges')
+          .insert(exchangesToInsert)
+
+        if (exchangesError) {
+          throw exchangesError
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error saving dialogs:', error)
+    return NextResponse.json(
+      { error: 'Failed to save dialogs' },
       { status: 500 }
     )
   }
