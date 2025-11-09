@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createServiceClient } from '@/lib/supabase/service'
 
 /**
  * GET /api/lessons/[id]/dialogs
@@ -88,9 +87,8 @@ export async function PUT(
 
     const { dialogs } = await request.json()
 
-    // Verify lesson ownership
-    const serviceClient = createServiceClient()
-    const { data: lesson } = await serviceClient
+    // Verify lesson ownership (RLS will handle access control)
+    const { data: lesson } = await supabase
       .from('lessons')
       .select('id, author_id')
       .eq('id', id)
@@ -100,17 +98,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
     }
 
-    if (lesson.author_id && lesson.author_id !== user.id) {
+    if (lesson.author_id !== user.id) {
       return NextResponse.json({ error: 'Not authorized to edit this lesson' }, { status: 403 })
     }
 
     // Delete all existing dialogs (cascade will delete exchanges)
-    // Use service client to bypass RLS
-    await serviceClient.from('lesson_dialogs').delete().eq('lesson_id', id)
+    await supabase.from('lesson_dialogs').delete().eq('lesson_id', id)
 
-    // Insert new dialogs and exchanges (use service client to bypass RLS)
+    // Insert new dialogs and exchanges
     for (const dialog of dialogs) {
-      const { data: newDialog, error: dialogError } = await serviceClient
+      const { data: newDialog, error: dialogError } = await supabase
         .from('lesson_dialogs')
         .insert({
           lesson_id: id,
@@ -135,7 +132,7 @@ export async function PUT(
           english: ex.english,
         }))
 
-        const { error: exchangesError } = await serviceClient
+        const { error: exchangesError } = await supabase
           .from('dialog_exchanges')
           .insert(exchangesToInsert)
 
