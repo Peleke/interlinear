@@ -68,7 +68,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
   const [selectedTemplate, setSelectedTemplate] = useState<Template>('blank')
   const [title, setTitle] = useState('')
   const [language, setLanguage] = useState<'es' | 'is'>('es')
-  const [courseId, setCourseId] = useState<string>('')
+  const [courseId, setCourseId] = useState<string>('none')
   const [courses, setCourses] = useState<Course[]>([])
   const [isCreating, setIsCreating] = useState(false)
 
@@ -93,7 +93,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
         body: JSON.stringify({
           title: title.trim(),
           language,
-          course_id: courseId || null,
+          course_id: courseId === 'none' ? null : courseId,
           status: 'draft',
           template: selectedTemplate,
         }),
@@ -218,7 +218,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
                   <SelectValue placeholder="No course" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No course</SelectItem>
+                  <SelectItem value="none">No course</SelectItem>
                   {courses.map((course) => (
                     <SelectItem key={course.id} value={course.id}>
                       {course.title}
