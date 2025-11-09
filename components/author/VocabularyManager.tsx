@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PlusCircle, Trash2, Save, CheckCircle2, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import VocabularyAutocomplete from './VocabularyAutocomplete'
 
 interface VocabItem {
@@ -25,6 +26,8 @@ interface VocabItem {
   mw_id?: string | null
   mw_data?: any
   mw_fetched_at?: string | null
+  used_in_lessons?: string[]
+  usage_count?: number
 }
 
 interface Props {
@@ -324,20 +327,41 @@ export function VocabularyManager({ lessonId, language }: Props) {
             <Card key={item.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">
-                    {item.spanish || 'New Vocabulary Item'}
-                    {item.mw_data && (
-                      <span className="ml-2 text-xs text-green-600 font-normal">
-                        ✓ MW Data Cached
-                      </span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-base">
+                        {item.spanish || 'New Vocabulary Item'}
+                      </CardTitle>
+                      {item.is_new && (
+                        <Badge variant="default" className="text-xs">
+                          New
+                        </Badge>
+                      )}
+                      {!item.is_new && item.usage_count && item.usage_count > 1 && (
+                        <Badge variant="secondary" className="text-xs">
+                          Review
+                        </Badge>
+                      )}
+                      {item.mw_data && (
+                        <span className="text-xs text-green-600 font-normal">
+                          ✓ MW
+                        </span>
+                      )}
+                    </div>
+                    {item.used_in_lessons && item.used_in_lessons.length > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Also in: {item.used_in_lessons.slice(0, 3).join(', ')}
+                        {item.used_in_lessons.length > 3 && ` +${item.used_in_lessons.length - 3} more`}
+                      </p>
                     )}
-                  </CardTitle>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => deleteVocabItem(item.id)}
+                    title="Remove from this lesson"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </div>
               </CardHeader>

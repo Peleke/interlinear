@@ -48,11 +48,33 @@ export async function GET(
       throw vocabError
     }
 
-    // Flatten the structure
-    const vocabulary = vocabLinks?.map((link: any) => ({
-      ...link.lesson_vocabulary_items,
-      is_new: link.is_new,
-    }))
+    // Flatten the structure and fetch usage info
+    const vocabulary = await Promise.all(
+      vocabLinks?.map(async (link: any) => {
+        const vocabId = link.lesson_vocabulary_items.id
+
+        // Get all lessons using this vocab (excluding current lesson)
+        const { data: usageData } = await supabase
+          .from('lesson_vocabulary')
+          .select(`
+            lesson:lessons!inner(
+              id,
+              title
+            )
+          `)
+          .eq('vocabulary_id', vocabId)
+          .neq('lesson_id', lessonId)
+
+        const usedInLessons = usageData?.map((u: any) => u.lesson.title) || []
+
+        return {
+          ...link.lesson_vocabulary_items,
+          is_new: link.is_new,
+          used_in_lessons: usedInLessons,
+          usage_count: usedInLessons.length + 1, // +1 for current lesson
+        }
+      }) || []
+    )
 
     return NextResponse.json({ vocabulary })
   } catch (error) {
