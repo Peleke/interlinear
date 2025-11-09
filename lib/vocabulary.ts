@@ -104,7 +104,7 @@ export class VocabularyService {
     // Check if word exists for this user and language
     const existing = await this.getByWord(normalizedWord)
 
-    if (existing && existing.language === language) {
+    if (existing && (existing as any).language === language) {
       // Update existing entry
       const { data, error } = await supabase
         .from('vocabulary')
@@ -125,7 +125,7 @@ export class VocabularyService {
     } else {
       // Extract spanish/english from definition or word
       const spanish = normalizedWord
-      const english = definition?.translations?.[0] || definition?.translation || 'translation missing'
+      const english = (definition as any)?.translations?.[0] || (definition as any)?.translation || 'translation missing'
 
       // Create new entry
       const { data, error } = await supabase

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PlusCircle, Trash2, GripVertical, Save } from 'lucide-react'
+import { PlusCircle, Trash2, GripVertical, Save, CheckCircle2 } from 'lucide-react'
 
 interface DialogExchange {
   id: string
@@ -32,6 +32,7 @@ export function DialogBuilder({ lessonId, language }: Props) {
   const [dialogs, setDialogs] = useState<Dialog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Load existing dialogs
   useEffect(() => {
@@ -141,16 +142,26 @@ export function DialogBuilder({ lessonId, language }: Props) {
 
   const saveDialogs = async () => {
     setIsSaving(true)
+    setSaveMessage(null)
     try {
-      await fetch(`/api/lessons/${lessonId}/dialogs`, {
+      const response = await fetch(`/api/lessons/${lessonId}/dialogs`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dialogs }),
       })
+
+      if (!response.ok) {
+        throw new Error('Failed to save dialogs')
+      }
+
       // Reload to get server IDs
       await loadDialogs()
+
+      setSaveMessage({ type: 'success', text: 'Dialogs saved successfully!' })
+      setTimeout(() => setSaveMessage(null), 3000)
     } catch (error) {
       console.error('Failed to save dialogs:', error)
+      setSaveMessage({ type: 'error', text: 'Failed to save dialogs. Please try again.' })
     } finally {
       setIsSaving(false)
     }
@@ -162,6 +173,19 @@ export function DialogBuilder({ lessonId, language }: Props) {
 
   return (
     <div className="space-y-6">
+      {saveMessage && (
+        <div
+          className={`p-4 rounded-lg border flex items-center gap-2 ${
+            saveMessage.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}
+        >
+          {saveMessage.type === 'success' && <CheckCircle2 className="h-5 w-5" />}
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">Dialog Builder</h3>

@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * GET /api/lessons/[id]/dialogs
+ * GET /api/lessons/[lessonId]/dialogs
  * Fetch all dialogs for a lesson with their exchanges
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
-    const { id } = await params
+    const { lessonId } = await params
     const supabase = await createClient()
 
     // Verify authentication
@@ -27,7 +27,7 @@ export async function GET(
     const { data: dialogsData, error: dialogsError } = await supabase
       .from('lesson_dialogs')
       .select('*')
-      .eq('lesson_id', id)
+      .eq('lesson_id', lessonId)
       .order('created_at', { ascending: true })
 
     if (dialogsError) {
@@ -64,15 +64,15 @@ export async function GET(
 }
 
 /**
- * PUT /api/lessons/[id]/dialogs
+ * PUT /api/lessons/[lessonId]/dialogs
  * Replace all dialogs for a lesson (bulk update)
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
-    const { id } = await params
+    const { lessonId } = await params
     const supabase = await createClient()
 
     // Verify authentication
@@ -91,7 +91,7 @@ export async function PUT(
     const { data: lesson } = await supabase
       .from('lessons')
       .select('id, author_id')
-      .eq('id', id)
+      .eq('id', lessonId)
       .maybeSingle()
 
     if (!lesson) {
@@ -103,14 +103,14 @@ export async function PUT(
     }
 
     // Delete all existing dialogs (cascade will delete exchanges)
-    await supabase.from('lesson_dialogs').delete().eq('lesson_id', id)
+    await supabase.from('lesson_dialogs').delete().eq('lesson_id', lessonId)
 
     // Insert new dialogs and exchanges
     for (const dialog of dialogs) {
       const { data: newDialog, error: dialogError } = await supabase
         .from('lesson_dialogs')
         .insert({
-          lesson_id: id,
+          lesson_id: lessonId,
           context: dialog.context,
           setting: dialog.setting,
         })
