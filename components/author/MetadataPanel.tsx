@@ -113,9 +113,9 @@ export function MetadataPanel({ values, onChange }: Props) {
         <div className="space-y-2">
           <Label htmlFor="course">Course (Optional)</Label>
           <Select
-            value={values.course_id || ''}
+            value={values.course_id || 'none'}
             onValueChange={(value) =>
-              onChange({ course_id: value || null })
+              onChange({ course_id: value === 'none' ? null : value })
             }
             disabled={isLoadingCourses}
           >
@@ -127,7 +127,7 @@ export function MetadataPanel({ values, onChange }: Props) {
               />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No course</SelectItem>
+              <SelectItem value="none">No course</SelectItem>
               {courses.map((course) => (
                 <SelectItem key={course.id} value={course.id}>
                   {course.title}
