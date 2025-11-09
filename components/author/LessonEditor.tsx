@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useDebouncedCallback } from 'use-debounce'
 import {
   FileText,
   MessageSquare,
@@ -18,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { MetadataPanel } from './MetadataPanel'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -72,6 +74,47 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [lesson, setLesson] = useState(initialLesson)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+
+  // Auto-save with debouncing (500ms after last edit)
+  const saveLesson = useCallback(async (updatedLesson: Lesson) => {
+    setSaveStatus('saving')
+    try {
+      const response = await fetch(`/api/lessons/${updatedLesson.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: updatedLesson.title,
+          language: updatedLesson.language,
+          overview: updatedLesson.overview,
+          course_id: updatedLesson.course_id,
+          xp_value: updatedLesson.xp_value,
+          sequence_order: updatedLesson.sequence_order,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save lesson')
+      }
+
+      setSaveStatus('saved')
+    } catch (error) {
+      console.error('Error saving lesson:', error)
+      setSaveStatus('unsaved')
+      // TODO: Show error toast
+    }
+  }, [])
+
+  const debouncedSave = useDebouncedCallback(saveLesson, 500)
+
+  const updateLesson = useCallback(
+    (updates: Partial<Lesson>) => {
+      const updatedLesson = { ...lesson, ...updates }
+      setLesson(updatedLesson)
+      setSaveStatus('unsaved')
+      debouncedSave(updatedLesson)
+    },
+    [lesson, debouncedSave]
+  )
 
   const handleBack = () => {
     router.push('/author/lessons')
@@ -198,10 +241,17 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-4xl mx-auto">
             {activeTab === 'metadata' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Lesson Metadata</h2>
-                <p className="text-muted-foreground">Metadata panel coming soon...</p>
-              </div>
+              <MetadataPanel
+                values={{
+                  title: lesson.title,
+                  language: lesson.language,
+                  overview: lesson.overview || '',
+                  course_id: lesson.course_id || null,
+                  xp_value: lesson.xp_value,
+                  sequence_order: lesson.sequence_order,
+                }}
+                onChange={updateLesson}
+              />
             )}
 
             {activeTab === 'dialogs' && (
