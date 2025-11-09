@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { MetadataPanel } from './MetadataPanel'
+import { DialogBuilder } from './DialogBuilder'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -285,12 +286,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
             )}
 
             {activeTab === 'dialogs' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Dialogs</h2>
-                <p className="text-muted-foreground">
-                  {lesson.dialogs?.length || 0} dialogs
-                </p>
-              </div>
+              <DialogBuilder lessonId={lesson.id} language={lesson.language} />
             )}
 
             {activeTab === 'vocabulary' && (
