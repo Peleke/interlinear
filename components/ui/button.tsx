@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'ghost'
@@ -6,14 +7,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean
 }
 
-export function Button({
-  children,
+export const buttonVariants = ({
   variant = 'default',
   size = 'default',
-  className = '',
-  asChild = false,
-  ...props
-}: ButtonProps) {
+}: {
+  variant?: 'default' | 'outline' | 'ghost'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+} = {}) => {
   const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50'
 
   const variantStyles = {
@@ -29,7 +29,18 @@ export function Button({
     icon: 'h-10 w-10'
   }
 
-  const classes = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`
+  return `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]}`
+}
+
+export function Button({
+  children,
+  variant = 'default',
+  size = 'default',
+  className = '',
+  asChild = false,
+  ...props
+}: ButtonProps) {
+  const classes = cn(buttonVariants({ variant, size }), className)
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {

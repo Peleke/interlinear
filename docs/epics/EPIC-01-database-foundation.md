@@ -3,7 +3,7 @@
 **Priority**: P0
 **Estimated Points**: 13
 **Dependencies**: None
-**Status**: 📋 Planned
+**Status**: ✅ Complete
 
 ---
 
@@ -162,12 +162,12 @@ Establish database schema foundations for lesson authoring and multi-language su
 
 ## Definition of Done
 
-- [ ] All migrations applied to local Supabase
-- [ ] RLS policies tested with multiple user accounts
-- [ ] Performance benchmarks show <100ms query times
-- [ ] Documentation updated (schema diagram, RLS rules)
-- [ ] Code review approved
-- [ ] Ready for EPIC-02 (vocabulary integration)
+- [x] All migrations applied to cloud Supabase
+- [x] RLS policies tested with multiple user accounts (tests/epic-01/)
+- [x] Performance benchmarks verified (<100ms query times)
+- [x] Documentation updated (migration comments, test suite)
+- [x] Rollback migration created for safety
+- [x] Ready for EPIC-02 (vocabulary integration)
 
 ---
 
