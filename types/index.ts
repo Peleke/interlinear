@@ -52,3 +52,25 @@ export interface VocabularyStats {
   recentWords: number
   topWords: { word: string; count: number }[]
 }
+
+// Lesson types for EPIC-03
+export interface Lesson {
+  id: string
+  title: string
+  overview: string | null
+  author_id: string
+  language: 'es' | 'is'
+  xp_value: number
+  sequence_order: number
+  status: 'draft' | 'published' | 'archived'
+  created_at: string
+  updated_at: string
+}
+
+export interface LessonWithComponents extends Lesson {
+  dialog_count?: number
+  vocabulary_count?: number
+  grammar_count?: number
+  exercise_count?: number
+  reading_count?: number
+}
