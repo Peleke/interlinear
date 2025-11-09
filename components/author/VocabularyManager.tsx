@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,6 +59,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
     type: 'success' | 'error'
     text: string
   } | null>(null)
+  const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
   // Load existing vocabulary
   useEffect(() => {
@@ -118,6 +119,88 @@ export function VocabularyManager({ lessonId, language }: Props) {
         return item
       })
     )
+
+    // Auto-detect "is_new" when Spanish or English changes
+    if (field === 'spanish' || field === 'english') {
+      const item = vocabulary.find((v) => v.id === id)
+      if (item) {
+        debouncedCheckIfVocabIsNew(
+          id,
+          item.spanish,
+          item.english,
+          field,
+          value as string
+        )
+      }
+    }
+  }
+
+  // Debounced version of checkIfVocabIsNew (500ms delay)
+  const debouncedCheckIfVocabIsNew = (
+    id: string,
+    currentSpanish: string,
+    currentEnglish: string,
+    changedField: 'spanish' | 'english',
+    newValue: string
+  ) => {
+    // Clear existing timer for this item
+    const existingTimer = debounceTimers.current.get(id)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+    }
+
+    // Set new timer
+    const timer = setTimeout(() => {
+      checkIfVocabIsNew(id, currentSpanish, currentEnglish, changedField, newValue)
+      debounceTimers.current.delete(id)
+    }, 500)
+
+    debounceTimers.current.set(id, timer)
+  }
+
+  // Check if vocabulary exists
+  const checkIfVocabIsNew = async (
+    id: string,
+    currentSpanish: string,
+    currentEnglish: string,
+    changedField: 'spanish' | 'english',
+    newValue: string
+  ) => {
+    const spanish = changedField === 'spanish' ? newValue : currentSpanish
+    const english = changedField === 'english' ? newValue : currentEnglish
+
+    // Both fields must be filled
+    if (!spanish.trim() || !english.trim()) return
+
+    try {
+      // Check if this (spanish, english) pair exists
+      const params = new URLSearchParams({
+        q: spanish,
+        language: 'es',
+        limit: '5',
+      })
+      const response = await fetch(`/api/vocabulary/search?${params}`)
+      if (!response.ok) return
+
+      const data = await response.json()
+      const exactMatch = data.items?.find(
+        (item: any) =>
+          item.spanish.toLowerCase() === spanish.toLowerCase() &&
+          item.english.toLowerCase() === english.toLowerCase()
+      )
+
+      // Auto-set "is_new" based on whether vocab exists
+      setVocabulary((prev) =>
+        prev.map((item) => {
+          if (item.id === id) {
+            return { ...item, is_new: !exactMatch }
+          }
+          return item
+        })
+      )
+    } catch (error) {
+      console.error('Failed to check vocab existence:', error)
+    }
   }
 
   const deleteVocabItem = (id: string) => {
@@ -335,17 +418,22 @@ export function VocabularyManager({ lessonId, language }: Props) {
 
                   <div className="space-y-2">
                     <Label>New in Lesson?</Label>
-                    <div className="flex items-center h-10 px-3 border rounded-md">
-                      <input
-                        type="checkbox"
-                        checked={item.is_new}
-                        onChange={(e) =>
-                          updateVocabItem(item.id, 'is_new', e.target.checked)
-                        }
-                        className="mr-2"
-                      />
-                      <span className="text-sm">
-                        {item.is_new ? 'New' : 'Review'}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center h-10 px-3 border rounded-md">
+                        <input
+                          type="checkbox"
+                          checked={item.is_new}
+                          onChange={(e) =>
+                            updateVocabItem(item.id, 'is_new', e.target.checked)
+                          }
+                          className="mr-2"
+                        />
+                        <span className="text-sm">
+                          {item.is_new ? 'New' : 'Review'}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Auto-detected based on existing vocab
                       </span>
                     </div>
                   </div>
