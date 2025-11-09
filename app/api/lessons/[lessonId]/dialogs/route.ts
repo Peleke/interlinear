@@ -88,7 +88,7 @@ export async function PUT(
 
     const { dialogs } = await request.json()
 
-    // Use service client to bypass RLS for ownership check
+    // Verify lesson ownership
     const serviceClient = createServiceClient()
     const { data: lesson } = await serviceClient
       .from('lessons')
@@ -100,22 +100,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
     }
 
-    // If lesson has no author_id (legacy), assign it to current user
-    if (!lesson.author_id) {
-      await serviceClient
-        .from('lessons')
-        .update({ author_id: user.id })
-        .eq('id', id)
-    } else if (lesson.author_id !== user.id) {
+    if (lesson.author_id && lesson.author_id !== user.id) {
       return NextResponse.json({ error: 'Not authorized to edit this lesson' }, { status: 403 })
     }
 
     // Delete all existing dialogs (cascade will delete exchanges)
-    await supabase.from('lesson_dialogs').delete().eq('lesson_id', id)
+    // Use service client to bypass RLS
+    await serviceClient.from('lesson_dialogs').delete().eq('lesson_id', id)
 
-    // Insert new dialogs and exchanges
+    // Insert new dialogs and exchanges (use service client to bypass RLS)
     for (const dialog of dialogs) {
-      const { data: newDialog, error: dialogError } = await supabase
+      const { data: newDialog, error: dialogError } = await serviceClient
         .from('lesson_dialogs')
         .insert({
           lesson_id: id,
@@ -140,7 +135,7 @@ export async function PUT(
           english: ex.english,
         }))
 
-        const { error: exchangesError } = await supabase
+        const { error: exchangesError } = await serviceClient
           .from('dialog_exchanges')
           .insert(exchangesToInsert)
 
