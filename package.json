@@ -17,6 +17,8 @@
     "seed:lessons:v2": "npx tsx scripts/seed-lessons-v2.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.44",
+    "@ai-sdk/openai": "^2.0.65",
     "@anthropic-ai/sdk": "^0.68.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -46,16 +48,19 @@
     "lucide-react": "^0.552.0",
     "marked": "^16.4.1",
     "next": "^15.1.8",
+    "node-nlp": "^5.0.0-alpha.5",
     "openai": "^6.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "use-debounce": "^10.0.6",
     "yaml": "^2.8.1",
-    "zod": "^3.22.0"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
