@@ -5,11 +5,11 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: Request,
-  { params }: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
     const supabase = await createClient()
-    const { lessonId } = params
+    const { lessonId } = await params
 
     const { data: exercises, error } = await supabase
       .from('lesson_exercises')

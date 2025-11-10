@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -15,7 +15,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id: exerciseId } = params
+    const { id: exerciseId } = await params
 
     // Verify ownership through lesson
     const { data: exercise } = await supabase

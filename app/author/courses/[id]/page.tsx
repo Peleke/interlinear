@@ -52,7 +52,7 @@ export default async function CourseDetailPage({
     .select(`
       lesson_id,
       display_order,
-      lesson:lessons(id, title, status, overview)
+      lesson:lessons!inner(id, title, status, overview)
     `)
     .eq('course_id', id)
     .order('display_order', { ascending: true })
@@ -62,6 +62,13 @@ export default async function CourseDetailPage({
     return <div>Error loading course lessons</div>
   }
 
+  // Transform: Supabase returns lesson as array, we need single object
+  const lessons = (orderings || []).map((item: any) => ({
+    lesson_id: item.lesson_id,
+    display_order: item.display_order,
+    lesson: Array.isArray(item.lesson) ? item.lesson[0] : item.lesson,
+  }))
+
   // Fetch all available lessons for this user (not in this course)
   const { data: allLessons } = await supabase
     .from('lessons')
@@ -69,7 +76,7 @@ export default async function CourseDetailPage({
     .eq('author_id', user.id)
     .order('title', { ascending: true })
 
-  const courseLessonIds = new Set(orderings?.map((o: any) => o.lesson_id) || [])
+  const courseLessonIds = new Set(lessons.map((o) => o.lesson_id))
   const availableLessons = (allLessons || []).filter(
     (lesson) => !courseLessonIds.has(lesson.id)
   )
@@ -77,7 +84,7 @@ export default async function CourseDetailPage({
   return (
     <CourseDetailView
       course={course}
-      lessons={orderings || []}
+      lessons={lessons}
       availableLessons={availableLessons}
     />
   )
