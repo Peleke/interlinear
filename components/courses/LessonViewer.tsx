@@ -35,7 +35,7 @@ interface LessonViewerProps {
     overview?: string | null
     courses?: {
       title: string
-      level: string
+      difficulty_level: string
     } | null
   }
   contentBlocks: Array<{
