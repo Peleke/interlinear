@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     console.error('Failed to fetch enrollments:', enrollmentsError)
   }
 
-  const enrolledCourses = enrollments?.map((e: any) => e.courses) || []
+  const enrolledCourses = (enrollments?.map((e: any) => e.courses) || []).filter((c: any) => c !== null)
 
   // For each enrolled course, get lesson count and progress
   const coursesWithProgress = await Promise.all(
