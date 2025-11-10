@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { MetadataPanel } from './MetadataPanel'
 import { DialogBuilder } from './DialogBuilder'
 import { VocabularyManager } from './VocabularyManager'
+import GrammarConceptSelector from './GrammarConceptSelector'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -295,12 +296,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
             )}
 
             {activeTab === 'grammar' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Grammar Concepts</h2>
-                <p className="text-muted-foreground">
-                  {lesson.grammar?.length || 0} grammar concepts
-                </p>
-              </div>
+              <GrammarConceptSelector lessonId={lesson.id} />
             )}
 
             {activeTab === 'exercises' && (

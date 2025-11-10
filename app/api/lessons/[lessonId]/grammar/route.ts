@@ -1,62 +1,109 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
- * POST /api/lessons/:lessonId/grammar
- * Story 3.8: Link grammar concept to lesson
+ * GET /api/lessons/[lessonId]/grammar
+ * Get all grammar concepts for a lesson
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ lessonId: string }> }
+) {
+  try {
+    const { lessonId } = await params;
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("lesson_grammar_concepts")
+      .select(`
+        grammar_concept:grammar_concepts!inner(
+          id,
+          name,
+          display_name,
+          description,
+          content
+        )
+      `)
+      .eq("lesson_id", lessonId);
+
+    if (error) {
+      console.error("Failed to fetch grammar concepts:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch grammar concepts" },
+        { status: 500 }
+      );
+    }
+
+    const concepts = data?.map((item: any) => item.grammar_concept) || [];
+
+    return NextResponse.json({ concepts });
+  } catch (error) {
+    console.error("Grammar fetch error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/lessons/[lessonId]/grammar
+ * Link grammar concept to lesson
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
-    const { lessonId } = await params
-    const supabase = await createClient()
+    const { lessonId } = await params;
+    const supabase = await createClient();
+    const body = await request.json();
+    const { concept_id } = body;
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify lesson ownership
-    const { data: lesson } = await supabase
-      .from('lessons')
-      .select('author_id')
-      .eq('id', lessonId)
-      .single()
-
-    if (!lesson || lesson.author_id !== user.id) {
+    if (!concept_id) {
       return NextResponse.json(
-        { error: 'Not authorized to modify this lesson' },
-        { status: 403 }
-      )
+        { error: "concept_id is required" },
+        { status: 400 }
+      );
     }
 
-    const body = await request.json()
+    // Check if already linked
+    const { data: existing } = await supabase
+      .from("lesson_grammar_concepts")
+      .select("*")
+      .eq("lesson_id", lessonId)
+      .eq("grammar_concept_id", concept_id)
+      .maybeSingle();
 
-    const { data, error } = await supabase
-      .from('lesson_grammar')
+    if (existing) {
+      return NextResponse.json(
+        { error: "Concept already linked to this lesson" },
+        { status: 400 }
+      );
+    }
+
+    // Link concept
+    const { error } = await supabase
+      .from("lesson_grammar_concepts")
       .insert({
         lesson_id: lessonId,
-        concept_name: body.concept_name,
-        description: body.description || null,
-        example_usage: body.example_usage || null,
-      })
-      .select()
-      .single()
+        grammar_concept_id: concept_id,
+      });
 
-    if (error) throw error
+    if (error) {
+      console.error("Failed to link grammar concept:", error);
+      return NextResponse.json(
+        { error: "Failed to link grammar concept" },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(data, { status: 201 })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error linking grammar:', error)
+    console.error("Grammar link error:", error);
     return NextResponse.json(
-      { error: 'Failed to link grammar concept' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }
