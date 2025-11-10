@@ -66,13 +66,14 @@ Return ONLY a JSON object with this structure:
  * Grammar identification tool
  */
 export const identifyGrammar = tool(
-  async ({ readingText, targetLevel, maxConcepts = 5 }) => {
+  async ({ readingText, targetLevel, maxConcepts }) => {
+    const conceptLimit = maxConcepts || 5;
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",
       temperature: 0.6,
     });
 
-    const prompt = GRAMMAR_PROMPT(readingText, targetLevel, maxConcepts);
+    const prompt = GRAMMAR_PROMPT(readingText, targetLevel, conceptLimit);
 
     try {
       const result = await llm.invoke([
@@ -109,7 +110,7 @@ export const identifyGrammar = tool(
     schema: z.object({
       readingText: z.string().describe("The reading text to analyze for grammar"),
       targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).describe("Target CEFR level for grammar selection"),
-      maxConcepts: z.number().default(5).describe("Maximum number of grammar concepts to identify"),
+      maxConcepts: z.number().describe("Maximum number of grammar concepts to identify"),
     }),
   }
 );

@@ -69,13 +69,14 @@ Return ONLY a JSON object with this structure:
  * Vocabulary extraction tool
  */
 export const extractVocabulary = tool(
-  async ({ readingText, targetLevel, maxItems = 15 }) => {
+  async ({ readingText, targetLevel, maxItems }) => {
+    const itemLimit = maxItems || 15;
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",
       temperature: 0.7,
     });
 
-    const prompt = VOCABULARY_PROMPT(readingText, targetLevel, maxItems);
+    const prompt = VOCABULARY_PROMPT(readingText, targetLevel, itemLimit);
 
     try {
       const result = await llm.invoke([
@@ -118,7 +119,7 @@ export const extractVocabulary = tool(
     schema: z.object({
       readingText: z.string().describe("The reading text to extract vocabulary from"),
       targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).describe("Target CEFR level for vocabulary selection"),
-      maxItems: z.number().default(15).describe("Maximum number of vocabulary items to extract"),
+      maxItems: z.number().describe("Maximum number of vocabulary items to extract"),
     }),
   }
 );

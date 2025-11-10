@@ -64,6 +64,13 @@ Return JSON matching this schema:
  */
 export const generateExercises = tool(
   async ({ vocabularyItems, grammarConcepts, targetLevel, readingText }) => {
+    // Parse JSON string inputs from previous tools
+    const vocab = typeof vocabularyItems === 'string' ? JSON.parse(vocabularyItems) : vocabularyItems;
+    const grammar = typeof grammarConcepts === 'string' ? JSON.parse(grammarConcepts) : grammarConcepts;
+
+    const vocabArray = vocab.vocabulary || vocab;
+    const grammarArray = grammar.grammar_concepts || grammar;
+
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",
       temperature: 0.7, // Slightly creative for exercise variety
@@ -73,14 +80,14 @@ export const generateExercises = tool(
 READING TEXT:
 ${readingText}
 
-VOCABULARY ITEMS (${vocabularyItems.length} items):
-${vocabularyItems.map((item: any) =>
-  `- ${item.spanish} (${item.english}) - ${item.partOfSpeech}`
+VOCABULARY ITEMS (${vocabArray.length} items):
+${vocabArray.map((item: any) =>
+  `- ${item.word} (${item.translation}) - ${item.definition}`
 ).join('\n')}
 
-GRAMMAR CONCEPTS (${grammarConcepts.length} concepts):
-${grammarConcepts.map((concept: any) =>
-  `- ${concept.concept}: ${concept.explanation}`
+GRAMMAR CONCEPTS (${grammarArray.length} concepts):
+${grammarArray.map((concept: any) =>
+  `- ${concept.concept_name}: ${concept.explanation}`
 ).join('\n')}
 
 TARGET LEVEL: ${targetLevel}
@@ -117,8 +124,8 @@ Generate 6-8 exercises total:
     name: "generate_exercises",
     description: "Generate interactive exercises from vocabulary items and grammar concepts for a specific CEFR level",
     schema: z.object({
-      vocabularyItems: z.array(z.any()).describe("Array of vocabulary items extracted from the reading"),
-      grammarConcepts: z.array(z.any()).describe("Array of grammar concepts identified in the reading"),
+      vocabularyItems: z.string().describe("JSON string array of vocabulary items with word, translation, definition"),
+      grammarConcepts: z.string().describe("JSON string array of grammar concepts with concept_name, explanation"),
       targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).describe("Target CEFR proficiency level"),
       readingText: z.string().describe("The original reading text for context"),
     }),
