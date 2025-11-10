@@ -113,16 +113,23 @@ export class CourseService {
       .select(`
         lesson_id,
         display_order,
-        lesson:lessons(id, title, status, overview)
+        lesson:lessons!inner(id, title, status, overview)
       `)
       .eq('course_id', id)
       .order('display_order', { ascending: true })
 
     if (orderError) throw orderError
 
+    // Transform: Supabase returns lesson as array, we need single object
+    const lessons: LessonOrderingEntry[] = (orderings || []).map((item: any) => ({
+      lesson_id: item.lesson_id,
+      display_order: item.display_order,
+      lesson: Array.isArray(item.lesson) ? item.lesson[0] : item.lesson,
+    }))
+
     return {
       ...course,
-      lessons: (orderings || []) as LessonOrderingEntry[],
+      lessons,
     }
   }
 
@@ -239,13 +246,18 @@ export class CourseService {
       .select(`
         lesson_id,
         display_order,
-        lesson:lessons(id, title, status, overview)
+        lesson:lessons!inner(id, title, status, overview)
       `)
       .eq('course_id', courseId)
       .order('display_order', { ascending: true })
 
     if (error) throw error
 
-    return (orderings || []) as LessonOrderingEntry[]
+    // Transform: Supabase returns lesson as array, we need single object
+    return (orderings || []).map((item: any) => ({
+      lesson_id: item.lesson_id,
+      display_order: item.display_order,
+      lesson: Array.isArray(item.lesson) ? item.lesson[0] : item.lesson,
+    }))
   }
 }
