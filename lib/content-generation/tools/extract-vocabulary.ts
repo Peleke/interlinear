@@ -1,7 +1,7 @@
 /**
  * Extract Vocabulary Tool
  *
- * Uses NLP.js for Spanish analysis + GPT-4 for example generation
+ * Uses NLP.js for analysis + Dictionary APIs for translations
  *
  * Phase 1: NLP.js extracts candidates with:
  * - Tokenization, stemming, POS tagging
@@ -9,17 +9,18 @@
  * - Stop word filtering
  * - Dictionary API keys (normalized forms)
  *
- * Phase 2: GPT-4 generates:
- * - Example sentences from reading
- * - Contextual English translations
+ * Phase 2: Dictionary API lookup:
+ * - Spanish: Merriam-Webster API
+ * - Latin: Latin Dictionary API
+ * - Get translations, POS, pronunciations
+ * - Extract example sentences from reading (simple string search)
  *
  * @see docs/prd/EPIC_7_MASTRA_ARCHITECTURE.md
  */
 
 import { z } from 'zod'
-import { generateText } from 'ai'
-import { model } from '../mastra.config'
 import { extractSpanishVocabCandidates, analyzeSpanish } from './spanish-nlp-helper'
+import { DictionaryRouter } from '@/lib/services/dictionary-router'
 
 /**
  * Zod schemas for vocabulary extraction
@@ -43,11 +44,12 @@ export const vocabularyItemSchema = z.object({
 export type VocabularyItem = z.infer<typeof vocabularyItemSchema>
 
 export const extractVocabularyInputSchema = z.object({
-  readingText: z.string().describe('Spanish reading text to extract vocabulary from'),
+  readingText: z.string().describe('Reading text to extract vocabulary from'),
   targetLevel: z
     .enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
     .describe('Target CEFR level for vocabulary'),
   maxItems: z.number().default(20).describe('Maximum number of vocabulary items to extract'),
+  language: z.enum(['es', 'la']).default('es').describe('Source language of reading text'),
 })
 
 export const extractVocabularyOutputSchema = z.array(vocabularyItemSchema)
@@ -56,16 +58,17 @@ export type ExtractVocabularyInput = z.infer<typeof extractVocabularyInputSchema
 export type ExtractVocabularyOutput = z.infer<typeof extractVocabularyOutputSchema>
 
 /**
- * Extract vocabulary items from Spanish reading text
+ * Extract vocabulary items from reading text
  *
- * Uses hybrid NLP.js + GPT-4 approach:
+ * Uses hybrid NLP.js + Dictionary API approach:
  * 1. NLP.js extracts candidates (fast, free, accurate)
- * 2. GPT-4 generates examples and translations (smart, contextual)
+ * 2. Dictionary API lookup (MW for Spanish, Latin Dict for Latin)
+ * 3. Simple string search for examples in reading text
  */
 export async function extractVocabulary(
   input: ExtractVocabularyInput
 ): Promise<ExtractVocabularyOutput> {
-  const { readingText, targetLevel, maxItems } = input
+  const { readingText, targetLevel, maxItems, language = 'es' } = input
 
   // PHASE 1: NLP.js Pre-processing (Fast, Local, Free)
   console.log('📊 Phase 1: NLP.js analysis...')
@@ -77,115 +80,100 @@ export async function extractVocabulary(
   // Take top N by frequency
   const topCandidates = nlpCandidates.slice(0, maxItems)
 
-  // PHASE 2: GPT-4 Example Generation (Smart, Contextual, Costs $$)
-  console.log('🤖 Phase 2: GPT-4 example generation...')
+  // PHASE 2: Dictionary API Lookup (Fast, Accurate, Cheap)
+  console.log('📚 Phase 2: Dictionary API lookup...')
 
   const vocabularyItems: VocabularyItem[] = []
 
-  // Generate examples and translations for each candidate
+  // Look up each candidate in dictionary
   for (const candidate of topCandidates) {
     try {
-      const exampleResult = await generateExampleAndTranslation({
-        word: candidate.word,
-        readingText,
-        targetLevel,
-      })
+      // Dictionary API lookup via router
+      const dictData = await DictionaryRouter.lookup(candidate.word, language)
 
-      if (exampleResult) {
+      if (dictData.found && dictData.definitions.length > 0) {
+        // Extract example sentence from reading (simple string search)
+        const example = findExampleInReading(candidate.word, readingText)
+
         vocabularyItems.push({
           word: candidate.word,
-          english_translation: exampleResult.translation,
-          part_of_speech: exampleResult.partOfSpeech,
-          difficulty_level: exampleResult.difficultyLevel,
-          example_sentence: exampleResult.example,
+          english_translation: dictData.definitions[0].meanings[0] || 'unknown',
+          part_of_speech: mapPartOfSpeech(dictData.definitions[0].partOfSpeech),
+          difficulty_level: targetLevel, // Use target level (no CEFR classification)
+          example_sentence: example,
           appears_in_reading: true, // Verified by NLP.js
           frequency: candidate.frequency,
           normalized_form: candidate.stem, // For dictionary API lookups
         })
       }
     } catch (error) {
-      console.error(`Failed to generate example for ${candidate.word}:`, error)
+      console.error(`Dictionary lookup failed for ${candidate.word}:`, error)
       // Continue with next word
     }
   }
 
-  console.log(`✅ Generated examples for ${vocabularyItems.length} items`)
+  console.log(`✅ Dictionary lookup completed for ${vocabularyItems.length} items`)
 
   return vocabularyItems
 }
 
 /**
- * Generate example sentence and translation using GPT-4
- * Focused task: just examples and translations, not vocabulary selection
+ * Find example sentence in reading (simple string search)
  */
-async function generateExampleAndTranslation(params: {
-  word: string
-  readingText: string
-  targetLevel: string
-}): Promise<{
-  example: string
-  translation: string
-  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'other'
-  difficultyLevel: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
-} | null> {
-  const { word, readingText, targetLevel } = params
+function findExampleInReading(word: string, reading: string): string {
+  // Split into sentences (handle Spanish punctuation ¿¡)
+  const sentences = reading.match(/[^.!?¡¿]+[.!?]+/g) || []
+  const wordLower = word.toLowerCase()
 
-  const prompt = `You are a Spanish language teacher creating vocabulary examples.
+  // Find sentence containing word
+  const found = sentences.find((s) => s.toLowerCase().includes(wordLower))
 
-WORD: "${word}"
-TARGET LEVEL: ${targetLevel}
-READING TEXT:
-${readingText}
-
-TASK:
-1. Find a sentence FROM THE READING that uses "${word}"
-2. Provide an accurate English translation for "${word}"
-3. Identify the part of speech
-4. Classify CEFR difficulty level
-
-IMPORTANT:
-- Example sentence MUST be an exact quote from the reading
-- If word appears multiple times, choose the clearest example
-- Translation should match how the word is used in context
-
-Respond in JSON format only.`
-
-  try {
-    const result = await generateText({
-      model,
-      prompt,
-      temperature: 0, // Deterministic for consistency
-    })
-
-    // Parse JSON response
-    const parsed = JSON.parse(result.text)
-
-    // Validate the word actually appears in the example
-    if (!parsed.example.toLowerCase().includes(word.toLowerCase())) {
-      console.warn(`Generated example doesn't contain word: ${word}`)
-      return null
-    }
-
-    return {
-      example: parsed.example,
-      translation: parsed.translation,
-      partOfSpeech: parsed.partOfSpeech || 'other',
-      difficultyLevel: parsed.difficultyLevel || targetLevel,
-    }
-  } catch (error) {
-    console.error(`GPT-4 generation failed for ${word}:`, error)
-    return null
-  }
+  return found?.trim() || ''
 }
 
 /**
- * Validate vocabulary item against Merriam-Webster Spanish-English API
- * (To be implemented after Merriam-Webster integration)
+ * Map dictionary part of speech to our enum
  */
-export async function validateWithDictionary(word: string): Promise<boolean> {
-  // TODO: Story 7.6 - Implement Merriam-Webster API validation
-  // For now, return true (NLP.js validation is sufficient)
-  return true
+function mapPartOfSpeech(
+  pos?: string
+): 'noun' | 'verb' | 'adjective' | 'adverb' | 'other' {
+  if (!pos) return 'other'
+
+  const normalized = pos.toLowerCase()
+
+  // English terms
+  if (normalized.includes('noun')) return 'noun'
+  if (normalized.includes('verb')) return 'verb'
+  if (normalized.includes('adj')) return 'adjective'
+  if (normalized.includes('adv')) return 'adverb'
+
+  // Spanish terms
+  if (normalized.includes('sustantivo')) return 'noun'
+  if (normalized.includes('verbo')) return 'verb'
+  if (normalized.includes('adjetivo')) return 'adjective'
+  if (normalized.includes('adverbio')) return 'adverb'
+
+  // Latin terms
+  if (normalized.includes('nomen')) return 'noun'
+  if (normalized.includes('verbum')) return 'verb'
+
+  return 'other'
+}
+
+/**
+ * Validate vocabulary item against dictionary API
+ */
+export async function validateWithDictionary(
+  word: string,
+  language: 'es' | 'la' = 'es'
+): Promise<boolean> {
+  try {
+    const result = await DictionaryRouter.lookup(word, language)
+    return result.found
+  } catch (error) {
+    console.error('Dictionary validation failed:', error)
+    return false
+  }
 }
 
 /**
