@@ -23,6 +23,7 @@ import { MetadataPanel } from './MetadataPanel'
 import { DialogBuilder } from './DialogBuilder'
 import { VocabularyManager } from './VocabularyManager'
 import GrammarConceptSelector from './GrammarConceptSelector'
+import ExerciseBuilder from './ExerciseBuilder'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -300,12 +301,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
             )}
 
             {activeTab === 'exercises' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Exercises</h2>
-                <p className="text-muted-foreground">
-                  {lesson.exercises?.length || 0} exercises
-                </p>
-              </div>
+              <ExerciseBuilder lessonId={lesson.id} />
             )}
 
             {activeTab === 'readings' && (
