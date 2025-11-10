@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { LessonCard } from './LessonCard'
 import { NewLessonModal } from './NewLessonModal'
+import { AuthorTabNav } from './AuthorTabNav'
 
 type LessonStatus = 'draft' | 'published' | 'archived'
 type FilterType = 'all' | LessonStatus
@@ -81,16 +82,23 @@ export function MyLessonsDashboard({ lessons: initialLessons, userId }: Props) {
   })
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="max-w-7xl mx-auto">
+      {/* Tab Navigation */}
+      <AuthorTabNav />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">My Lessons</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-3xl font-serif font-bold text-sepia-900">My Lessons</h1>
+          <p className="text-sepia-600 mt-1">
             Create and manage your lesson content
           </p>
         </div>
-        <Button onClick={() => setIsNewLessonModalOpen(true)} size="lg">
+        <Button
+          onClick={() => setIsNewLessonModalOpen(true)}
+          size="lg"
+          className="bg-sepia-700 hover:bg-sepia-800 text-white"
+        >
           <Plus className="mr-2 h-4 w-4" />
           New Lesson
         </Button>
@@ -99,9 +107,9 @@ export function MyLessonsDashboard({ lessons: initialLessons, userId }: Props) {
       {/* Filters & Sort */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex items-center gap-2 flex-1">
-          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Filter className="h-4 w-4 text-sepia-500" />
           <Select value={filter} onValueChange={(value) => setFilter(value as FilterType)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white border-sepia-300">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
             <SelectContent>
@@ -114,9 +122,9 @@ export function MyLessonsDashboard({ lessons: initialLessons, userId }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <SortAsc className="h-4 w-4 text-muted-foreground" />
+          <SortAsc className="h-4 w-4 text-sepia-500" />
           <Select value={sort} onValueChange={(value) => setSort(value as SortType)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white border-sepia-300">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -130,14 +138,17 @@ export function MyLessonsDashboard({ lessons: initialLessons, userId }: Props) {
 
       {/* Lessons Grid */}
       {sortedLessons.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <p className="text-muted-foreground mb-4">
+        <div className="text-center py-16 border-2 border-dashed border-sepia-300 rounded-lg bg-white">
+          <p className="text-sepia-600 mb-4">
             {filter === 'all'
               ? 'No lessons yet. Create your first lesson!'
               : `No ${filter} lessons found.`}
           </p>
           {filter === 'all' && (
-            <Button onClick={() => setIsNewLessonModalOpen(true)}>
+            <Button
+              onClick={() => setIsNewLessonModalOpen(true)}
+              className="bg-sepia-700 hover:bg-sepia-800 text-white"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Lesson
             </Button>
