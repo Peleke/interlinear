@@ -33,17 +33,27 @@ CREATE INDEX idx_ai_generations_lesson_history ON ai_generations(lesson_id, gene
 ALTER TABLE ai_generations ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Authors can view their own generation history
+-- Can see generations they created OR for lessons they authored
 CREATE POLICY "Authors can view own generations"
   ON ai_generations
   FOR SELECT
-  USING (created_by = auth.uid());
+  USING (
+    created_by = auth.uid() OR
+    lesson_id IN (
+      SELECT id FROM lessons WHERE author_id = auth.uid()
+    )
+  );
 
--- Policy: Authors can create generations
--- Note: Lessons are system content (no ownership), so any authenticated user can generate
+-- Policy: Authors can create generations for their own lessons
 CREATE POLICY "Authors can create generations"
   ON ai_generations
   FOR INSERT
-  WITH CHECK (created_by = auth.uid());
+  WITH CHECK (
+    created_by = auth.uid() AND
+    lesson_id IN (
+      SELECT id FROM lessons WHERE author_id = auth.uid()
+    )
+  );
 
 -- Policy: Authors can update their own generations
 CREATE POLICY "Authors can update own generations"
