@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS ai_generations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  lesson_id TEXT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
   generation_type TEXT NOT NULL CHECK (generation_type IN ('vocabulary', 'grammar', 'exercises', 'complete')),
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'streaming', 'completed', 'failed', 'cancelled')),
   input_data JSONB NOT NULL,
