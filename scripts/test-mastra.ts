@@ -22,7 +22,7 @@ Chaque matin, j'aime me promener dans le jardin et regarder les oiseaux.
 
   try {
     const result = await generateVocabulary({
-      lessonId: '00000000-0000-0000-0000-000000000000', // Test UUID
+      lessonId: 'test-lesson-01', // Test lesson ID (TEXT format)
       readingText: sampleReading,
       targetCEFRLevel: 'A2',
       maxItems: 8,

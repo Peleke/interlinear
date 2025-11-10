@@ -17,21 +17,21 @@ export type GenerationStatus = 'pending' | 'streaming' | 'completed' | 'failed' 
 // ============================================================================
 
 export const VocabularyInputSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.string(), // TEXT id from lessons table (custom IDs from YAML)
   readingText: z.string().min(50),
   targetCEFRLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
   maxItems: z.number().min(5).max(20).default(15),
 });
 
 export const GrammarInputSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.string(), // TEXT id from lessons table (custom IDs from YAML)
   readingText: z.string().min(50),
   targetCEFRLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
   maxConcepts: z.number().min(3).max(10).default(5),
 });
 
 export const ExercisesInputSchema = z.object({
-  lessonId: z.string().uuid(),
+  lessonId: z.string(), // TEXT id from lessons table (custom IDs from YAML)
   readingText: z.string().min(50),
   vocabularyItems: z.array(z.string()),
   grammarConcepts: z.array(z.string()),
