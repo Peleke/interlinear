@@ -125,20 +125,24 @@ export function LessonCard({ lesson, counts, onEdit }: Props) {
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card
+        className="hover:shadow-lg transition-shadow cursor-pointer bg-white border-sepia-200"
+        onClick={onEdit}
+      >
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{lesson.title}</h3>
+              <h3 className="font-semibold text-lg truncate text-sepia-900">{lesson.title}</h3>
               {lesson.course && (
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="text-sm text-sepia-600 truncate">
                   {lesson.course.title}
                 </p>
               )}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+            <div onClick={(e) => e.stopPropagation()}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
                   <span className="sr-only">Actions</span>
                 </Button>
@@ -165,6 +169,7 @@ export function LessonCard({ lesson, counts, onEdit }: Props) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 mt-2">
@@ -177,30 +182,30 @@ export function LessonCard({ lesson, counts, onEdit }: Props) {
 
         <CardContent className="pb-3">
           {/* Component Counts */}
-          <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-sm text-sepia-700">
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <MessageSquare className="h-4 w-4 text-sepia-500" />
               <span>
                 {counts.dialogs} {counts.dialogs === 1 ? 'dialog' : 'dialogs'}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Book className="h-4 w-4 text-muted-foreground" />
+              <Book className="h-4 w-4 text-sepia-500" />
               <span>{counts.vocabulary} vocab</span>
             </div>
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+              <GraduationCap className="h-4 w-4 text-sepia-500" />
               <span>{counts.grammar} grammar</span>
             </div>
             <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <Target className="h-4 w-4 text-sepia-500" />
               <span>{counts.exercises} exercises</span>
             </div>
             <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <BookOpen className="h-4 w-4 text-sepia-500" />
               <span>{counts.readings} readings</span>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-sepia-500">
               <span className="text-xs">
                 {totalComponents} total {totalComponents === 1 ? 'component' : 'components'}
               </span>
@@ -208,10 +213,10 @@ export function LessonCard({ lesson, counts, onEdit }: Props) {
           </div>
         </CardContent>
 
-        <CardFooter className="pt-3 border-t">
-          <div className="flex justify-between items-center w-full text-sm text-muted-foreground">
-            <span>{lesson.xp_value} XP</span>
-            <span>Updated {formatDistanceToNow(new Date(lesson.updated_at), { addSuffix: true })}</span>
+        <CardFooter className="pt-3 border-t border-sepia-200">
+          <div className="flex justify-between items-center w-full text-sm">
+            <span className="font-medium text-gold">{lesson.xp_value} XP</span>
+            <span className="text-sepia-600">Updated {formatDistanceToNow(new Date(lesson.updated_at), { addSuffix: true })}</span>
           </div>
         </CardFooter>
       </Card>
@@ -222,7 +227,7 @@ export function LessonCard({ lesson, counts, onEdit }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Lesson</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{lesson.title}"? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{lesson.title}&rdquo;? This action cannot be undone.
               {lesson.status === 'published' && (
                 <span className="block mt-2 text-destructive font-medium">
                   Published lessons cannot be deleted. Archive it first.

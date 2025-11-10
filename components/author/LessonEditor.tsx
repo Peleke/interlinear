@@ -24,6 +24,7 @@ import { DialogBuilder } from './DialogBuilder'
 import { VocabularyManager } from './VocabularyManager'
 import GrammarConceptSelector from './GrammarConceptSelector'
 import ExerciseBuilder from './ExerciseBuilder'
+import ReadingLinker from './ReadingLinker'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -305,12 +306,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
             )}
 
             {activeTab === 'readings' && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Readings</h2>
-                <p className="text-muted-foreground">
-                  {lesson.readings?.length || 0} readings
-                </p>
-              </div>
+              <ReadingLinker lessonId={lesson.id} />
             )}
           </div>
         </main>
