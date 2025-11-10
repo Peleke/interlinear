@@ -19,6 +19,8 @@ export function Navigation() {
     { href: '/profile', label: 'Profile' },
   ]
 
+  const authorLink = { href: '/author', label: '✍️ Author' }
+
   const closeMobileMenu = () => setMobileMenuOpen(false)
 
   return (
@@ -46,6 +48,18 @@ export function Navigation() {
               </Link>
             )
           })}
+
+          {/* Author Mode Link - Styled Differently */}
+          <Link
+            href={authorLink.href}
+            className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+              pathname.startsWith('/author')
+                ? 'bg-gold text-sepia-900 shadow-sm'
+                : 'bg-sepia-100 text-sepia-700 border border-sepia-300 hover:bg-sepia-200'
+            }`}
+          >
+            {authorLink.label}
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -101,6 +115,21 @@ export function Navigation() {
                     </Link>
                   )
                 })}
+
+                {/* Author Mode Link - Mobile */}
+                <div className="pt-4 mt-4 border-t border-sepia-200">
+                  <Link
+                    href={authorLink.href}
+                    onClick={closeMobileMenu}
+                    className={`px-4 py-3 rounded-md transition-colors text-lg font-medium ${
+                      pathname.startsWith('/author')
+                        ? 'bg-gold text-sepia-900'
+                        : 'bg-sepia-100 text-sepia-700 hover:bg-sepia-200'
+                    }`}
+                  >
+                    {authorLink.label}
+                  </Link>
+                </div>
               </div>
 
               {/* Footer */}

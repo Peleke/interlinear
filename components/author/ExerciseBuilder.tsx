@@ -1,0 +1,458 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, X, Edit2, Languages, CheckSquare, PenTool } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+interface Exercise {
+  id: string;
+  exercise_type: 'fill_blank' | 'multiple_choice' | 'translation';
+  prompt: string;
+  answer: string;
+  options?: any;
+  spanish_text?: string;
+  english_text?: string;
+  direction?: string;
+  xp_value: number;
+  sequence_order: number;
+}
+
+interface Props {
+  lessonId: string;
+}
+
+type ExerciseType = 'fill_blank' | 'multiple_choice' | 'translation';
+
+const exerciseTypes = [
+  { id: 'fill_blank' as ExerciseType, label: 'Fill in Blank', icon: PenTool },
+  { id: 'multiple_choice' as ExerciseType, label: 'Multiple Choice', icon: CheckSquare },
+  { id: 'translation' as ExerciseType, label: 'Translation', icon: Languages },
+];
+
+export default function ExerciseBuilder({ lessonId }: Props) {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [activeType, setActiveType] = useState<ExerciseType>('fill_blank');
+  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Form states for each type
+  const [fillBlankForm, setFillBlankForm] = useState({
+    prompt: "",
+    answer: "",
+    blankPosition: 0,
+  });
+
+  const [multipleChoiceForm, setMultipleChoiceForm] = useState({
+    prompt: "",
+    answer: "",
+    options: ["", "", "", ""],
+  });
+
+  const [translationForm, setTranslationForm] = useState({
+    prompt: "",
+    spanishText: "",
+    englishText: "",
+    direction: "es_to_en" as 'es_to_en' | 'en_to_es',
+  });
+
+  useEffect(() => {
+    loadExercises();
+  }, [lessonId]);
+
+  const loadExercises = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/lessons/${lessonId}/exercises`);
+      if (!response.ok) throw new Error('Failed to load exercises');
+      const data = await response.json();
+      setExercises(data.exercises || []);
+    } catch (error) {
+      console.error("Failed to load exercises:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createExercise = async () => {
+    try {
+      let endpoint = '';
+      let body: any = { lessonId };
+
+      switch (activeType) {
+        case 'fill_blank':
+          endpoint = '/api/exercises/fill-blank';
+          body = {
+            ...body,
+            prompt: fillBlankForm.prompt,
+            answer: fillBlankForm.answer,
+            blankPosition: fillBlankForm.blankPosition,
+          };
+          break;
+        case 'multiple_choice':
+          endpoint = '/api/exercises/multiple-choice';
+          body = {
+            ...body,
+            prompt: multipleChoiceForm.prompt,
+            answer: multipleChoiceForm.answer,
+            options: multipleChoiceForm.options.filter(o => o.trim()),
+          };
+          break;
+        case 'translation':
+          endpoint = '/api/exercises/translation';
+          body = {
+            ...body,
+            prompt: translationForm.prompt,
+            spanishText: translationForm.spanishText,
+            englishText: translationForm.englishText,
+            direction: translationForm.direction,
+          };
+          break;
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create exercise');
+      }
+
+      await loadExercises();
+      resetForm();
+      setShowForm(false);
+    } catch (error) {
+      console.error("Failed to create exercise:", error);
+      alert(error instanceof Error ? error.message : 'Failed to create exercise');
+    }
+  };
+
+  const deleteExercise = async (exerciseId: string) => {
+    if (!confirm('Are you sure you want to delete this exercise?')) return;
+
+    try {
+      const response = await fetch(`/api/exercises/${exerciseId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        await loadExercises();
+      }
+    } catch (error) {
+      console.error("Failed to delete exercise:", error);
+    }
+  };
+
+  const resetForm = () => {
+    setFillBlankForm({ prompt: "", answer: "", blankPosition: 0 });
+    setMultipleChoiceForm({ prompt: "", answer: "", options: ["", "", "", ""] });
+    setTranslationForm({ prompt: "", spanishText: "", englishText: "", direction: "es_to_en" });
+  };
+
+  const filteredExercises = exercises.filter(e => e.exercise_type === activeType);
+
+  const renderForm = () => {
+    switch (activeType) {
+      case 'fill_blank':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PenTool className="h-5 w-5" />
+                Create Fill-in-Blank Exercise
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="fill-prompt">Prompt</Label>
+                <Input
+                  id="fill-prompt"
+                  placeholder="E.g., Complete the sentence: Yo ____ de España"
+                  value={fillBlankForm.prompt}
+                  onChange={(e) => setFillBlankForm({ ...fillBlankForm, prompt: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="fill-answer">Correct Answer</Label>
+                <Input
+                  id="fill-answer"
+                  placeholder="E.g., soy"
+                  value={fillBlankForm.answer}
+                  onChange={(e) => setFillBlankForm({ ...fillBlankForm, answer: e.target.value })}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={createExercise} disabled={!fillBlankForm.prompt || !fillBlankForm.answer}>
+                  Create Exercise
+                </Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'multiple_choice':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5" />
+                Create Multiple Choice Exercise
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="mc-prompt">Question</Label>
+                <Input
+                  id="mc-prompt"
+                  placeholder="E.g., What does 'hola' mean?"
+                  value={multipleChoiceForm.prompt}
+                  onChange={(e) => setMultipleChoiceForm({ ...multipleChoiceForm, prompt: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Answer Choices (first 2 required)</Label>
+                {multipleChoiceForm.options.map((option, i) => (
+                  <Input
+                    key={i}
+                    className="mt-2"
+                    placeholder={`Option ${i + 1}`}
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...multipleChoiceForm.options];
+                      newOptions[i] = e.target.value;
+                      setMultipleChoiceForm({ ...multipleChoiceForm, options: newOptions });
+                    }}
+                  />
+                ))}
+              </div>
+              <div>
+                <Label htmlFor="mc-answer">Correct Answer</Label>
+                <select
+                  id="mc-answer"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  value={multipleChoiceForm.answer}
+                  onChange={(e) => setMultipleChoiceForm({ ...multipleChoiceForm, answer: e.target.value })}
+                >
+                  <option value="">Select correct answer</option>
+                  {multipleChoiceForm.options.filter(o => o.trim()).map((option, i) => (
+                    <option key={i} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={createExercise}
+                  disabled={
+                    !multipleChoiceForm.prompt ||
+                    !multipleChoiceForm.answer ||
+                    multipleChoiceForm.options.filter(o => o.trim()).length < 2
+                  }
+                >
+                  Create Exercise
+                </Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'translation':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Languages className="h-5 w-5" />
+                Create Translation Exercise
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="trans-prompt">Prompt</Label>
+                <Input
+                  id="trans-prompt"
+                  placeholder="E.g., Translate to English"
+                  value={translationForm.prompt}
+                  onChange={(e) => setTranslationForm({ ...translationForm, prompt: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="trans-spanish">Spanish Text</Label>
+                <Textarea
+                  id="trans-spanish"
+                  placeholder="E.g., ¡Hola! ¿Cómo estás?"
+                  value={translationForm.spanishText}
+                  onChange={(e) => setTranslationForm({ ...translationForm, spanishText: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="trans-english">English Text</Label>
+                <Textarea
+                  id="trans-english"
+                  placeholder="E.g., Hello! How are you?"
+                  value={translationForm.englishText}
+                  onChange={(e) => setTranslationForm({ ...translationForm, englishText: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="trans-direction">Translation Direction</Label>
+                <select
+                  id="trans-direction"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  value={translationForm.direction}
+                  onChange={(e) => setTranslationForm({ ...translationForm, direction: e.target.value as any })}
+                >
+                  <option value="es_to_en">Spanish → English</option>
+                  <option value="en_to_es">English → Spanish</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={createExercise}
+                  disabled={
+                    !translationForm.prompt ||
+                    !translationForm.spanishText ||
+                    !translationForm.englishText
+                  }
+                >
+                  Create Exercise
+                </Button>
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
+  const renderExerciseCard = (exercise: Exercise) => {
+    return (
+      <Card key={exercise.id} className="relative">
+        <CardContent className="pt-6">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-1">
+              <p className="font-medium text-sm mb-1">{exercise.prompt}</p>
+              {exercise.exercise_type === 'translation' && (
+                <div className="space-y-1 text-sm">
+                  <p className="text-muted-foreground">
+                    {exercise.direction === 'es_to_en' ? '🇪🇸 → 🇬🇧' : '🇬🇧 → 🇪🇸'}
+                  </p>
+                  <p><strong>ES:</strong> {exercise.spanish_text}</p>
+                  <p><strong>EN:</strong> {exercise.english_text}</p>
+                </div>
+              )}
+              {exercise.exercise_type === 'multiple_choice' && (
+                <div className="text-sm space-y-1 mt-2">
+                  {(exercise.options as any)?.choices?.map((opt: string, i: number) => (
+                    <div key={i} className={cn(
+                      "pl-2 border-l-2",
+                      opt === exercise.answer ? "border-green-500 font-medium" : "border-gray-300"
+                    )}>
+                      {opt} {opt === exercise.answer && '✓'}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {exercise.exercise_type === 'fill_blank' && (
+                <p className="text-sm mt-1">
+                  <strong>Answer:</strong> {exercise.answer}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteExercise(exercise.id)}
+              className="text-destructive hover:text-destructive"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="outline">{exercise.xp_value} XP</Badge>
+            <Badge variant="secondary">#{exercise.sequence_order + 1}</Badge>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (isLoading) {
+    return <div className="p-6">Loading exercises...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Exercises</h2>
+        <Button onClick={() => setShowForm(!showForm)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Exercise
+        </Button>
+      </div>
+
+      {/* Exercise Type Tabs */}
+      <div className="flex gap-2 border-b">
+        {exerciseTypes.map((type) => {
+          const Icon = type.icon;
+          const count = exercises.filter(e => e.exercise_type === type.id).length;
+          return (
+            <button
+              key={type.id}
+              onClick={() => setActiveType(type.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 border-b-2 transition-colors",
+                activeType === type.id
+                  ? "border-primary text-primary font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {type.label}
+              <Badge variant="secondary" className="ml-1">{count}</Badge>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Create Form */}
+      {showForm && <div className="mt-4">{renderForm()}</div>}
+
+      {/* Exercise List */}
+      <div className="space-y-3 mt-6">
+        {filteredExercises.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              <p>No {exerciseTypes.find(t => t.id === activeType)?.label.toLowerCase()} exercises yet.</p>
+              <p className="text-sm mt-1">Click "Add Exercise" to create one.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredExercises
+            .sort((a, b) => a.sequence_order - b.sequence_order)
+            .map(renderExerciseCard)
+        )}
+      </div>
+
+      <div className="text-sm text-muted-foreground text-center pt-4 border-t">
+        Total: {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+        {' • '}
+        {exercises.reduce((sum, e) => sum + e.xp_value, 0)} XP
+      </div>
+    </div>
+  );
+}

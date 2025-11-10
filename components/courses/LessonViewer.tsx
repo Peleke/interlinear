@@ -35,7 +35,7 @@ interface LessonViewerProps {
     overview?: string | null
     courses?: {
       title: string
-      level: string
+      difficulty_level: string
     } | null
   }
   contentBlocks: Array<{
@@ -203,7 +203,7 @@ export default function LessonViewer({
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-4">
             <span className="inline-block px-3 py-1 text-sm font-medium bg-sepia-100 text-sepia-700 rounded">
-              {lesson.courses?.level}
+              {lesson.courses?.difficulty_level}
             </span>
             <span className="text-sm text-sepia-600">
               {lesson.courses?.title}

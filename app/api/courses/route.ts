@@ -1,37 +1,43 @@
-import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { CourseService } from '@/lib/services/course'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const level = searchParams.get('level')
+    const courses = await CourseService.getCourses()
+    return NextResponse.json({ courses })
+  } catch (error) {
+    console.error('Failed to fetch courses:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch courses' },
+      { status: 500 }
+    )
+  }
+}
 
-    const supabase = await createClient()
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { title, description, language, difficulty_level } = body
 
-    // Build query
-    let query = supabase.from('courses').select('*')
-
-    if (level) {
-      query = query.eq('level', level)
-    }
-
-    const { data: courses, error } = await query.order('level', {
-      ascending: true
-    })
-
-    if (error) {
-      console.error('Courses fetch error:', error)
+    if (!title || !language || !difficulty_level) {
       return NextResponse.json(
-        { error: 'Failed to fetch courses' },
-        { status: 500 }
+        { error: 'Title, language, and difficulty are required' },
+        { status: 400 }
       )
     }
 
-    return NextResponse.json({ courses })
+    const course = await CourseService.createCourse({
+      title,
+      description,
+      language,
+      difficulty_level,
+    })
+
+    return NextResponse.json({ course }, { status: 201 })
   } catch (error) {
-    console.error('Courses API error:', error)
+    console.error('Failed to create course:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to create course' },
       { status: 500 }
     )
   }
