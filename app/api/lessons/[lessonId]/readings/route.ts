@@ -1,63 +1,129 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
- * POST /api/lessons/:lessonId/readings
- * Story 3.8: Link reading passage to lesson
+ * GET /api/lessons/[lessonId]/readings
+ * Get all readings linked to a lesson
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ lessonId: string }> }
+) {
+  try {
+    const { lessonId } = await params;
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("lesson_readings")
+      .select(`
+        *,
+        reading:library_readings!inner(
+          id,
+          title,
+          author,
+          difficulty_level,
+          word_count,
+          language
+        )
+      `)
+      .eq("lesson_id", lessonId)
+      .order("display_order");
+
+    if (error) {
+      console.error("Failed to fetch lesson readings:", error);
+      return NextResponse.json(
+        { error: "Failed to fetch lesson readings" },
+        { status: 500 }
+      );
+    }
+
+    const readings = data?.map((item: any) => ({
+      ...item.reading,
+      is_required: item.is_required,
+      display_order: item.display_order,
+    })) || [];
+
+    return NextResponse.json({ readings });
+  } catch (error) {
+    console.error("Lesson readings fetch error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/lessons/[lessonId]/readings
+ * Link reading to lesson
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
-    const { lessonId } = await params
-    const supabase = await createClient()
+    const { lessonId } = await params;
+    const supabase = await createClient();
+    const body = await request.json();
+    const { reading_id, is_required = true } = body;
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Verify lesson ownership
-    const { data: lesson } = await supabase
-      .from('lessons')
-      .select('author_id')
-      .eq('id', lessonId)
-      .single()
-
-    if (!lesson || lesson.author_id !== user.id) {
+    if (!reading_id) {
       return NextResponse.json(
-        { error: 'Not authorized to modify this lesson' },
-        { status: 403 }
-      )
+        { error: "reading_id is required" },
+        { status: 400 }
+      );
     }
 
-    const body = await request.json()
+    // Check if already linked
+    const { data: existing } = await supabase
+      .from("lesson_readings")
+      .select("*")
+      .eq("lesson_id", lessonId)
+      .eq("reading_id", reading_id)
+      .maybeSingle();
 
-    const { data, error } = await supabase
-      .from('lesson_readings')
+    if (existing) {
+      return NextResponse.json(
+        { error: "Reading already linked to this lesson" },
+        { status: 400 }
+      );
+    }
+
+    // Get current max display_order
+    const { data: maxOrder } = await supabase
+      .from("lesson_readings")
+      .select("display_order")
+      .eq("lesson_id", lessonId)
+      .order("display_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const nextOrder = (maxOrder?.display_order ?? -1) + 1;
+
+    // Link reading
+    const { error } = await supabase
+      .from("lesson_readings")
       .insert({
         lesson_id: lessonId,
-        title: body.title,
-        content: body.content,
-        difficulty_level: body.difficulty_level || 'beginner',
-        word_count: body.word_count || null,
-      })
-      .select()
-      .single()
+        reading_id,
+        is_required,
+        display_order: nextOrder,
+      });
 
-    if (error) throw error
+    if (error) {
+      console.error("Failed to link reading:", error);
+      return NextResponse.json(
+        { error: "Failed to link reading" },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json(data, { status: 201 })
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error creating reading:', error)
+    console.error("Reading link error:", error);
     return NextResponse.json(
-      { error: 'Failed to create reading' },
+      { error: "Internal server error" },
       { status: 500 }
-    )
+    );
   }
 }
