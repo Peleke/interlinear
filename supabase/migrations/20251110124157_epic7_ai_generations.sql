@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS ai_generations (
   error TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ,
-  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   CONSTRAINT valid_completion CHECK (
     (status = 'completed' AND completed_at IS NOT NULL) OR
     (status != 'completed' AND completed_at IS NULL)
@@ -36,33 +36,20 @@ ALTER TABLE ai_generations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Authors can view own generations"
   ON ai_generations
   FOR SELECT
-  USING (
-    created_by = auth.uid() OR
-    lesson_id IN (
-      SELECT id FROM lessons WHERE created_by = auth.uid()
-    )
-  );
+  USING (created_by = auth.uid());
 
--- Policy: Authors can create generations for their own lessons
+-- Policy: Authors can create generations
+-- Note: Lessons are system content (no ownership), so any authenticated user can generate
 CREATE POLICY "Authors can create generations"
   ON ai_generations
   FOR INSERT
-  WITH CHECK (
-    lesson_id IN (
-      SELECT id FROM lessons WHERE created_by = auth.uid()
-    )
-  );
+  WITH CHECK (created_by = auth.uid());
 
 -- Policy: Authors can update their own generations
 CREATE POLICY "Authors can update own generations"
   ON ai_generations
   FOR UPDATE
-  USING (
-    created_by = auth.uid() OR
-    lesson_id IN (
-      SELECT id FROM lessons WHERE created_by = auth.uid()
-    )
-  );
+  USING (created_by = auth.uid());
 
 -- Function to calculate cost tracking statistics
 CREATE OR REPLACE FUNCTION get_generation_cost_stats(
