@@ -21,6 +21,7 @@ export async function GET(
           id,
           title,
           author,
+          content,
           difficulty_level,
           word_count,
           language
