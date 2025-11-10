@@ -3,7 +3,7 @@
  * Extracts vocabulary items from reading text using LLM
  */
 
-import { tool } from "langchain";
+import { tool } from "@langchain/core/tools";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 
@@ -68,7 +68,7 @@ Return ONLY a JSON object with this structure:
 /**
  * Vocabulary extraction tool
  */
-export const extractVocabularyTool = tool(
+export const extractVocabulary = tool(
   async ({ readingText, targetLevel, maxItems = 15 }) => {
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",

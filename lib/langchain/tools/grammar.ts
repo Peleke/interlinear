@@ -3,7 +3,7 @@
  * Identifies key grammar concepts from reading text
  */
 
-import { tool } from "langchain";
+import { tool } from "@langchain/core/tools";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 
@@ -65,7 +65,7 @@ Return ONLY a JSON object with this structure:
 /**
  * Grammar identification tool
  */
-export const identifyGrammarTool = tool(
+export const identifyGrammar = tool(
   async ({ readingText, targetLevel, maxConcepts = 5 }) => {
     const llm = new ChatOpenAI({
       model: "gpt-4o-mini",

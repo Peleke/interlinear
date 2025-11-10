@@ -2,7 +2,7 @@
  * Exercise Generation Tool
  * Generates interactive exercises from vocabulary and grammar concepts
  */
-import { tool } from "langchain";
+import { tool } from "@langchain/core/tools";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 
