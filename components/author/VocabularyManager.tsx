@@ -15,6 +15,7 @@ import {
 import { PlusCircle, Trash2, Save, CheckCircle2, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import VocabularyAutocomplete from './VocabularyAutocomplete'
+import { ContentGenerationButton } from '@/components/authoring/ContentGenerationButton'
 
 interface VocabItem {
   id: string
@@ -62,11 +63,14 @@ export function VocabularyManager({ lessonId, language }: Props) {
     type: 'success' | 'error'
     text: string
   } | null>(null)
+  const [readingText, setReadingText] = useState<string>('')
+  const [cefrLevel, setCefrLevel] = useState<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>('A1')
   const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
-  // Load existing vocabulary
+  // Load existing vocabulary and reading text
   useEffect(() => {
     loadVocabulary()
+    loadReadingText()
   }, [lessonId])
 
   const loadVocabulary = async () => {
@@ -78,6 +82,34 @@ export function VocabularyManager({ lessonId, language }: Props) {
       console.error('Failed to load vocabulary:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadReadingText = async () => {
+    try {
+      // Fetch lesson readings to enable AI generation
+      const response = await fetch(`/api/lessons/${lessonId}/readings`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.readings && data.readings.length > 0) {
+          // Use first reading's content for vocabulary generation
+          const firstReading = data.readings[0]
+          setReadingText(firstReading.content || '')
+          // Map difficulty_level to CEFR format (A1, A2, B1, B2, C1, C2)
+          const level = firstReading.difficulty_level || 'beginner'
+          const cefrMap: Record<string, 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'> = {
+            'beginner': 'A1',
+            'elementary': 'A2',
+            'intermediate': 'B1',
+            'upper_intermediate': 'B2',
+            'advanced': 'C1',
+            'proficient': 'C2',
+          }
+          setCefrLevel((cefrMap[level] || 'A1') as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load reading text:', error)
     }
   }
 
@@ -275,12 +307,21 @@ export function VocabularyManager({ lessonId, language }: Props) {
               Add vocabulary words for this lesson (auto-fetches from Merriam-Webster)
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={addVocabItem} variant="outline">
+          <div className="flex gap-3">
+            {readingText && (
+              <ContentGenerationButton
+                lessonId={lessonId}
+                readingText={readingText}
+                targetLevel={cefrLevel}
+                language={language}
+                onComplete={loadVocabulary}
+              />
+            )}
+            <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Word
             </Button>
-            <Button onClick={saveVocabulary} disabled={isSaving}>
+            <Button onClick={saveVocabulary} disabled={isSaving} size="default" className="px-4 py-2">
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
