@@ -7,7 +7,7 @@
  * Features: bulk actions, individual editing, regenerate all, checkpoint
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -48,9 +48,12 @@ export function VocabularyReviewModal({
   const [isRegenerating, setIsRegenerating] = useState(false)
 
   // Update vocabulary when prop changes
-  useState(() => {
+  useEffect(() => {
     setVocabulary(initialVocabulary)
-  })
+    // Reset approval state when new vocabulary arrives
+    setApprovedWords(new Set())
+    setRejectedWords(new Set())
+  }, [initialVocabulary])
 
   const handleApprove = useCallback((item: VocabularyItem) => {
     setApprovedWords((prev) => new Set(prev).add(item.word))

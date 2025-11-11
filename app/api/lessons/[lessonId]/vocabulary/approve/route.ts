@@ -76,19 +76,57 @@ export async function POST(
 
     console.log(`[API] Approving ${vocabulary.length} vocabulary items for lesson ${lessonId}`)
 
-    // Insert vocabulary items into lesson_vocabulary table
-    const vocabularyRecords = vocabulary.map((item) => ({
-      lesson_id: lessonId,
-      spanish: item.word, // word column
+    // STEP 1: Insert/upsert into normalized lesson_vocabulary_items table
+    const vocabularyItemRecords = vocabulary.map((item) => ({
+      spanish: item.word,
       english: item.english_translation,
       part_of_speech: item.part_of_speech,
       difficulty_level: item.difficulty_level,
-      example_sentence: item.example_sentence,
-      frequency_score: item.frequency,
-      appears_in_reading: item.appears_in_reading,
-      normalized_form: item.normalized_form,
-      language: language,
-      ai_generated: true, // Mark as AI-generated
+      ai_generated: true,
+      ai_metadata: {
+        source: 'vocabulary-extraction-workflow',
+        timestamp: new Date().toISOString(),
+        approved_by: user.id,
+        example_sentence: item.example_sentence,
+        frequency_score: item.frequency,
+        appears_in_reading: item.appears_in_reading,
+        normalized_form: item.normalized_form,
+        language: language,
+      },
+    }))
+
+    const { data: insertedVocabItems, error: itemsError } = await supabase
+      .from('lesson_vocabulary_items')
+      .upsert(vocabularyItemRecords, {
+        onConflict: 'spanish,english',
+        ignoreDuplicates: false, // Update if exists
+      })
+      .select('id, spanish, english')
+
+    if (itemsError) {
+      console.error('[API] Failed to insert vocabulary items:', itemsError)
+      return NextResponse.json(
+        { error: 'Failed to save vocabulary items', details: itemsError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!insertedVocabItems || insertedVocabItems.length === 0) {
+      console.error('[API] No vocabulary items returned after insert')
+      return NextResponse.json(
+        { error: 'Failed to create vocabulary items' },
+        { status: 500 }
+      )
+    }
+
+    console.log(`[API] Created/updated ${insertedVocabItems.length} vocabulary items`)
+
+    // STEP 2: Create lesson-vocabulary associations in junction table
+    const junctionRecords = insertedVocabItems.map((item) => ({
+      lesson_id: lessonId,
+      vocabulary_id: item.id,
+      is_new: true,
+      ai_generated: true,
       ai_metadata: {
         source: 'vocabulary-extraction-workflow',
         timestamp: new Date().toISOString(),
@@ -96,25 +134,28 @@ export async function POST(
       },
     }))
 
-    const { data: insertedVocab, error: insertError } = await supabase
+    const { data: insertedAssociations, error: junctionError } = await supabase
       .from('lesson_vocabulary')
-      .insert(vocabularyRecords)
+      .upsert(junctionRecords, {
+        onConflict: 'lesson_id,vocabulary_id',
+        ignoreDuplicates: true, // Don't update if already exists
+      })
       .select()
 
-    if (insertError) {
-      console.error('[API] Failed to insert vocabulary:', insertError)
+    if (junctionError) {
+      console.error('[API] Failed to create lesson associations:', junctionError)
       return NextResponse.json(
-        { error: 'Failed to save vocabulary', details: insertError.message },
+        { error: 'Failed to link vocabulary to lesson', details: junctionError.message },
         { status: 500 }
       )
     }
 
-    console.log(`[API] Successfully saved ${insertedVocab.length} vocabulary items`)
+    console.log(`[API] Successfully saved ${insertedAssociations?.length || insertedVocabItems.length} vocabulary items`)
 
     return NextResponse.json({
       success: true,
-      count: insertedVocab.length,
-      vocabulary: insertedVocab,
+      count: insertedVocabItems.length,
+      vocabulary: insertedVocabItems,
     })
   } catch (error) {
     console.error('[API] Approve vocabulary error:', error)

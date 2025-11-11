@@ -56,27 +56,54 @@ export class DictionaryRouter {
   }
 
   /**
+   * Get base URL for API calls (handles server-side vs client-side)
+   */
+  private static getBaseUrl(): string {
+    // Server-side: use environment variable or construct from runtime
+    if (typeof window === 'undefined') {
+      return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    }
+    // Client-side: use relative URLs
+    return ''
+  }
+
+  /**
    * Spanish lookup via Merriam-Webster API
    */
   private static async lookupSpanish(word: string): Promise<DictionaryResponse> {
-    const response = await fetch(`/api/dictionary/${encodeURIComponent(word)}`)
+    const baseUrl = this.getBaseUrl()
+    const url = `${baseUrl}/api/dictionary/${encodeURIComponent(word)}`
 
-    if (!response.ok) {
-      throw new Error(`MW API failed: ${response.status}`)
-    }
+    try {
+      const response = await fetch(url)
 
-    const mwData = await response.json()
+      if (!response.ok) {
+        throw new Error(`MW API failed: ${response.status}`)
+      }
 
-    return {
-      word: mwData.word,
-      found: mwData.found,
-      language: 'es',
-      definitions: mwData.definitions || [],
-      pronunciations: mwData.pronunciations || [],
-      suggestions: mwData.suggestions || [],
-      source: 'merriam-webster',
-      mw_id: mwData.definitions?.[0]?.id,
-      mw_data: mwData,
+      const mwData = await response.json()
+
+      return {
+        word: mwData.word,
+        found: mwData.found,
+        language: 'es',
+        definitions: mwData.definitions || [],
+        pronunciations: mwData.pronunciations || [],
+        suggestions: mwData.suggestions || [],
+        source: 'merriam-webster',
+        mw_id: mwData.definitions?.[0]?.id,
+        mw_data: mwData,
+      }
+    } catch (error) {
+      console.error(`Dictionary lookup failed for ${word}:`, error)
+      // Return empty result instead of throwing
+      return {
+        word,
+        found: false,
+        language: 'es',
+        definitions: [],
+        source: 'merriam-webster',
+      }
     }
   }
 
