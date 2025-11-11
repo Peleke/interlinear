@@ -1,13 +1,15 @@
 /**
  * Content Generation Workflow
  *
- * Orchestrates vocabulary extraction with suspend/resume for human review
+ * Orchestrates vocabulary, grammar, and exercise generation
  *
  * Flow:
- * 1. Extract vocabulary from reading (NLP.js + Dictionary APIs)
- * 2. Return results for user review
- * 3. (Future) Grammar identification
- * 4. (Future) Exercise generation
+ * 1. Extract vocabulary from reading (NLP.js + Dictionary APIs) - WORKING
+ * 2. Identify grammar concepts (STUB - returns empty for now)
+ * 3. Generate exercises (STUB - returns empty for now)
+ * 4. Return results for user review
+ *
+ * Note: Grammar and exercises are stubbed pending Vector DB integration
  *
  * @see docs/prd/EPIC_7_MASTRA_ARCHITECTURE.md
  */
@@ -17,8 +19,16 @@ import { z } from 'zod'
 import {
   extractVocabulary,
   extractVocabularyInputSchema,
-  extractVocabularyOutputSchema
+  extractVocabularyOutputSchema,
 } from '../tools/extract-vocabulary'
+import {
+  identifyGrammar,
+  GrammarOutputSchema,
+} from '../tools/identify-grammar'
+import {
+  generateExercises,
+  ExerciseOutputSchema,
+} from '../tools/generate-exercises'
 
 /**
  * Workflow input schema
@@ -38,9 +48,13 @@ export const contentGenerationInputSchema = z.object({
 export const contentGenerationOutputSchema = z.object({
   lessonId: z.string(),
   vocabulary: extractVocabularyOutputSchema,
+  grammar: GrammarOutputSchema.shape.grammar_concepts.optional(),
+  exercises: ExerciseOutputSchema.shape.exercises.optional(),
   status: z.enum(['completed', 'suspended', 'failed']),
   metadata: z.object({
     vocabularyCount: z.number(),
+    grammarCount: z.number().optional(),
+    exerciseCount: z.number().optional(),
     executionTime: z.number().describe('Execution time in milliseconds'),
     cost: z.number().optional().describe('Estimated cost in USD'),
   }),
@@ -105,10 +119,74 @@ const extractVocabularyStep = createStep({
 })
 
 /**
+ * Step 2: Identify Grammar (STUB)
+ */
+const identifyGrammarStep = createStep({
+  id: 'identify-grammar',
+  inputSchema: contentGenerationInputSchema,
+  outputSchema: GrammarOutputSchema,
+  execute: async ({ inputData }) => {
+    console.log(`[Workflow] Identifying grammar (STUB - returns empty)`)
+
+    const grammarOutput = await identifyGrammar({
+      readingText: inputData.readingText,
+      targetLevel: inputData.targetLevel,
+      language: inputData.language,
+      maxConcepts: 5,
+    })
+
+    console.log(`[Workflow] Grammar identification completed (${grammarOutput.metadata.conceptCount} concepts)`)
+
+    return {
+      ...grammarOutput,
+      lessonId: inputData.lessonId,
+    }
+  },
+})
+
+/**
+ * Step 3: Generate Exercises (STUB)
+ */
+const generateExercisesStep = createStep({
+  id: 'generate-exercises',
+  inputSchema: z.object({
+    lessonId: z.string(),
+    readingText: z.string(),
+    targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+    language: z.enum(['es', 'la']),
+    vocabularyItems: z.array(z.string()),
+    grammarConcepts: z.array(z.string()),
+  }),
+  outputSchema: ExerciseOutputSchema,
+  execute: async ({ inputData }) => {
+    console.log(`[Workflow] Generating exercises (STUB - returns empty)`)
+
+    const exerciseOutput = await generateExercises({
+      readingText: inputData.readingText,
+      vocabularyItems: inputData.vocabularyItems,
+      grammarConcepts: inputData.grammarConcepts,
+      targetLevel: inputData.targetLevel,
+      language: inputData.language,
+      exerciseTypes: ['translation', 'multiple_choice', 'fill_blank'],
+      exercisesPerType: 3,
+    })
+
+    console.log(`[Workflow] Exercise generation completed (${exerciseOutput.metadata.exerciseCount} exercises)`)
+
+    return {
+      ...exerciseOutput,
+      lessonId: inputData.lessonId,
+    }
+  },
+})
+
+/**
  * Content Generation Workflow
  *
- * Phase 1 (MVP): Vocabulary extraction only
- * Phase 2 (Future): Add grammar + exercises with suspend points
+ * Orchestrates all three content generation steps
+ * - Vocabulary: WORKING (NLP.js + Dictionary APIs)
+ * - Grammar: STUB (returns empty)
+ * - Exercises: STUB (returns empty)
  */
 export const contentGenerationWorkflow = createWorkflow({
   id: 'content-generation',
