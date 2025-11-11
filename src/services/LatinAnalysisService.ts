@@ -9,7 +9,7 @@
  * FAST AF with smart fallbacks and caching
  */
 
-import { LatinDictionaryService } from './LatinDictionaryService';
+import { LatinDictionaryService, getLatinDictionary } from '@/lib/services/latin-dictionary';
 import type {
   LatinAnalysisResult,
   LatinWordAnalysis,
@@ -30,16 +30,17 @@ export class LatinAnalysisService {
   private cache: Map<string, LatinAnalysisResult>;
 
   constructor(cltkBaseUrl = 'http://localhost:8000') {
-    this.dictionaryService = new LatinDictionaryService();
+    this.dictionaryService = getLatinDictionary();
     this.cltkBaseUrl = cltkBaseUrl;
     this.cache = new Map();
   }
 
   /**
-   * Initialize services (load dictionary)
+   * Initialize services (dictionary is loaded synchronously in singleton)
    */
   async initialize(): Promise<void> {
-    await this.dictionaryService.initialize();
+    // Dictionary loads in constructor via singleton
+    // This method kept for API compatibility
   }
 
   /**
@@ -174,10 +175,10 @@ export class LatinAnalysisService {
 
     return {
       language: 'latin',
-      word: entry.word,
-      definitions: entry.definitions,
-      examples: entry.examples,
-      etymology: entry.etymology,
+      word: entry.key,
+      definitions: entry.senses,
+      examples: [],
+      etymology: entry.main_notes,
     };
   }
 

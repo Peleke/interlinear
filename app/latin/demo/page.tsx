@@ -1,4 +1,4 @@
-import { LatinTextReader } from '@/components/latin/LatinTextReader';
+import { LatinTextReader } from '@/src/components/latin/LatinTextReader';
 
 export default function LatinDemoPage() {
   return (

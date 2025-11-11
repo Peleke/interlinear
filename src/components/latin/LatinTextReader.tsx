@@ -15,8 +15,8 @@ export function LatinTextReader({ text, title, author, className = '' }: LatinTe
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Parse text into words and punctuation
-  const tokens = text.match(/[\p{L}]+|[^\p{L}\s]+/gu) || [];
+  // Parse text into words, punctuation, and spaces
+  const tokens = text.match(/[\p{L}]+|[^\p{L}\s]+|\s+/gu) || [];
 
   const handleWordClick = (word: string, event: React.MouseEvent<HTMLSpanElement>) => {
     // Only trigger for actual Latin words (letters only)

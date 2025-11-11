@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getLatinAnalysisService } from '@/services/LatinAnalysisService';
+import { getLatinAnalysisService } from '@/src/services/LatinAnalysisService';
 
 export const runtime = 'nodejs';
 
