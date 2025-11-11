@@ -64,7 +64,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
     text: string
   } | null>(null)
   const [readingText, setReadingText] = useState<string>('')
-  const [cefrLevel, setCefrLevel] = useState<string>('A1')
+  const [cefrLevel, setCefrLevel] = useState<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>('A1')
   const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
   // Load existing vocabulary and reading text
@@ -97,7 +97,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
           setReadingText(firstReading.content || '')
           // Map difficulty_level to CEFR format (A1, A2, B1, B2, C1, C2)
           const level = firstReading.difficulty_level || 'beginner'
-          const cefrMap: Record<string, string> = {
+          const cefrMap: Record<string, 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'> = {
             'beginner': 'A1',
             'elementary': 'A2',
             'intermediate': 'B1',
@@ -105,7 +105,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
             'advanced': 'C1',
             'proficient': 'C2',
           }
-          setCefrLevel(cefrMap[level] || 'A1')
+          setCefrLevel((cefrMap[level] || 'A1') as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2')
         }
       }
     } catch (error) {
@@ -307,21 +307,21 @@ export function VocabularyManager({ lessonId, language }: Props) {
               Add vocabulary words for this lesson (auto-fetches from Merriam-Webster)
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {readingText && (
               <ContentGenerationButton
                 lessonId={lessonId}
                 readingText={readingText}
-                targetLanguage={language}
-                cefrLevel={cefrLevel}
+                targetLevel={cefrLevel}
+                language={language}
                 onComplete={loadVocabulary}
               />
             )}
-            <Button onClick={addVocabItem} variant="outline">
+            <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Word
             </Button>
-            <Button onClick={saveVocabulary} disabled={isSaving}>
+            <Button onClick={saveVocabulary} disabled={isSaving} size="default" className="px-4 py-2">
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (

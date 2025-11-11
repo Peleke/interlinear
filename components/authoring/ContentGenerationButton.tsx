@@ -125,8 +125,9 @@ export function ContentGenerationButton({
       <Button
         onClick={handleGenerate}
         disabled={disabled || isGenerating}
-        size="sm"
+        size="default"
         variant="outline"
+        className="px-4 py-2"
       >
         {isGenerating ? (
           <>

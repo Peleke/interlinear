@@ -72,10 +72,20 @@ export async function extractVocabulary(
 
   // PHASE 1: NLP.js Pre-processing (Fast, Local, Free)
   console.log('📊 Phase 1: NLP.js analysis...')
+  console.log(`📄 Reading text length: ${readingText.length} chars`)
+  console.log(`🎯 Target: ${maxItems} items, language: ${language}`)
 
   const nlpCandidates = extractSpanishVocabCandidates(readingText, maxItems * 2) // Get 2x for filtering
 
   console.log(`✅ NLP.js extracted ${nlpCandidates.length} candidates`)
+  if (nlpCandidates.length > 0) {
+    console.log(`📝 Sample candidates:`, nlpCandidates.slice(0, 5).map(c => `${c.word} (${c.frequency}x)`))
+  } else {
+    console.warn('⚠️  NLP.js returned 0 candidates! Checking tokenization...')
+    // Try basic tokenization test
+    const testTokens = extractSpanishVocabCandidates('hola mundo', 5)
+    console.log('🧪 Test tokenization result:', testTokens)
+  }
 
   // Take top N by frequency
   const topCandidates = nlpCandidates.slice(0, maxItems)

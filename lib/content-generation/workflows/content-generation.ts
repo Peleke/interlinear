@@ -12,7 +12,7 @@
  * @see docs/prd/EPIC_7_MASTRA_ARCHITECTURE.md
  */
 
-import { Workflow } from '@mastra/core'
+import { createWorkflow, createStep } from '@mastra/core/workflows'
 import { z } from 'zod'
 import {
   extractVocabulary,
@@ -50,66 +50,72 @@ export type ContentGenerationInput = z.infer<typeof contentGenerationInputSchema
 export type ContentGenerationOutput = z.infer<typeof contentGenerationOutputSchema>
 
 /**
+ * Step 1: Extract Vocabulary
+ */
+const extractVocabularyStep = createStep({
+  id: 'extract-vocabulary',
+  inputSchema: contentGenerationInputSchema,
+  outputSchema: contentGenerationOutputSchema,
+  execute: async ({ inputData }) => {
+    const startTime = Date.now()
+
+    console.log(`[Workflow] Extracting vocabulary for lesson ${inputData.lessonId}`)
+    console.log(`[Workflow] Language: ${inputData.language}, Level: ${inputData.targetLevel}`)
+
+    try {
+      // Extract vocabulary using our tool
+      const vocabulary = await extractVocabulary({
+        readingText: inputData.readingText,
+        targetLevel: inputData.targetLevel,
+        maxItems: inputData.maxVocabularyItems,
+        language: inputData.language,
+      })
+
+      const executionTime = Date.now() - startTime
+
+      console.log(`[Workflow] Extracted ${vocabulary.length} vocabulary items in ${executionTime}ms`)
+
+      // Estimate cost (Dictionary API: ~$0.0001 per word)
+      const estimatedCost = vocabulary.length * 0.0001
+
+      return {
+        lessonId: inputData.lessonId,
+        vocabulary,
+        status: 'completed' as const,
+        metadata: {
+          vocabularyCount: vocabulary.length,
+          executionTime,
+          cost: estimatedCost,
+        },
+      }
+    } catch (error) {
+      console.error('[Workflow] Vocabulary extraction failed:', error)
+
+      return {
+        lessonId: inputData.lessonId,
+        vocabulary: [],
+        status: 'failed' as const,
+        metadata: {
+          vocabularyCount: 0,
+          executionTime: Date.now() - startTime,
+        },
+      }
+    }
+  },
+})
+
+/**
  * Content Generation Workflow
  *
  * Phase 1 (MVP): Vocabulary extraction only
  * Phase 2 (Future): Add grammar + exercises with suspend points
  */
-export const contentGenerationWorkflow = new Workflow({
-  name: 'content-generation',
-  triggerSchema: contentGenerationInputSchema,
+export const contentGenerationWorkflow = createWorkflow({
+  id: 'content-generation',
+  inputSchema: contentGenerationInputSchema,
+  outputSchema: contentGenerationOutputSchema,
 })
-  .step({
-    id: 'extract-vocabulary',
-    description: 'Extract vocabulary from reading text using NLP.js + Dictionary APIs',
-    execute: async ({ context, mastra }) => {
-      const startTime = Date.now()
-
-      console.log(`[Workflow] Extracting vocabulary for lesson ${context.lessonId}`)
-      console.log(`[Workflow] Language: ${context.language}, Level: ${context.targetLevel}`)
-
-      try {
-        // Extract vocabulary using our tool
-        const vocabulary = await extractVocabulary({
-          readingText: context.readingText,
-          targetLevel: context.targetLevel,
-          maxItems: context.maxVocabularyItems,
-          language: context.language,
-        })
-
-        const executionTime = Date.now() - startTime
-
-        console.log(`[Workflow] Extracted ${vocabulary.length} vocabulary items in ${executionTime}ms`)
-
-        // Estimate cost (Dictionary API: ~$0.0001 per word)
-        const estimatedCost = vocabulary.length * 0.0001
-
-        return {
-          lessonId: context.lessonId,
-          vocabulary,
-          status: 'completed' as const,
-          metadata: {
-            vocabularyCount: vocabulary.length,
-            executionTime,
-            cost: estimatedCost,
-          },
-        }
-
-      } catch (error) {
-        console.error('[Workflow] Vocabulary extraction failed:', error)
-
-        return {
-          lessonId: context.lessonId,
-          vocabulary: [],
-          status: 'failed' as const,
-          metadata: {
-            vocabularyCount: 0,
-            executionTime: Date.now() - startTime,
-          },
-        }
-      }
-    },
-  })
+  .then(extractVocabularyStep)
   .commit()
 
 /**
@@ -118,9 +124,20 @@ export const contentGenerationWorkflow = new Workflow({
 export async function executeContentGeneration(
   input: ContentGenerationInput
 ): Promise<ContentGenerationOutput> {
-  const result = await contentGenerationWorkflow.execute({
-    triggerData: input,
-  })
+  const run = await contentGenerationWorkflow.createRunAsync()
+  const result = await run.start({ inputData: input })
 
-  return result as ContentGenerationOutput
+  // Mastra workflows return { status, steps, input, result }
+  // The actual step output is in result.result
+  const output = result?.result
+
+  if (!output || !output.metadata) {
+    console.error('[Workflow] Invalid output structure:', output)
+    console.error('[Workflow] Full result:', JSON.stringify(result, null, 2))
+    throw new Error('Workflow returned invalid result structure')
+  }
+
+  console.log('[Workflow] Successfully extracted output with', output.vocabulary.length, 'items')
+
+  return output as ContentGenerationOutput
 }
