@@ -344,8 +344,8 @@ export function VocabularyManager({ lessonId, language }: Props) {
               placeholder={
                 language === 'es'
                   ? 'Search Spanish words...'
-                  : language === 'is'
-                  ? 'Search Icelandic words...'
+                  : language === 'la'
+                  ? 'Search Latin words...'
                   : 'Search vocabulary...'
               }
             />
