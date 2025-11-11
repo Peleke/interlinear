@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, X, BookOpen } from "lucide-react";
+import { Search, Plus, X, BookOpen, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 interface GrammarConcept {
@@ -28,6 +29,10 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
   const [showResults, setShowResults] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generateContent, setGenerateContent] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedConcepts, setGeneratedConcepts] = useState<any[]>([]);
 
   // New concept form
   const [newConcept, setNewConcept] = useState({
@@ -129,6 +134,74 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
     }
   };
 
+  const generateGrammarWithAI = async () => {
+    if (!generateContent.trim()) {
+      alert('Please provide content to extract grammar from');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/content-generation/grammar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: generateContent,
+          maxConcepts: 5,
+          language: 'es',
+          targetLevel: 'A1',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Generation failed');
+      }
+
+      const data = await response.json();
+      setGeneratedConcepts(data.grammar_concepts || []);
+    } catch (error) {
+      console.error('Grammar generation failed:', error);
+      alert(error instanceof Error ? error.message : 'Generation failed');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const saveGeneratedConcept = async (concept: any) => {
+    try {
+      // Create concept
+      const createResponse = await fetch("/api/grammar-concepts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          display_name: concept.name,
+          description: concept.explanation,
+          content: `# ${concept.name}\n\n${concept.explanation}\n\n## Example\n${concept.example}`,
+        }),
+      });
+
+      if (!createResponse.ok) throw new Error("Failed to create concept");
+
+      const { concept: createdConcept } = await createResponse.json();
+
+      // Link to lesson
+      await linkConcept(createdConcept.id);
+
+      // Remove from generated list
+      setGeneratedConcepts(prev => prev.filter(c => c !== concept));
+
+      if (generatedConcepts.length === 1) {
+        // Last one, close modal
+        setShowGenerateModal(false);
+        setGenerateContent("");
+      }
+    } catch (error) {
+      console.error("Failed to save generated concept:", error);
+      alert(error instanceof Error ? error.message : 'Failed to save concept');
+    }
+  };
+
   if (isLoading) {
     return <div className="p-4 text-center">Loading grammar concepts...</div>;
   }
@@ -142,11 +215,110 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
             Link existing concepts or create new ones
           </p>
         </div>
-        <Button onClick={() => setShowCreateForm(!showCreateForm)} variant="outline">
-          <Plus className="mr-2 h-4 w-4" />
-          {showCreateForm ? "Cancel" : "Create New"}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowGenerateModal(true)} variant="outline">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate with AI
+          </Button>
+          <Button onClick={() => setShowCreateForm(!showCreateForm)} variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            {showCreateForm ? "Cancel" : "Create New"}
+          </Button>
+        </div>
       </div>
+
+      {/* Generate Modal */}
+      <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Extract Grammar Concepts
+            </DialogTitle>
+          </DialogHeader>
+
+          {generatedConcepts.length === 0 ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="grammar-content">Content to Analyze</Label>
+                <Textarea
+                  id="grammar-content"
+                  placeholder="Paste reading text or sentences to extract grammar concepts..."
+                  value={generateContent}
+                  onChange={(e) => setGenerateContent(e.target.value)}
+                  rows={8}
+                  className="mt-2"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  AI will identify key grammar concepts present in this text
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={generateGrammarWithAI}
+                  disabled={!generateContent.trim() || isGenerating}
+                  className="flex-1"
+                >
+                  {isGenerating ? "Analyzing..." : "Extract Grammar Concepts"}
+                </Button>
+                <Button variant="outline" onClick={() => setShowGenerateModal(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Review and save extracted grammar concepts:
+              </p>
+              {generatedConcepts.map((concept, i) => (
+                <Card key={i} className="border-blue-200">
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{concept.name}</h4>
+                        {concept.cefr_level && (
+                          <Badge variant="outline">{concept.cefr_level}</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm">{concept.explanation}</p>
+                      {concept.example && (
+                        <div className="text-sm bg-gray-50 p-2 rounded border">
+                          <strong>Example:</strong> {concept.example}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button size="sm" onClick={() => saveGeneratedConcept(concept)}>
+                        Save & Link to Lesson
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setGeneratedConcepts(prev => prev.filter(c => c !== concept))}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGenerateModal(false);
+                  setGeneratedConcepts([]);
+                  setGenerateContent("");
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create form */}
       {showCreateForm && (
