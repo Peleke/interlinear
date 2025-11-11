@@ -19,7 +19,7 @@ interface Course {
 
 interface MetadataValues {
   title: string
-  language: 'es' | 'is'
+  language: 'es' | 'la'
   overview: string
   course_id: string | null
   xp_value: number
@@ -76,7 +76,7 @@ export function MetadataPanel({ values, onChange }: Props) {
           <Label htmlFor="language">Language</Label>
           <Select
             value={values.language}
-            onValueChange={(value: 'es' | 'is') => onChange({ language: value })}
+            onValueChange={(value: 'es' | 'la') => onChange({ language: value })}
           >
             <SelectTrigger id="language">
               <SelectValue />

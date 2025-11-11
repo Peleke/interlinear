@@ -33,7 +33,7 @@ interface VocabItem {
 
 interface Props {
   lessonId: string
-  language: 'es' | 'is'
+  language: 'es' | 'la'
 }
 
 const PARTS_OF_SPEECH = [
