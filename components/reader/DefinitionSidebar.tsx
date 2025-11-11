@@ -10,11 +10,12 @@ import { toast } from 'sonner'
 
 interface DefinitionSidebarProps {
   word: string | null
+  language: 'es' | 'la'
   onClose: () => void
   onDefinitionLoaded?: (definition: DictionaryResponse) => void
 }
 
-export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: DefinitionSidebarProps) {
+export function DefinitionSidebar({ word, language, onClose, onDefinitionLoaded }: DefinitionSidebarProps) {
   const [data, setData] = useState<DictionaryResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,6 +47,28 @@ export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: Definit
       toast.error('Failed to generate examples')
     } finally {
       setGeneratingExamples(false)
+    }
+  }
+
+  // Adapter function to convert Latin API response to DictionaryResponse format
+  const adaptLatinResponse = (latinData: any): DictionaryResponse => {
+    if (!latinData.dictionary || latinData.dictionary.definitions.length === 0) {
+      return {
+        word: latinData.form,
+        found: false,
+      }
+    }
+
+    return {
+      word: latinData.dictionary.word,
+      found: true,
+      definitions: [
+        {
+          partOfSpeech: latinData.pos || 'unknown',
+          meanings: latinData.dictionary.definitions,
+        }
+      ],
+      pronunciations: []
     }
   }
 
@@ -82,16 +105,36 @@ export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: Definit
 
         // Cache miss - fetch from API
         console.log('Cache miss:', word)
-        const response = await fetch(
-          `/api/dictionary/${encodeURIComponent(word)}`,
-          { signal: controller.signal }
-        )
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch definition')
+        let result: DictionaryResponse
+
+        if (language === 'la') {
+          // Latin: fetch from Latin API and adapt response
+          const response = await fetch(
+            `/api/latin/analyze?word=${encodeURIComponent(word)}`,
+            { signal: controller.signal }
+          )
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch Latin definition')
+          }
+
+          const latinData = await response.json()
+          result = adaptLatinResponse(latinData)
+        } else {
+          // Spanish: fetch from Spanish dictionary API
+          const response = await fetch(
+            `/api/dictionary/${encodeURIComponent(word)}`,
+            { signal: controller.signal }
+          )
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch definition')
+          }
+
+          result = await response.json()
         }
 
-        const result: DictionaryResponse = await response.json()
         setData(result)
 
         // Store in cache if successful
@@ -114,7 +157,7 @@ export function DefinitionSidebar({ word, onClose, onDefinitionLoaded }: Definit
 
     // Cleanup: abort fetch if word changes before response
     return () => controller.abort()
-  }, [word])
+  }, [word, language])
 
   if (!word) return null
 
