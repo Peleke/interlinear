@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, X, Edit2, Languages, CheckSquare, PenTool } from "lucide-react";
+import { Plus, X, Edit2, Languages, CheckSquare, PenTool, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,11 @@ const exerciseTypes = [
 export default function ExerciseBuilder({ lessonId }: Props) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [activeType, setActiveType] = useState<ExerciseType>('fill_blank');
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generateContent, setGenerateContent] = useState("");
+  const [generateCount, setGenerateCount] = useState(3);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedExercises, setGeneratedExercises] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -155,6 +161,102 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     setFillBlankForm({ prompt: "", answer: "", blankPosition: 0 });
     setMultipleChoiceForm({ prompt: "", answer: "", options: ["", "", "", ""] });
     setTranslationForm({ prompt: "", spanishText: "", englishText: "", direction: "es_to_en" });
+  };
+
+  const generateExercisesWithAI = async () => {
+    if (!generateContent.trim()) {
+      alert('Please provide content to generate exercises from');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/content-generation/exercises', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: generateContent,
+          type: activeType,
+          count: generateCount,
+          language: 'es',
+          targetLevel: 'A1',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Generation failed');
+      }
+
+      const data = await response.json();
+      setGeneratedExercises(data.exercises || []);
+    } catch (error) {
+      console.error('Exercise generation failed:', error);
+      alert(error instanceof Error ? error.message : 'Generation failed');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const saveGeneratedExercise = async (exercise: any) => {
+    try {
+      let endpoint = '';
+      let body: any = { lessonId };
+
+      switch (activeType) {
+        case 'fill_blank':
+          endpoint = '/api/exercises/fill-blank';
+          body = {
+            ...body,
+            prompt: exercise.prompt,
+            answer: exercise.answer,
+            blankPosition: 0,
+          };
+          break;
+        case 'multiple_choice':
+          endpoint = '/api/exercises/multiple-choice';
+          body = {
+            ...body,
+            prompt: exercise.prompt,
+            answer: exercise.options?.[0] || exercise.answer,
+            options: exercise.options || [],
+          };
+          break;
+        case 'translation':
+          endpoint = '/api/exercises/translation';
+          body = {
+            ...body,
+            prompt: exercise.prompt || 'Translate:',
+            spanishText: exercise.spanish_text || exercise.prompt,
+            englishText: exercise.english_text || exercise.answer,
+            direction: 'es_to_en',
+          };
+          break;
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save exercise');
+      }
+
+      await loadExercises();
+      // Remove from generated list
+      setGeneratedExercises(prev => prev.filter(e => e !== exercise));
+
+      if (generatedExercises.length === 1) {
+        // Last one, close modal
+        setShowGenerateModal(false);
+        setGenerateContent("");
+      }
+    } catch (error) {
+      console.error("Failed to save generated exercise:", error);
+      alert(error instanceof Error ? error.message : 'Failed to save exercise');
+    }
   };
 
   const filteredExercises = exercises.filter(e => e.exercise_type === activeType);
@@ -399,11 +501,127 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Exercises</h2>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Exercise
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowGenerateModal(true)}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate with AI
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Exercise
+          </Button>
+        </div>
       </div>
+
+      {/* Generate Modal */}
+      <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Generate {exerciseTypes.find(t => t.id === activeType)?.label} Exercises
+            </DialogTitle>
+          </DialogHeader>
+
+          {generatedExercises.length === 0 ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="generate-content">Content to Generate From</Label>
+                <Textarea
+                  id="generate-content"
+                  placeholder="Paste reading text, sentences, or vocabulary list here..."
+                  value={generateContent}
+                  onChange={(e) => setGenerateContent(e.target.value)}
+                  rows={8}
+                  className="mt-2"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  AI will generate {activeType.replace('_', ' ')} exercises based on this content
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="generate-count">Number of Exercises</Label>
+                <Input
+                  id="generate-count"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={generateCount}
+                  onChange={(e) => setGenerateCount(parseInt(e.target.value) || 3)}
+                  className="mt-2"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={generateExercisesWithAI}
+                  disabled={!generateContent.trim() || isGenerating}
+                  className="flex-1"
+                >
+                  {isGenerating ? "Generating..." : `Generate ${generateCount} Exercises`}
+                </Button>
+                <Button variant="outline" onClick={() => setShowGenerateModal(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Review and save generated exercises:
+              </p>
+              {generatedExercises.map((exercise, i) => (
+                <Card key={i} className="border-blue-200">
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <p className="font-medium">{exercise.prompt}</p>
+                      {exercise.options && (
+                        <div className="text-sm space-y-1">
+                          {exercise.options.map((opt: string, j: number) => (
+                            <div key={j} className={j === 0 ? "text-green-600 font-medium" : ""}>
+                              {j + 1}. {opt} {j === 0 && "✓"}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {exercise.answer && !exercise.options && (
+                        <p className="text-sm"><strong>Answer:</strong> {exercise.answer}</p>
+                      )}
+                      {exercise.explanation && (
+                        <p className="text-sm text-muted-foreground italic">{exercise.explanation}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button size="sm" onClick={() => saveGeneratedExercise(exercise)}>
+                        Save to Lesson
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setGeneratedExercises(prev => prev.filter(e => e !== exercise))}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGenerateModal(false);
+                  setGeneratedExercises([]);
+                  setGenerateContent("");
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Exercise Type Tabs */}
       <div className="flex gap-2 border-b">
