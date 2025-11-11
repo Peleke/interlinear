@@ -13,23 +13,35 @@ class CLTKService:
     """Service for CLTK Latin analysis."""
 
     def __init__(self):
-        """Initialize CLTK with Latin language models."""
+        """Initialize service (CLTK models loaded lazily on first use)."""
         self.nlp: Optional[NLP] = None
-        self._initialize_cltk()
+        self._initialization_attempted = False
+        self._initialization_error: Optional[str] = None
 
-    def _initialize_cltk(self) -> None:
-        """Initialize CLTK NLP pipeline for Latin."""
+    def _ensure_initialized(self) -> None:
+        """Lazily initialize CLTK NLP pipeline for Latin on first use."""
+        if self.nlp is not None or self._initialization_attempted:
+            return
+
+        self._initialization_attempted = True
         try:
-            logger.info("Initializing CLTK with Latin language models...")
+            logger.info("Initializing CLTK with Latin language models (first-time download may take a moment)...")
             self.nlp = NLP(language="lat", suppress_banner=True)
             logger.info("CLTK initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize CLTK: {e}")
+            error_msg = f"Failed to initialize CLTK: {e}"
+            logger.error(error_msg)
+            self._initialization_error = str(e)
             self.nlp = None
 
     def is_ready(self) -> bool:
-        """Check if CLTK is ready."""
+        """Check if CLTK is ready (triggers lazy initialization)."""
+        self._ensure_initialized()
         return self.nlp is not None
+
+    def get_initialization_error(self) -> Optional[str]:
+        """Get initialization error if any."""
+        return self._initialization_error
 
     def analyze_text(
         self,
