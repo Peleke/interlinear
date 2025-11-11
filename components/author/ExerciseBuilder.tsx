@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, X, Edit2, Languages, CheckSquare, PenTool, Sparkles } from "lucide-react";
+import { Plus, X, Edit2, Languages, CheckSquare, PenTool, Sparkles, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ReadingSelector } from "./ReadingSelector";
 
 interface Exercise {
   id: string;
@@ -46,6 +47,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
   const [generatedExercises, setGeneratedExercises] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [savingExerciseIndex, setSavingExerciseIndex] = useState<number | null>(null);
 
   // Form states for each type
   const [fillBlankForm, setFillBlankForm] = useState({
@@ -163,19 +165,35 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     setTranslationForm({ prompt: "", spanishText: "", englishText: "", direction: "es_to_en" });
   };
 
-  const generateExercisesWithAI = async () => {
-    if (!generateContent.trim()) {
-      alert('Please provide content to generate exercises from');
-      return;
-    }
-
+  const handleGenerate = async (selection: { readingIds?: string[], manualText?: string }) => {
     setIsGenerating(true);
     try {
+      let sourceText = '';
+
+      if (selection.manualText) {
+        sourceText = selection.manualText;
+      } else if (selection.readingIds && selection.readingIds.length > 0) {
+        // Fetch reading content(s)
+        const response = await fetch(`/api/lessons/${lessonId}/readings`);
+        if (!response.ok) throw new Error('Failed to fetch readings');
+
+        const data = await response.json();
+        const selectedReadings = data.readings.filter((r: any) =>
+          selection.readingIds!.includes(r.id)
+        );
+
+        sourceText = selectedReadings.map((r: any) => r.content).join('\n\n');
+      }
+
+      if (!sourceText.trim()) {
+        throw new Error('No source text available');
+      }
+
       const response = await fetch('/api/content-generation/exercises', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: generateContent,
+          content: sourceText,
           type: activeType,
           count: generateCount,
           language: 'es',
@@ -198,10 +216,14 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     }
   };
 
-  const saveGeneratedExercise = async (exercise: any) => {
+  const saveGeneratedExercise = async (exercise: any, index: number) => {
+    setSavingExerciseIndex(index);
     try {
       let endpoint = '';
       let body: any = { lessonId };
+
+      // Map LLM output field: correct_answer → answer
+      const answer = exercise.correct_answer || exercise.answer;
 
       switch (activeType) {
         case 'fill_blank':
@@ -209,7 +231,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
           body = {
             ...body,
             prompt: exercise.prompt,
-            answer: exercise.answer,
+            answer,
             blankPosition: 0,
           };
           break;
@@ -218,7 +240,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
           body = {
             ...body,
             prompt: exercise.prompt,
-            answer: exercise.options?.[0] || exercise.answer,
+            answer: exercise.options?.[0] || answer,
             options: exercise.options || [],
           };
           break;
@@ -228,7 +250,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
             ...body,
             prompt: exercise.prompt || 'Translate:',
             spanishText: exercise.spanish_text || exercise.prompt,
-            englishText: exercise.english_text || exercise.answer,
+            englishText: exercise.english_text || answer,
             direction: 'es_to_en',
           };
           break;
@@ -256,6 +278,8 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     } catch (error) {
       console.error("Failed to save generated exercise:", error);
       alert(error instanceof Error ? error.message : 'Failed to save exercise');
+    } finally {
+      setSavingExerciseIndex(null);
     }
   };
 
@@ -525,22 +549,14 @@ export default function ExerciseBuilder({ lessonId }: Props) {
 
           {generatedExercises.length === 0 ? (
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="generate-content">Content to Generate From</Label>
-                <Textarea
-                  id="generate-content"
-                  placeholder="Paste reading text, sentences, or vocabulary list here..."
-                  value={generateContent}
-                  onChange={(e) => setGenerateContent(e.target.value)}
-                  rows={8}
-                  className="mt-2"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  AI will generate {activeType.replace('_', ' ')} exercises based on this content
-                </p>
-              </div>
+              <ReadingSelector
+                lessonId={lessonId}
+                onGenerate={handleGenerate}
+                isGenerating={isGenerating}
+                generateButtonText={`Generate ${generateCount} Exercises`}
+              />
 
-              <div>
+              <div className="pt-2">
                 <Label htmlFor="generate-count">Number of Exercises</Label>
                 <Input
                   id="generate-count"
@@ -551,19 +567,6 @@ export default function ExerciseBuilder({ lessonId }: Props) {
                   onChange={(e) => setGenerateCount(parseInt(e.target.value) || 3)}
                   className="mt-2"
                 />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={generateExercisesWithAI}
-                  disabled={!generateContent.trim() || isGenerating}
-                  className="flex-1"
-                >
-                  {isGenerating ? "Generating..." : `Generate ${generateCount} Exercises`}
-                </Button>
-                <Button variant="outline" onClick={() => setShowGenerateModal(false)}>
-                  Cancel
-                </Button>
               </div>
             </div>
           ) : (
@@ -593,8 +596,19 @@ export default function ExerciseBuilder({ lessonId }: Props) {
                       )}
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <Button size="sm" onClick={() => saveGeneratedExercise(exercise)}>
-                        Save to Lesson
+                      <Button
+                        size="sm"
+                        onClick={() => saveGeneratedExercise(exercise, i)}
+                        disabled={savingExerciseIndex === i}
+                      >
+                        {savingExerciseIndex === i ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save to Lesson'
+                        )}
                       </Button>
                       <Button
                         size="sm"
