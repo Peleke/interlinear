@@ -1,0 +1,552 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Loader2, Sparkles, CheckCircle2, Circle, Clock } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+
+interface GeneratorConfig {
+  enabled: boolean;
+  config: {
+    // Vocabulary
+    cefrLevel?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+    maxVocabItems?: number;
+
+    // Grammar
+    maxConcepts?: number;
+
+    // Exercises
+    exerciseTypes?: ("fill_blank" | "multiple_choice" | "translation")[];
+    exercisesPerType?: number;
+    translationDirection?: "es_to_en" | "en_to_es" | "both";
+
+    // Dialogs
+    dialogCount?: number;
+    dialogComplexity?: "simple" | "intermediate" | "advanced";
+  };
+}
+
+interface GeneratorStatus {
+  name: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  count?: number;
+  duration?: number;
+  error?: string;
+}
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  readingId: string;
+  readingTitle: string;
+  readingLevel?: string;
+  lessonId: string;
+  language: "es" | "is";
+}
+
+export function GenerateLessonModal({
+  open,
+  onOpenChange,
+  readingId,
+  readingTitle,
+  readingLevel,
+  lessonId,
+  language,
+}: Props) {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatorStatuses, setGeneratorStatuses] = useState<GeneratorStatus[]>([]);
+
+  // Generator configurations
+  const [vocabularyConfig, setVocabularyConfig] = useState<GeneratorConfig>({
+    enabled: true,
+    config: {
+      cefrLevel: (readingLevel as any) || "A1",
+      maxVocabItems: 20,
+    },
+  });
+
+  const [grammarConfig, setGrammarConfig] = useState<GeneratorConfig>({
+    enabled: true,
+    config: {
+      maxConcepts: 5,
+    },
+  });
+
+  const [exercisesConfig, setExercisesConfig] = useState<GeneratorConfig>({
+    enabled: true,
+    config: {
+      exerciseTypes: ["fill_blank", "multiple_choice", "translation"],
+      exercisesPerType: 3,
+      translationDirection: "es_to_en",
+    },
+  });
+
+  const [dialogsConfig, setDialogsConfig] = useState<GeneratorConfig>({
+    enabled: true,
+    config: {
+      dialogCount: 2,
+      dialogComplexity: "intermediate",
+    },
+  });
+
+  const handleGenerate = async () => {
+    setIsGenerating(true);
+    setGeneratorStatuses([]);
+
+    const generators = {
+      vocabulary: vocabularyConfig.enabled ? vocabularyConfig : null,
+      grammar: grammarConfig.enabled ? grammarConfig : null,
+      exercises: exercisesConfig.enabled ? exercisesConfig : null,
+      dialogs: dialogsConfig.enabled ? dialogsConfig : null,
+    };
+
+    try {
+      const response = await fetch(`/api/lessons/${lessonId}/generate-from-reading`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          readingId,
+          generators,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Generation failed");
+      }
+
+      const result = await response.json();
+
+      // Update statuses from result
+      const statuses: GeneratorStatus[] = [];
+      if (result.results?.vocabulary) {
+        statuses.push({
+          name: "Vocabulary",
+          status: "completed",
+          count: result.results.vocabulary.count,
+          duration: result.results.vocabulary.executionTime,
+        });
+      }
+      if (result.results?.grammar) {
+        statuses.push({
+          name: "Grammar",
+          status: "completed",
+          count: result.results.grammar.count,
+          duration: result.results.grammar.executionTime,
+        });
+      }
+      if (result.results?.exercises) {
+        statuses.push({
+          name: "Exercises",
+          status: "completed",
+          count: result.results.exercises.count,
+          duration: result.results.exercises.executionTime,
+        });
+      }
+      if (result.results?.dialogs) {
+        statuses.push({
+          name: "Dialogs",
+          status: "completed",
+          count: result.results.dialogs.count,
+          duration: result.results.dialogs.executionTime,
+        });
+      }
+
+      setGeneratorStatuses(statuses);
+
+      // Wait 2 seconds to show success, then close
+      setTimeout(() => {
+        onOpenChange(false);
+        setIsGenerating(false);
+        setGeneratorStatuses([]);
+        // Trigger a page refresh to show new content
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      console.error("Generation error:", error);
+      setGeneratorStatuses([
+        {
+          name: "Generation",
+          status: "failed",
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+      ]);
+      setIsGenerating(false);
+    }
+  };
+
+  const renderStatusIcon = (status: GeneratorStatus["status"]) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case "processing":
+        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+      case "failed":
+        return <Circle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Circle className="h-4 w-4 text-gray-300" />;
+    }
+  };
+
+  const formatDuration = (ms?: number) => {
+    if (!ms) return "";
+    return `${(ms / 1000).toFixed(1)}s`;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-yellow-500" />
+            Generate Lesson from Reading
+          </DialogTitle>
+          <DialogDescription>
+            Reading: <span className="font-medium">{readingTitle}</span>
+            {readingLevel && <span className="ml-2 text-xs">({readingLevel} Level)</span>}
+          </DialogDescription>
+        </DialogHeader>
+
+        {isGenerating ? (
+          // Progress View
+          <div className="space-y-4 py-4">
+            <div className="text-center text-sm text-muted-foreground mb-6">
+              Generating lesson content... This may take a few minutes.
+            </div>
+
+            <div className="space-y-3">
+              {generatorStatuses.map((status) => (
+                <div
+                  key={status.name}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    {renderStatusIcon(status.status)}
+                    <div>
+                      <div className="font-medium text-sm">{status.name}</div>
+                      {status.count !== undefined && (
+                        <div className="text-xs text-muted-foreground">
+                          {status.count} items generated
+                        </div>
+                      )}
+                      {status.error && (
+                        <div className="text-xs text-red-500">{status.error}</div>
+                      )}
+                    </div>
+                  </div>
+                  {status.duration && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {formatDuration(status.duration)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {generatorStatuses.every((s) => s.status === "completed") && (
+              <div className="text-center text-sm text-green-600 font-medium pt-4">
+                ✓ All content generated successfully! Closing...
+              </div>
+            )}
+          </div>
+        ) : (
+          // Configuration View
+          <div className="space-y-6 py-4">
+            {/* Vocabulary */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={vocabularyConfig.enabled}
+                    onCheckedChange={(checked) =>
+                      setVocabularyConfig({ ...vocabularyConfig, enabled: !!checked })
+                    }
+                  />
+                  <Label className="font-semibold">Vocabulary Extraction</Label>
+                </div>
+              </div>
+              {vocabularyConfig.enabled && (
+                <div className="space-y-3 ml-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm">CEFR Level</Label>
+                      <Select
+                        value={vocabularyConfig.config.cefrLevel}
+                        onValueChange={(value) =>
+                          setVocabularyConfig({
+                            ...vocabularyConfig,
+                            config: { ...vocabularyConfig.config, cefrLevel: value as any },
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A1">A1</SelectItem>
+                          <SelectItem value="A2">A2</SelectItem>
+                          <SelectItem value="B1">B1</SelectItem>
+                          <SelectItem value="B2">B2</SelectItem>
+                          <SelectItem value="C1">C1</SelectItem>
+                          <SelectItem value="C2">C2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-sm">Max Items</Label>
+                      <Input
+                        type="number"
+                        value={vocabularyConfig.config.maxVocabItems}
+                        onChange={(e) =>
+                          setVocabularyConfig({
+                            ...vocabularyConfig,
+                            config: {
+                              ...vocabularyConfig.config,
+                              maxVocabItems: parseInt(e.target.value),
+                            },
+                          })
+                        }
+                        min={1}
+                        max={50}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {/* Grammar */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={grammarConfig.enabled}
+                    onCheckedChange={(checked) =>
+                      setGrammarConfig({ ...grammarConfig, enabled: !!checked })
+                    }
+                  />
+                  <Label className="font-semibold">Grammar Concepts</Label>
+                </div>
+              </div>
+              {grammarConfig.enabled && (
+                <div className="ml-6">
+                  <Label className="text-sm">Max Concepts</Label>
+                  <Input
+                    type="number"
+                    value={grammarConfig.config.maxConcepts}
+                    onChange={(e) =>
+                      setGrammarConfig({
+                        ...grammarConfig,
+                        config: {
+                          ...grammarConfig.config,
+                          maxConcepts: parseInt(e.target.value),
+                        },
+                      })
+                    }
+                    min={1}
+                    max={20}
+                  />
+                </div>
+              )}
+            </Card>
+
+            {/* Exercises */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={exercisesConfig.enabled}
+                    onCheckedChange={(checked) =>
+                      setExercisesConfig({ ...exercisesConfig, enabled: !!checked })
+                    }
+                  />
+                  <Label className="font-semibold">Exercise Generation</Label>
+                </div>
+              </div>
+              {exercisesConfig.enabled && (
+                <div className="space-y-3 ml-6">
+                  <div>
+                    <Label className="text-sm mb-2 block">Exercise Types</Label>
+                    <div className="space-y-2">
+                      {(["fill_blank", "multiple_choice", "translation"] as const).map((type) => (
+                        <div key={type} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={exercisesConfig.config.exerciseTypes?.includes(type)}
+                            onCheckedChange={(checked) => {
+                              const current = exercisesConfig.config.exerciseTypes || [];
+                              const updated = checked
+                                ? [...current, type]
+                                : current.filter((t) => t !== type);
+                              setExercisesConfig({
+                                ...exercisesConfig,
+                                config: { ...exercisesConfig.config, exerciseTypes: updated },
+                              });
+                            }}
+                          />
+                          <Label className="text-sm">
+                            {type === "fill_blank"
+                              ? "Fill in the Blank"
+                              : type === "multiple_choice"
+                              ? "Multiple Choice"
+                              : "Translation"}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm">Per Type</Label>
+                      <Input
+                        type="number"
+                        value={exercisesConfig.config.exercisesPerType}
+                        onChange={(e) =>
+                          setExercisesConfig({
+                            ...exercisesConfig,
+                            config: {
+                              ...exercisesConfig.config,
+                              exercisesPerType: parseInt(e.target.value),
+                            },
+                          })
+                        }
+                        min={1}
+                        max={10}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Translation Direction</Label>
+                      <Select
+                        value={exercisesConfig.config.translationDirection}
+                        onValueChange={(value) =>
+                          setExercisesConfig({
+                            ...exercisesConfig,
+                            config: {
+                              ...exercisesConfig.config,
+                              translationDirection: value as any,
+                            },
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="es_to_en">ES → EN</SelectItem>
+                          <SelectItem value="en_to_es">EN → ES</SelectItem>
+                          <SelectItem value="both">Both</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+
+            {/* Dialogs */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={dialogsConfig.enabled}
+                    onCheckedChange={(checked) =>
+                      setDialogsConfig({ ...dialogsConfig, enabled: !!checked })
+                    }
+                  />
+                  <Label className="font-semibold">Dialog Generation</Label>
+                </div>
+              </div>
+              {dialogsConfig.enabled && (
+                <div className="space-y-3 ml-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm">Dialog Count</Label>
+                      <Input
+                        type="number"
+                        value={dialogsConfig.config.dialogCount}
+                        onChange={(e) =>
+                          setDialogsConfig({
+                            ...dialogsConfig,
+                            config: {
+                              ...dialogsConfig.config,
+                              dialogCount: parseInt(e.target.value),
+                            },
+                          })
+                        }
+                        min={1}
+                        max={5}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Complexity</Label>
+                      <Select
+                        value={dialogsConfig.config.dialogComplexity}
+                        onValueChange={(value) =>
+                          setDialogsConfig({
+                            ...dialogsConfig,
+                            config: {
+                              ...dialogsConfig.config,
+                              dialogComplexity: value as any,
+                            },
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="simple">Simple</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        <DialogFooter>
+          {!isGenerating && (
+            <>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleGenerate}
+                disabled={
+                  !vocabularyConfig.enabled &&
+                  !grammarConfig.enabled &&
+                  !exercisesConfig.enabled &&
+                  !dialogsConfig.enabled
+                }
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Lesson Content
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
