@@ -125,10 +125,11 @@ function buildPrompt(input: ExerciseInput): string {
 - Include a brief explanation of key grammar/vocabulary points`,
 
     multiple_choice: `Generate ${count} multiple choice exercises. Each exercise should:
-- Present a ${languageName} sentence with a blank (use "____")
-- Provide 4 options to fill the blank
+- Present a complete ${languageName} question or statement (NO blanks or underscores)
+- Provide 4 answer options as choices
 - Make the first option the correct answer
 - Make other options plausible but clearly wrong (common mistakes)
+- Focus on vocabulary meaning, grammar concepts, or comprehension
 - Include an explanation of why the correct answer is right`,
 
     fill_blank: `Generate ${count} fill-in-the-blank exercises. Each exercise should:
