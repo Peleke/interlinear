@@ -129,9 +129,16 @@ export function GenerateLessonModal({
   const pollJobStatus = async (jobId: string) => {
     try {
       const response = await fetch(`/api/generation-jobs/${jobId}`);
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.log(`[Poll] Failed to fetch job ${jobId}: ${response.status}`);
+        return;
+      }
 
       const job = await response.json();
+      console.log(`[Poll] Job ${jobId} status: ${job.status}`, {
+        progress: job.progress,
+        hasResults: !!job.results,
+      });
 
       // Update statuses from progress
       const statuses: GeneratorStatus[] = [];
@@ -182,10 +189,15 @@ export function GenerateLessonModal({
 
       // If job is complete or failed, stop polling
       if (job.status === "completed" || job.status === "failed") {
+        console.log(`[Poll] Job ${jobId} finished with status: ${job.status}`);
         stopPolling();
 
-        // If completed successfully, wait 2 seconds then close and refresh
-        if (job.status === "completed") {
+        // Check if any generators actually failed
+        const anyFailed = statuses.some(s => s.status === 'failed');
+
+        // If completed successfully AND no failed generators, wait 2 seconds then close and refresh
+        if (job.status === "completed" && !anyFailed) {
+          console.log(`[Poll] All generators succeeded, will close and refresh`);
           setTimeout(() => {
             onOpenChange(false);
             setIsGenerating(false);
@@ -195,12 +207,13 @@ export function GenerateLessonModal({
             window.location.reload();
           }, 2000);
         } else {
-          // Failed - keep modal open to show errors
+          // Failed or had errors - keep modal open to show errors
+          console.log(`[Poll] Job had failures, keeping modal open`, { anyFailed, jobStatus: job.status });
           setIsGenerating(false);
         }
       }
     } catch (error) {
-      console.error("Polling error:", error);
+      console.error("[Poll] Polling error:", error);
       // Continue polling on transient errors
     }
   };
@@ -234,6 +247,7 @@ export function GenerateLessonModal({
 
       // Store job ID and start polling
       if (result.jobId) {
+        console.log(`[Generate] Job created: ${result.jobId}, starting polling...`);
         setCurrentJobId(result.jobId);
 
         // Start polling every 2 seconds
@@ -243,6 +257,16 @@ export function GenerateLessonModal({
 
         // Poll immediately
         pollJobStatus(result.jobId);
+      } else {
+        console.error("[Generate] No jobId returned from API");
+        setGeneratorStatuses([
+          {
+            name: "Generation",
+            status: "failed",
+            error: "No job ID returned",
+          },
+        ]);
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error("Generation error:", error);
@@ -326,9 +350,17 @@ export function GenerateLessonModal({
               ))}
             </div>
 
-            {generatorStatuses.every((s) => s.status === "completed") && (
+            {generatorStatuses.length > 0 &&
+             generatorStatuses.every((s) => s.status === "completed") &&
+             !isGenerating && (
               <div className="text-center text-sm text-green-600 font-medium pt-4">
                 ✓ All content generated successfully! Closing...
+              </div>
+            )}
+
+            {generatorStatuses.some((s) => s.status === "failed") && (
+              <div className="text-center text-sm text-red-600 font-medium pt-4">
+                ⚠ Some generators failed. Check errors above.
               </div>
             )}
           </div>

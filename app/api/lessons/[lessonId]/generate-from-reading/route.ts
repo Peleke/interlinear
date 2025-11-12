@@ -318,6 +318,7 @@ export async function POST(
         targetLevel: targetLevel as any,
         language: language as 'es' | 'is',
         dialogCount: generators.dialogs.config.dialogCount || 2,
+        turnsPerDialog: 6, // Default 6 turns per dialog
         complexity: generators.dialogs.config.dialogComplexity || 'intermediate',
       })
 

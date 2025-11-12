@@ -21,9 +21,11 @@ const GrammarInputSchema = z.object({
 
 // Output schema
 const GrammarConceptSchema = z.object({
-  name: z.string(), // e.g., "Present Perfect Tense"
+  name: z.string(), // e.g., "present_perfect_tense" (snake_case identifier)
+  display_name: z.string(), // e.g., "Present Perfect Tense" (human-readable)
   cefr_level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
-  explanation: z.string(),
+  description: z.string(), // Brief description of the concept
+  content: z.string(), // Detailed explanation with examples
   example_from_text: z.string(),
   additional_examples: z.array(z.string()).optional(),
 })
@@ -118,11 +120,13 @@ ${content}
 Task: Identify up to ${maxConcepts} key grammar concepts that appear in this text and are relevant for a ${targetLevel} level learner.
 
 For each grammar concept, provide:
-1. Name of the grammar concept (e.g., "Present Perfect Tense", "Subjunctive Mood", "Reflexive Verbs")
-2. CEFR level (A1-C2) - be accurate about when learners typically encounter this
-3. Clear explanation in English of how this grammar works
-4. An example from the text showing this grammar in use
-5. (Optional) Additional examples showing different uses
+1. **name**: A snake_case identifier (e.g., "present_perfect_tense", "subjunctive_mood", "reflexive_verbs")
+2. **display_name**: Human-readable title (e.g., "Present Perfect Tense", "Subjunctive Mood", "Reflexive Verbs")
+3. **cefr_level**: CEFR level (A1-C2) - be accurate about when learners typically encounter this
+4. **description**: Brief 1-2 sentence summary of what this concept is
+5. **content**: Detailed explanation in English of how this grammar works (3-5 paragraphs with examples)
+6. **example_from_text**: An example from the text showing this grammar in use
+7. **additional_examples**: (Optional) Additional examples showing different uses
 
 Guidelines:
 - Focus on grammar actually present in the text
@@ -131,6 +135,7 @@ Guidelines:
 - Make explanations clear and practical
 - Include both basic and advanced concepts if text supports it
 - Avoid listing every possible grammar point - focus on the most instructive ones
+- Ensure content field is comprehensive enough to teach the concept
 
 Identify the most important ${maxConcepts} grammar concepts from this text.`
 }

@@ -78,7 +78,15 @@ export class DictionaryRouter {
       const response = await fetch(url)
 
       if (!response.ok) {
-        throw new Error(`MW API failed: ${response.status}`)
+        // Try to get error details from response
+        let errorDetail = `${response.status}`
+        try {
+          const errorBody = await response.text()
+          errorDetail += ` - ${errorBody.substring(0, 200)}`
+        } catch {
+          // Ignore error parsing error
+        }
+        throw new Error(`MW API failed: ${errorDetail}`)
       }
 
       const mwData = await response.json()
