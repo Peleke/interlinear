@@ -16,11 +16,25 @@ export default async function CoursesPage() {
     redirect('/auth/signin')
   }
 
-  // Get all courses
+  // Get all published courses (only show published courses to students)
   const { data: courses, error: coursesError } = await supabase
     .from('courses')
-    .select('*')
-    .order('level', { ascending: true })
+    .select(`
+      id,
+      title,
+      description,
+      language,
+      difficulty_level,
+      created_by,
+      created_at,
+      updated_at,
+      xp_total,
+      published_at,
+      published_by,
+      version
+    `)
+    .not('published_at', 'is', null)
+    .order('difficulty_level', { ascending: true })
 
   if (coursesError) {
     console.error('Failed to fetch courses:', coursesError)
@@ -36,13 +50,14 @@ export default async function CoursesPage() {
     enrollments?.map((e) => e.course_id) || []
   )
 
-  // For each course, get lesson count
+  // For each course, get lesson count from the OLD system (course_id)
   const coursesWithMeta = await Promise.all(
     (courses || []).map(async (course) => {
       const { data: lessons } = await supabase
         .from('lessons')
         .select('id')
         .eq('course_id', course.id)
+        .not('published_at', 'is', null)
 
       const lessonCount = lessons?.length || 0
       const isEnrolled = enrolledCourseIds.has(course.id)
@@ -85,7 +100,7 @@ export default async function CoursesPage() {
                 id={course.id}
                 title={course.title}
                 description={course.description}
-                level={course.level}
+                level={course.difficulty_level}
                 lessonCount={course.lessonCount}
                 estimatedHours={Math.ceil((course.lessonCount * 30) / 60)}
                 isEnrolled={course.isEnrolled}
