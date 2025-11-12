@@ -1,12 +1,26 @@
 """CLTK integration service for Latin morphological analysis."""
 
 import logging
+import os
 from typing import List, Optional, Dict, Any
 from cltk import NLP
 
 from app.models import WordAnalysis, MorphologyData
 
 logger = logging.getLogger(__name__)
+
+# Monkey-patch input() to auto-approve model downloads in Docker
+# CLTK's query_yes_no() uses input() which fails in non-TTY environments
+def _auto_approve_input(prompt=""):
+    """Auto-approve all CLTK model download prompts."""
+    if "Allow download" in prompt or "[Y/n]" in prompt:
+        logger.info(f"Auto-approving: {prompt}")
+        return "Y"
+    return ""
+
+# Only apply monkey-patch in non-interactive environments
+if not os.isatty(0):  # stdin is not a TTY (Docker)
+    __builtins__['input'] = _auto_approve_input
 
 
 class CLTKService:
@@ -112,15 +126,16 @@ class CLTKService:
         if not features:
             return None
 
+        # MorphosyntacticFeatureBundle uses attribute access, not dict .get()
         return MorphologyData(
-            case=features.get("Case"),
-            number=features.get("Number"),
-            gender=features.get("Gender"),
-            tense=features.get("Tense"),
-            voice=features.get("Voice"),
-            mood=features.get("Mood"),
-            person=features.get("Person"),
-            degree=features.get("Degree")
+            case=getattr(features, "case", None),
+            number=getattr(features, "number", None),
+            gender=getattr(features, "gender", None),
+            tense=getattr(features, "tense", None),
+            voice=getattr(features, "voice", None),
+            mood=getattr(features, "mood", None),
+            person=getattr(features, "person", None),
+            degree=getattr(features, "degree", None)
         )
 
 
