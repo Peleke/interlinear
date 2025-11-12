@@ -37,11 +37,11 @@ export async function DELETE(
       )
     }
 
-    // Delete link (usage_count trigger will auto-decrement)
+    // Delete link using vocabulary_id (lesson_vocabulary has no separate id column)
     const { error } = await supabase
       .from('lesson_vocabulary')
       .delete()
-      .eq('id', itemId)
+      .eq('vocabulary_id', itemId)
       .eq('lesson_id', lessonId)
 
     if (error) throw error

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
+import MultipleChoiceExercise from '@/components/exercises/MultipleChoiceExercise'
 import DialogViewer from '@/components/dialogs/DialogViewer'
 import { getOrCreateCourseDeck, type CourseDeck } from '@/lib/services/course-deck-manager'
 import { toast } from 'sonner'
@@ -349,19 +350,25 @@ export default function LessonViewer({
             </div>
             {exercisesExpanded && (
               <div className="space-y-6">
-                {exercises.map((exercise) => (
-                  <FillBlankExercise
-                    key={exercise.id}
-                    exerciseId={exercise.id}
-                    prompt={exercise.prompt}
-                    spanishText={exercise.spanish_text || undefined}
-                    englishText={exercise.english_text || undefined}
-                    courseDeckId={courseDeck?.id}
-                    onComplete={(isCorrect, xpEarned) =>
-                      handleExerciseComplete(exercise.id, isCorrect, xpEarned)
-                    }
-                  />
-                ))}
+                {exercises.map((exercise) => {
+                  const ExerciseComponent = exercise.exercise_type === 'multiple_choice'
+                    ? MultipleChoiceExercise
+                    : FillBlankExercise;
+
+                  return (
+                    <ExerciseComponent
+                      key={exercise.id}
+                      exerciseId={exercise.id}
+                      prompt={exercise.prompt}
+                      spanishText={exercise.spanish_text || undefined}
+                      englishText={exercise.english_text || undefined}
+                      courseDeckId={courseDeck?.id}
+                      onComplete={(isCorrect, xpEarned) =>
+                        handleExerciseComplete(exercise.id, isCorrect, xpEarned)
+                      }
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

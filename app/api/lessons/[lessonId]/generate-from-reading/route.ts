@@ -28,6 +28,28 @@ interface RequestBody {
   }
 }
 
+/**
+ * Helper functions for vocabulary auto-save
+ */
+function mapPartOfSpeech(pos: string): 'noun' | 'verb' | 'adjective' | 'adverb' | 'other' {
+  if (!pos) return 'other'
+  const normalized = pos.toLowerCase()
+  if (normalized.includes('noun')) return 'noun'
+  if (normalized.includes('verb')) return 'verb'
+  if (normalized.includes('adjective')) return 'adjective'
+  if (normalized.includes('adverb')) return 'adverb'
+  return 'other'
+}
+
+function mapDifficultyLevel(difficulty: string): 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' {
+  if (!difficulty) return 'A2'
+  const normalized = difficulty.toLowerCase()
+  if (normalized === 'basic') return 'A2'
+  if (normalized === 'intermediate') return 'B1'
+  if (normalized === 'advanced') return 'C1'
+  return 'A2'
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
@@ -114,7 +136,7 @@ export async function POST(
         lessonId,
         readingText: readingContent,
         targetLevel: generators.vocabulary.config.cefrLevel || targetLevel,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         maxVocabularyItems: generators.vocabulary.config.maxVocabItems || 20,
         userId: user.id,
       })
@@ -141,6 +163,104 @@ export async function POST(
           created_by: user.id,
           completed_at: new Date().toISOString(),
         })
+
+        // AUTO-SAVE: Convert vocabulary to approval format and save to lesson
+        if (vocabResult.vocabulary && vocabResult.vocabulary.length > 0) {
+          try {
+            console.log(`[Orchestration] Auto-saving ${vocabResult.vocabulary.length} vocabulary items...`)
+            console.log(`[DEBUG] First vocab item:`, JSON.stringify(vocabResult.vocabulary[0], null, 2))
+
+            const vocabularyItems = vocabResult.vocabulary.map((item: any) => {
+              // Handle both string format (current workflow output) and object format (future)
+              const word = typeof item === 'string' ? item : (item.word || item.lemma)
+              const definition = typeof item === 'string' ? `Definition for ${item}` : item.definition
+
+              return {
+                word: word,
+                english_translation: definition || `Definition for ${word}`,
+                part_of_speech: mapPartOfSpeech(typeof item === 'string' ? null : item.partOfSpeech),
+                difficulty_level: mapDifficultyLevel(typeof item === 'string' ? null : item.difficulty),
+                example_sentence: `Example: ${word} appears in the text.`,
+                appears_in_reading: true,
+                frequency: typeof item === 'string' ? 50 : (item.frequency || 50),
+                normalized_form: typeof item === 'string' ? word : (item.lemma || item.word),
+              }
+            })
+
+            console.log(`[DEBUG] Mapped items:`, JSON.stringify(vocabularyItems[0], null, 2))
+
+            // Save vocabulary directly to database (avoiding fetch 401 issue)
+            const vocabularyItemRecords = vocabularyItems.map((item) => ({
+              spanish: item.word, // FIXED: Use the mapped word field (item.word || item.lemma)
+              english: item.english_translation,
+              part_of_speech: item.part_of_speech,
+              difficulty_level: item.difficulty_level,
+              language: language, // Add language column for multi-language support
+              ai_generated: true,
+              ai_metadata: {
+                source: 'vocabulary-extraction-workflow',
+                timestamp: new Date().toISOString(),
+                approved_by: user.id,
+                example_sentence: item.example_sentence,
+                frequency_score: item.frequency,
+                appears_in_reading: item.appears_in_reading,
+                normalized_form: item.normalized_form,
+                language: language,
+              },
+            }))
+
+            console.log(`[DEBUG] DB records:`, JSON.stringify(vocabularyItemRecords[0], null, 2))
+
+            const { data: insertedVocabItems, error: itemsError } = await supabase
+              .from('lesson_vocabulary_items')
+              .upsert(vocabularyItemRecords, {
+                onConflict: 'spanish,english,language',
+                ignoreDuplicates: false,
+              })
+              .select('id, spanish, english')
+
+            if (itemsError) {
+              console.error('[Orchestration] Failed to save vocabulary items:', itemsError)
+              results.vocabulary.autoSaveError = 'Failed to save vocabulary items'
+            } else if (!insertedVocabItems || insertedVocabItems.length === 0) {
+              console.error('[Orchestration] No vocabulary items returned after insert')
+              results.vocabulary.autoSaveError = 'Failed to create vocabulary items'
+            } else {
+              // Create lesson-vocabulary associations
+              const junctionRecords = insertedVocabItems.map((item) => ({
+                lesson_id: lessonId,
+                vocabulary_id: item.id,
+                is_new: true,
+                ai_generated: true,
+                ai_metadata: {
+                  source: 'vocabulary-extraction-workflow',
+                  timestamp: new Date().toISOString(),
+                  approved_by: user.id,
+                },
+              }))
+
+              const { data: insertedAssociations, error: junctionError } = await supabase
+                .from('lesson_vocabulary')
+                .upsert(junctionRecords, {
+                  onConflict: 'lesson_id,vocabulary_id',
+                  ignoreDuplicates: true,
+                })
+                .select()
+
+              if (junctionError) {
+                console.error('[Orchestration] Failed to create lesson associations:', junctionError)
+                results.vocabulary.autoSaveError = 'Failed to link vocabulary to lesson'
+              } else {
+                console.log(`[Orchestration] Successfully auto-saved ${insertedVocabItems.length} vocabulary items`)
+                results.vocabulary.autoSaved = true
+                results.vocabulary.savedCount = insertedVocabItems.length
+              }
+            }
+          } catch (error) {
+            console.error('[Orchestration] Auto-save vocabulary error:', error)
+            results.vocabulary.autoSaveError = error instanceof Error ? error.message : 'Unknown error'
+          }
+        }
       } else {
         progress.vocabulary = { status: 'failed', error: 'Vocabulary extraction failed' }
         await supabase.from('generation_jobs').update({ progress }).eq('id', job.id)
@@ -170,7 +290,7 @@ export async function POST(
       const grammarResult = await identifyGrammar({
         content: readingContent,
         targetLevel: targetLevel as any,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         maxConcepts: generators.grammar.config.maxConcepts || 5,
         existingConcepts, // Pass existing concepts to avoid duplicates
       })
@@ -275,7 +395,7 @@ export async function POST(
           type: type as 'fill_blank' | 'multiple_choice' | 'translation',
           count: exercisesPerType,
           targetLevel: targetLevel as any,
-          language: language as 'es' | 'is',
+          language: language as 'es' | 'la',
         })
 
         console.log(`Exercise result for ${type}:`, {
@@ -288,6 +408,21 @@ export async function POST(
           // Save exercises
           for (const exercise of exerciseResult.exercises) {
             console.log(`Saving exercise: ${exercise.prompt} → ${exercise.correct_answer}`)
+
+            // Detect translation direction for proper UI display
+            let direction = null;
+            if (type === 'translation') {
+              const prompt = exercise.prompt.toLowerCase();
+              if (prompt.includes('latin') && prompt.includes('english')) {
+                direction = prompt.includes('latin sentence into english') ? `${language}_to_en` : `en_to_${language}`;
+              } else if (prompt.includes('spanish') && prompt.includes('english')) {
+                direction = prompt.includes('spanish sentence into english') ? `${language}_to_en` : `en_to_${language}`;
+              } else {
+                // Default direction based on language
+                direction = `${language}_to_en`;
+              }
+            }
+
             const { error: insertError } = await supabase
               .from('lesson_exercises')
               .insert({
@@ -295,7 +430,8 @@ export async function POST(
                 exercise_type: type,
                 prompt: exercise.prompt, // Direct field mapping - DB has 'prompt'
                 answer: exercise.correct_answer, // Map 'correct_answer' to 'answer'
-                options: exercise.options || null,
+                options: exercise.options ? { choices: exercise.options } : null,
+                direction: direction, // Add direction for translation exercises
                 xp_value: 10, // Default XP value
                 sequence_order: totalExercises, // Simple ordering by creation
               })
@@ -343,7 +479,7 @@ export async function POST(
       const dialogResult = await generateDialogs({
         content: readingContent,
         targetLevel: targetLevel as any,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         dialogCount: generators.dialogs.config.dialogCount || 2,
         turnsPerDialog: 6, // Default 6 turns per dialog
         complexity: generators.dialogs.config.dialogComplexity || 'intermediate',

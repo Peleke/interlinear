@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const ELEVENLABS_API_URL = 'https://api.elevenlabs.io/v1/text-to-speech'
 const API_KEY = process.env.ELEVENLABS_API_KEY
-const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL' // Sarah - Spanish Female
+
+// Voice IDs for different languages
+const SPANISH_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL' // Sarah - Spanish Female
+const LATIN_VOICE_ID = 'pNInz6obpgDQGcFmaJgB' // Adam - Deep male voice for Latin
 
 export interface TTSRequest {
   text: string
+  language?: 'es' | 'la'
   voiceId?: string
 }
 
@@ -19,7 +23,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: TTSRequest = await request.json()
-    const { text, voiceId = DEFAULT_VOICE_ID } = body
+    const { text, language = 'es', voiceId } = body
+
+    // Select voice based on language if not explicitly provided
+    const selectedVoiceId = voiceId || (language === 'la' ? LATIN_VOICE_ID : SPANISH_VOICE_ID)
 
     if (!text || text.trim().length === 0) {
       return NextResponse.json(
@@ -41,7 +48,7 @@ export async function POST(request: NextRequest) {
       .replace(/([.!?])\s+/g, '$1 <break time="0.5s" /> ')
       .replace(/([.!?])$/g, '$1 <break time="0.5s" />')
 
-    const url = `${ELEVENLABS_API_URL}/${voiceId}/stream`
+    const url = `${ELEVENLABS_API_URL}/${selectedVoiceId}/stream`
 
     const response = await fetch(url, {
       method: 'POST',

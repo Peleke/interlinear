@@ -27,7 +27,7 @@ interface Dialog {
 
 interface Props {
   lessonId: string
-  language: 'es' | 'is'
+  language: 'es' | 'la'
 }
 
 export function DialogBuilder({ lessonId, language }: Props) {

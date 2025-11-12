@@ -52,3 +52,10 @@ terraform/terraform.tfstate.backup
 terraform/*.auto.tfvars
 terraform/terraform.tfvars
 
+
+# Latin dictionary data & test artifacts
+.auth/
+.serena/
+github-actions-staging-key.json
+playwright-report/
+test-results/

@@ -37,6 +37,15 @@ const exerciseTypes = [
   { id: 'translation' as ExerciseType, label: 'Translation', icon: Languages },
 ];
 
+// Language configuration for translation exercises
+const LANGUAGE_CONFIG = {
+  'es': { name: 'Spanish', flag: '🇪🇸', displayCode: 'ES' },
+  'la': { name: 'Latin', flag: '🏛️', displayCode: 'LA' },
+  'en': { name: 'English', flag: '🇺🇸', displayCode: 'EN' }
+} as const;
+
+type LanguageCode = keyof typeof LANGUAGE_CONFIG;
+
 export default function ExerciseBuilder({ lessonId }: Props) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [activeType, setActiveType] = useState<ExerciseType>('fill_blank');
@@ -48,6 +57,11 @@ export default function ExerciseBuilder({ lessonId }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [savingExerciseIndex, setSavingExerciseIndex] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
+  // Language state for lesson (will be determined from lesson data or exercises)
+  const [lessonLanguage, setLessonLanguage] = useState<LanguageCode>('es');
+  const targetLanguage: LanguageCode = 'en'; // Always English for now
 
   // Form states for each type
   const [fillBlankForm, setFillBlankForm] = useState({
@@ -64,9 +78,9 @@ export default function ExerciseBuilder({ lessonId }: Props) {
 
   const [translationForm, setTranslationForm] = useState({
     prompt: "",
-    spanishText: "",
-    englishText: "",
-    direction: "es_to_en" as 'es_to_en' | 'en_to_es',
+    sourceText: "", // Changed from spanishText to be language-agnostic
+    targetText: "", // Changed from englishText to be language-agnostic
+    direction: "es_to_en" as string, // Will be updated dynamically
   });
 
   useEffect(() => {
@@ -76,16 +90,53 @@ export default function ExerciseBuilder({ lessonId }: Props) {
   const loadExercises = async () => {
     try {
       setIsLoading(true);
+      
+      // Fetch exercises
       const response = await fetch(`/api/lessons/${lessonId}/exercises`);
       if (!response.ok) throw new Error('Failed to load exercises');
       const data = await response.json();
       setExercises(data.exercises || []);
+
+      // Detect lesson language from existing exercises or lesson data
+      const exercises = data.exercises || [];
+      let detectedLanguage: LanguageCode = 'es'; // Default to Spanish
+
+      // Try to detect from URL params first (e.g., if Latin lesson)
+      if (typeof window !== 'undefined') {
+        const url = window.location.href;
+        if (url.includes('latin') || url.includes('la')) {
+          detectedLanguage = 'la';
+        }
+      }
+
+      // Try to detect from exercises with spanish_text that looks like Latin
+      if (detectedLanguage === 'es') {
+        for (const exercise of exercises) {
+          if (exercise.spanish_text && 
+              (exercise.spanish_text.includes('eum') || 
+               exercise.spanish_text.includes('est') ||
+               exercise.spanish_text.includes('sum') ||
+               exercise.spanish_text.match(/\b(qui|quae|quod)\b/))) {
+            detectedLanguage = 'la';
+            break;
+          }
+        }
+      }
+
+      setLessonLanguage(detectedLanguage);
+      
+      // Update translation form direction based on detected language
+      setTranslationForm(prev => ({
+        ...prev,
+        direction: `${detectedLanguage}_to_en`
+      }));
+
     } catch (error) {
       console.error("Failed to load exercises:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  };;
 
   const createExercise = async () => {
     try {
@@ -116,8 +167,8 @@ export default function ExerciseBuilder({ lessonId }: Props) {
           body = {
             ...body,
             prompt: translationForm.prompt,
-            spanishText: translationForm.spanishText,
-            englishText: translationForm.englishText,
+            spanishText: translationForm.sourceText, // Map sourceText to spanishText for API compatibility
+            englishText: translationForm.targetText, // Map targetText to englishText for API compatibility
             direction: translationForm.direction,
           };
           break;
@@ -143,26 +194,43 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     }
   };
 
-  const deleteExercise = async (exerciseId: string) => {
-    if (!confirm('Are you sure you want to delete this exercise?')) return;
+  const openDeleteModal = (exerciseId: string) => {
+    setExerciseToDelete(exerciseId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteExercise = async () => {
+    if (!exerciseToDelete) return;
 
     try {
-      const response = await fetch(`/api/exercises/${exerciseId}`, {
+      const response = await fetch(`/api/exercises/${exerciseToDelete}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
         await loadExercises();
+        setShowDeleteModal(false);
+        setExerciseToDelete(null);
       }
     } catch (error) {
       console.error("Failed to delete exercise:", error);
     }
   };
 
+  const cancelDeleteExercise = () => {
+    setShowDeleteModal(false);
+    setExerciseToDelete(null);
+  };
+
   const resetForm = () => {
     setFillBlankForm({ prompt: "", answer: "", blankPosition: 0 });
     setMultipleChoiceForm({ prompt: "", answer: "", options: ["", "", "", ""] });
-    setTranslationForm({ prompt: "", spanishText: "", englishText: "", direction: "es_to_en" });
+    setTranslationForm({
+      prompt: "",
+      sourceText: "",
+      targetText: "",
+      direction: `${lessonLanguage}_to_en`
+    });
   };
 
   const handleGenerate = async (selection: { readingIds?: string[], manualText?: string }) => {
@@ -196,7 +264,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
           content: sourceText,
           type: activeType,
           count: generateCount,
-          language: 'es',
+          language: lessonLanguage, // Use detected lesson language
           targetLevel: 'A1',
         }),
       });
@@ -251,7 +319,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
             prompt: exercise.prompt || 'Translate:',
             spanishText: exercise.spanish_text || exercise.prompt,
             englishText: exercise.english_text || answer,
-            direction: 'es_to_en',
+            direction: `${lessonLanguage}_to_en`, // Use detected language
           };
           break;
       }
@@ -415,21 +483,25 @@ export default function ExerciseBuilder({ lessonId }: Props) {
                 />
               </div>
               <div>
-                <Label htmlFor="trans-spanish">Spanish Text</Label>
+                <Label htmlFor="trans-source" className="flex items-center gap-2">
+                  {LANGUAGE_CONFIG[lessonLanguage].flag} {LANGUAGE_CONFIG[lessonLanguage].displayCode} Text
+                </Label>
                 <Textarea
-                  id="trans-spanish"
-                  placeholder="E.g., ¡Hola! ¿Cómo estás?"
-                  value={translationForm.spanishText}
-                  onChange={(e) => setTranslationForm({ ...translationForm, spanishText: e.target.value })}
+                  id="trans-source"
+                  placeholder={`Text in ${LANGUAGE_CONFIG[lessonLanguage].name}`}
+                  value={translationForm.sourceText}
+                  onChange={(e) => setTranslationForm({ ...translationForm, sourceText: e.target.value })}
                 />
               </div>
               <div>
-                <Label htmlFor="trans-english">English Text</Label>
+                <Label htmlFor="trans-target" className="flex items-center gap-2">
+                  {LANGUAGE_CONFIG[targetLanguage].flag} {LANGUAGE_CONFIG[targetLanguage].displayCode} Text
+                </Label>
                 <Textarea
-                  id="trans-english"
-                  placeholder="E.g., Hello! How are you?"
-                  value={translationForm.englishText}
-                  onChange={(e) => setTranslationForm({ ...translationForm, englishText: e.target.value })}
+                  id="trans-target"
+                  placeholder={`Translation in ${LANGUAGE_CONFIG[targetLanguage].name}`}
+                  value={translationForm.targetText}
+                  onChange={(e) => setTranslationForm({ ...translationForm, targetText: e.target.value })}
                 />
               </div>
               <div>
@@ -440,8 +512,12 @@ export default function ExerciseBuilder({ lessonId }: Props) {
                   value={translationForm.direction}
                   onChange={(e) => setTranslationForm({ ...translationForm, direction: e.target.value as any })}
                 >
-                  <option value="es_to_en">Spanish → English</option>
-                  <option value="en_to_es">English → Spanish</option>
+                  <option value={`${lessonLanguage}_to_en`}>
+                    {LANGUAGE_CONFIG[lessonLanguage].name} → {LANGUAGE_CONFIG[targetLanguage].name}
+                  </option>
+                  <option value={`en_to_${lessonLanguage}`}>
+                    {LANGUAGE_CONFIG[targetLanguage].name} → {LANGUAGE_CONFIG[lessonLanguage].name}
+                  </option>
                 </select>
               </div>
               <div className="flex gap-2">
@@ -449,8 +525,8 @@ export default function ExerciseBuilder({ lessonId }: Props) {
                   onClick={createExercise}
                   disabled={
                     !translationForm.prompt ||
-                    !translationForm.spanishText ||
-                    !translationForm.englishText
+                    !translationForm.sourceText ||
+                    !translationForm.targetText
                   }
                 >
                   Create Exercise
@@ -475,9 +551,11 @@ export default function ExerciseBuilder({ lessonId }: Props) {
               {exercise.exercise_type === 'translation' && (
                 <div className="space-y-1 text-sm">
                   <p className="text-muted-foreground">
-                    {exercise.direction === 'es_to_en' ? '🇪🇸 → 🇬🇧' : '🇬🇧 → 🇪🇸'}
+                    {exercise.direction?.includes('la_to_en') ? '🏛️ → 🇺🇸' :
+                     exercise.direction?.includes('en_to_la') ? '🇺🇸 → 🏛️' :
+                     exercise.direction === 'es_to_en' ? '🇪🇸 → 🇺🇸' : '🇺🇸 → 🇪🇸'}
                   </p>
-                  <p><strong>ES:</strong> {exercise.spanish_text}</p>
+                  <p><strong>{exercise.direction?.includes('la') ? 'LA' : 'ES'}:</strong> {exercise.spanish_text}</p>
                   <p><strong>EN:</strong> {exercise.english_text}</p>
                 </div>
               )}
@@ -502,7 +580,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => deleteExercise(exercise.id)}
+              onClick={() => openDeleteModal(exercise.id)}
               className="text-destructive hover:text-destructive"
             >
               <X className="h-4 w-4" />
@@ -634,6 +712,31 @@ export default function ExerciseBuilder({ lessonId }: Props) {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-destructive" />
+              Delete Exercise
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete this exercise? This action cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={cancelDeleteExercise}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDeleteExercise}>
+                Delete Exercise
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

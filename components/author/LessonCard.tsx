@@ -41,7 +41,7 @@ interface Lesson {
   id: string
   title: string
   status: LessonStatus
-  language: 'es' | 'is'
+  language: 'es' | 'la'
   course_id: string | null
   updated_at: string
   xp_value: number

@@ -195,8 +195,11 @@ export default function TutorPage({ params }: TutorPageProps) {
       </div>
 
       {/* Professor Overview */}
-      {!dialogActive && !showErrors && textId && (
-        <ProfessorOverview textId={textId} />
+      {!dialogActive && !showErrors && textId && text && (
+        <ProfessorOverview
+          textId={textId}
+          language={(text.language as 'es' | 'la') || 'es'}
+        />
       )}
 
       {/* Level Selection (before dialog starts) */}

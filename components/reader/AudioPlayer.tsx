@@ -5,11 +5,12 @@ import { AudioCache } from '@/lib/audio-cache'
 
 interface AudioPlayerProps {
   text: string
+  language: 'es' | 'la'
   onPlaybackChange?: (playing: boolean, currentTime: number, duration: number) => void
   onError?: (error: string) => void
 }
 
-export function AudioPlayer({ text, onPlaybackChange, onError }: AudioPlayerProps) {
+export function AudioPlayer({ text, language, onPlaybackChange, onError }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -82,7 +83,7 @@ export function AudioPlayer({ text, onPlaybackChange, onError }: AudioPlayerProp
         const response = await fetch('/api/tts/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, language }),
         })
 
         if (!response.ok) {

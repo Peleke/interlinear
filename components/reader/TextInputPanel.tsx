@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 
 interface TextInputPanelProps {
   text: string
+  language: 'es' | 'la'
   onTextChange: (text: string) => void
   onRenderClick: () => void
 }
@@ -13,6 +14,7 @@ const SESSION_KEY = 'interlinear_text'
 
 export function TextInputPanel({
   text,
+  language,
   onTextChange,
   onRenderClick,
 }: TextInputPanelProps) {
@@ -42,16 +44,15 @@ export function TextInputPanel({
           htmlFor="text-input"
           className="block text-lg font-serif text-sepia-900 mb-2"
         >
-          Paste your Spanish text here
+          {language === 'la' ? 'Paste your Latin text here' : 'Paste your Spanish text here'}
         </label>
         <textarea
           id="text-input"
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
-          placeholder="Pega tu texto en español aquí...
-
-For example:
-El español es un idioma hermoso y melodioso..."
+          placeholder={language === 'la'
+            ? "Paste your Latin text here...\n\nFor example:\nGallia est omnis divisa in partes tres..."
+            : "Pega tu texto en español aquí...\n\nFor example:\nEl español es un idioma hermoso y melodioso..."}
           className="w-full h-96 px-4 py-3 text-lg font-serif border-2 border-sepia-300 rounded-lg focus:border-sepia-600 focus:ring-2 focus:ring-sepia-200 resize-none bg-white"
           aria-describedby="text-stats text-limit-warning"
         />

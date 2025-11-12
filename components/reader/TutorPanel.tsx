@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 
 interface TutorPanelProps {
   textId: string | null
+  language: 'es' | 'la'
 }
 
 type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
@@ -40,7 +41,7 @@ interface ErrorAnalysis {
   category?: 'grammar' | 'vocabulary' | 'syntax'
 }
 
-export function TutorPanel({ textId }: TutorPanelProps) {
+export function TutorPanel({ textId, language }: TutorPanelProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -68,7 +69,8 @@ export function TutorPanel({ textId }: TutorPanelProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           textId: textId,
-          level: selectedLevel
+          level: selectedLevel,
+          language: language
         })
       })
 
@@ -122,6 +124,7 @@ export function TutorPanel({ textId }: TutorPanelProps) {
         body: JSON.stringify({
           sessionId,
           level: selectedLevel,
+          language: language,
           errors: collectedErrors
         })
       })
@@ -196,7 +199,7 @@ export function TutorPanel({ textId }: TutorPanelProps) {
     <div className="p-6 max-w-4xl mx-auto">
       {/* Professor Overview */}
       {!dialogActive && !showErrors && (
-        <ProfessorOverview textId={textId} />
+        <ProfessorOverview textId={textId} language={language} />
       )}
 
       {/* Level Selection (before dialog starts) */}
@@ -212,7 +215,10 @@ export function TutorPanel({ textId }: TutorPanelProps) {
             className="w-full"
             size="lg"
           >
-            {loading ? 'Starting...' : 'Start Dialog'}
+{loading ?
+              (language === 'la' ? 'Starting...' : 'Iniciando...') :
+              (language === 'la' ? 'Start Dialog' : 'Iniciar Diálogo')
+            }
           </Button>
         </div>
       )}
@@ -224,6 +230,7 @@ export function TutorPanel({ textId }: TutorPanelProps) {
           initialMessages={messages}
           onMessagesUpdate={setMessages}
           onEnd={handleEndDialog}
+          language={language}
         />
       )}
 
