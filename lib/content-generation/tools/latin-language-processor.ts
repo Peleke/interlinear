@@ -269,9 +269,11 @@ export class LatinLanguageProcessor extends BaseLanguageProcessor {
       });
 
       if (!process.env.OPENAI_API_KEY) {
+        console.error('[Latin] Missing OPENAI_API_KEY environment variable');
         throw new Error('OPENAI_API_KEY environment variable is required for Latin processing');
       }
 
+      console.log(`[Latin] Making LLM call for ${type} processing...`);
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini', // Using same model as other parts of the app
         messages: [
@@ -285,15 +287,17 @@ export class LatinLanguageProcessor extends BaseLanguageProcessor {
           }
         ],
         temperature: 0.3, // Lower temperature for more consistent, factual responses
-        max_tokens: 2000,  // Sufficient for detailed analysis
+        max_tokens: 4000,  // Increased for longer Latin texts - was 2000
         response_format: { type: 'json_object' } // Ensure JSON response
       });
 
       const response = completion.choices[0]?.message?.content;
       if (!response) {
+        console.error('[Latin] Empty response from OpenAI');
         throw new Error('Empty response from OpenAI');
       }
 
+      console.log(`[Latin] Received LLM response for ${type}, length:`, response.length);
       return response;
 
     } catch (error: any) {
@@ -428,10 +432,33 @@ Generate ${Math.floor(context.maxExercises / context.exerciseTypes.length) || 1}
 
   private parseLLMVocabularyResponse(response: string): any {
     try {
-      return JSON.parse(response);
+      console.log('[Latin] Raw LLM response:', response.substring(0, 500) + '...');
+
+      // Try to extract JSON from response if it's wrapped in markdown or other text
+      let jsonText = response.trim();
+
+      // Remove markdown code blocks if present
+      if (jsonText.startsWith('```json') && jsonText.endsWith('```')) {
+        jsonText = jsonText.slice(7, -3).trim();
+      } else if (jsonText.startsWith('```') && jsonText.endsWith('```')) {
+        jsonText = jsonText.slice(3, -3).trim();
+      }
+
+      const parsed = JSON.parse(jsonText);
+
+      // Validate structure - ensure we have words array
+      if (!parsed.words || !Array.isArray(parsed.words)) {
+        console.log('[Latin] Parsed response missing words array:', parsed);
+        throw new Error('Response missing words array');
+      }
+
+      console.log('[Latin] Successfully parsed', parsed.words.length, 'vocabulary items');
+      return parsed;
     } catch (error: any) {
+      console.error('[Latin] LLM response parsing failed:', error.message);
+      console.error('[Latin] Raw response:', response);
       throw this.createProcessingError(
-        'Failed to parse LLM vocabulary response',
+        `Failed to parse LLM vocabulary response: ${error.message}`,
         'PROCESSING_FAILED',
         'vocabulary'
       );

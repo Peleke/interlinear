@@ -124,16 +124,73 @@ const extractVocabularyStep = createStep({
       // Get the appropriate language processor
       const processor = await createLanguageProcessor(inputData.language)
       
-      // Extract vocabulary using the processor
+      // Extract vocabulary using the processor (no difficulty filter - extract all)
       const vocabularyCandidates = await processor.extractVocabulary(inputData.readingText, {
-        maxItems: inputData.maxVocabularyItems,
+        maxItems: inputData.maxVocabularyItems * 2, // Extract more candidates for better selection
         includeFrequency: true,
         includeMorphology: true,
-        difficultyFilter: mapCEFRToDifficulty(inputData.targetLevel)
+        // No difficultyFilter - let's get all vocabulary and prioritize later
       })
 
+      // Helper function to score vocabulary based on CEFR level and frequency
+      const calculateVocabularyScore = (candidate: any, targetDifficulty?: 'basic' | 'intermediate' | 'advanced'): number => {
+        let score = 0
+
+        // Base score from frequency (higher frequency = more important)
+        score += (candidate.frequency || 1) * 10
+
+        // Bonus for difficulty level match
+        if (targetDifficulty && candidate.difficulty) {
+          if (candidate.difficulty === targetDifficulty) {
+            score += 100 // Perfect match
+          } else {
+            // Partial bonus for adjacent levels
+            const difficultyOrder = ['basic', 'intermediate', 'advanced']
+            const targetIndex = difficultyOrder.indexOf(targetDifficulty)
+            const candidateIndex = difficultyOrder.indexOf(candidate.difficulty)
+            const distance = Math.abs(targetIndex - candidateIndex)
+
+            if (distance === 1) {
+              score += 50 // Adjacent level
+            } else if (distance === 2) {
+              score += 25 // Two levels apart
+            }
+          }
+        } else {
+          // No difficulty info - use frequency-based scoring
+          score += 30 // Moderate bonus for having frequency data
+        }
+
+        // Bonus for having morphology data (indicates quality analysis)
+        if (candidate.morphology) {
+          score += 20
+        }
+
+        // Bonus for reasonable word length (not too short, not too long)
+        const wordLength = candidate.word?.length || 0
+        if (wordLength >= 3 && wordLength <= 12) {
+          score += 15
+        }
+
+        return score
+      }
+
+      // Sort vocabulary by relevance to target CEFR level and frequency
+      const sortedCandidates = vocabularyCandidates.sort((a, b) => {
+        const targetDifficulty = mapCEFRToDifficulty(inputData.targetLevel)
+
+        // Score based on difficulty match and frequency
+        const scoreA = calculateVocabularyScore(a, targetDifficulty)
+        const scoreB = calculateVocabularyScore(b, targetDifficulty)
+
+        return scoreB - scoreA // Higher score first
+      })
+
+      // Take the top items after sorting, but don't filter by difficulty
+      const topCandidates = sortedCandidates.slice(0, inputData.maxVocabularyItems)
+
       // Transform to the expected legacy format for compatibility
-      const vocabulary = vocabularyCandidates.map(candidate => candidate.word)
+      const vocabulary = topCandidates.map(candidate => candidate.word)
 
       const executionTime = Date.now() - startTime
 

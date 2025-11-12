@@ -168,21 +168,30 @@ export async function POST(
         if (vocabResult.vocabulary && vocabResult.vocabulary.length > 0) {
           try {
             console.log(`[Orchestration] Auto-saving ${vocabResult.vocabulary.length} vocabulary items...`)
+            console.log(`[DEBUG] First vocab item:`, JSON.stringify(vocabResult.vocabulary[0], null, 2))
 
-            const vocabularyItems = vocabResult.vocabulary.map((item: any) => ({
-              word: item.word || item.lemma,
-              english_translation: item.definition || `Definition for ${item.word || item.lemma}`,
-              part_of_speech: mapPartOfSpeech(item.partOfSpeech),
-              difficulty_level: mapDifficultyLevel(item.difficulty),
-              example_sentence: `Example: ${item.word || item.lemma} appears in the text.`,
-              appears_in_reading: true,
-              frequency: item.frequency || 50,
-              normalized_form: item.lemma || item.word,
-            }))
+            const vocabularyItems = vocabResult.vocabulary.map((item: any) => {
+              // Handle both string format (current workflow output) and object format (future)
+              const word = typeof item === 'string' ? item : (item.word || item.lemma)
+              const definition = typeof item === 'string' ? `Definition for ${item}` : item.definition
+
+              return {
+                word: word,
+                english_translation: definition || `Definition for ${word}`,
+                part_of_speech: mapPartOfSpeech(typeof item === 'string' ? null : item.partOfSpeech),
+                difficulty_level: mapDifficultyLevel(typeof item === 'string' ? null : item.difficulty),
+                example_sentence: `Example: ${word} appears in the text.`,
+                appears_in_reading: true,
+                frequency: typeof item === 'string' ? 50 : (item.frequency || 50),
+                normalized_form: typeof item === 'string' ? word : (item.lemma || item.word),
+              }
+            })
+
+            console.log(`[DEBUG] Mapped items:`, JSON.stringify(vocabularyItems[0], null, 2))
 
             // Save vocabulary directly to database (avoiding fetch 401 issue)
             const vocabularyItemRecords = vocabularyItems.map((item) => ({
-              spanish: item.word,
+              spanish: item.word, // FIXED: Use the mapped word field (item.word || item.lemma)
               english: item.english_translation,
               part_of_speech: item.part_of_speech,
               difficulty_level: item.difficulty_level,
@@ -199,6 +208,8 @@ export async function POST(
                 language: language,
               },
             }))
+
+            console.log(`[DEBUG] DB records:`, JSON.stringify(vocabularyItemRecords[0], null, 2))
 
             const { data: insertedVocabItems, error: itemsError } = await supabase
               .from('lesson_vocabulary_items')

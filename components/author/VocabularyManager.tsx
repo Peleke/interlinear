@@ -288,8 +288,33 @@ export function VocabularyManager({ lessonId, language }: Props) {
     }
   }
 
-  const deleteVocabItem = (id: string) => {
-    setVocabulary(vocabulary.filter((item) => item.id !== id))
+  const deleteVocabItem = async (id: string) => {
+    try {
+      // DELETE API expects the lesson_vocabulary_items.id as the vocabulary_id
+      const response = await fetch(`/api/lessons/${lessonId}/vocabulary/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete vocabulary item')
+      }
+
+      // Remove from local state
+      setVocabulary(vocabulary.filter((item) => item.id !== id))
+
+      setSaveMessage({
+        type: 'success',
+        text: 'Vocabulary item removed successfully!',
+      })
+      setTimeout(() => setSaveMessage(null), 3000)
+    } catch (error) {
+      console.error('Failed to delete vocabulary:', error)
+      setSaveMessage({
+        type: 'error',
+        text: 'Failed to remove vocabulary item. Please try again.',
+      })
+      setTimeout(() => setSaveMessage(null), 5000)
+    }
   }
 
   const saveVocabulary = async () => {
