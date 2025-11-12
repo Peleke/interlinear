@@ -15,6 +15,7 @@ import {
   Send,
   ChevronLeft,
   Menu,
+  EyeOff,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +28,7 @@ import ExerciseBuilder from './ExerciseBuilder'
 import ReadingLinker from './ReadingLinker'
 import LessonPreviewModal from './LessonPreviewModal'
 import PublishConfirmationModal from './PublishConfirmationModal'
+import UnpublishConfirmationModal from './UnpublishConfirmationModal'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -87,6 +89,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [publishModalOpen, setPublishModalOpen] = useState(false)
+  const [unpublishModalOpen, setUnpublishModalOpen] = useState(false)
 
   // Auto-save with debouncing (500ms after last edit)
   const saveLesson = useCallback(async (updatedLesson: Lesson) => {
@@ -150,6 +153,21 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
       version: prev.version + 1,
       status: 'published'
     }))
+  }
+
+  const handleUnpublish = () => {
+    setUnpublishModalOpen(true)
+  }
+
+  const handleUnpublishSuccess = () => {
+    // Refresh the lesson data to get updated unpublished status
+    setLesson(prev => ({
+      ...prev,
+      status: 'draft',
+      published_at: null,
+      published_by: null
+    }))
+    setUnpublishModalOpen(false)
   }
 
   // Check if lesson is published
@@ -217,9 +235,15 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
                 Preview
               </Button>
               {isPublished ? (
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Published v{lesson.version}
-                </Badge>
+                <>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    Published v{lesson.version}
+                  </Badge>
+                  <Button variant="destructive" size="sm" onClick={handleUnpublish}>
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Unpublish
+                  </Button>
+                </>
               ) : (
                 <Button size="sm" onClick={handlePublish}>
                   <Send className="mr-2 h-4 w-4" />
@@ -361,6 +385,15 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
         isOpen={publishModalOpen}
         onClose={() => setPublishModalOpen(false)}
         onPublishSuccess={handlePublishSuccess}
+      />
+
+      {/* Unpublish Modal */}
+      <UnpublishConfirmationModal
+        lessonId={lesson.id}
+        lessonTitle={lesson.title}
+        isOpen={unpublishModalOpen}
+        onClose={() => setUnpublishModalOpen(false)}
+        onUnpublishSuccess={handleUnpublishSuccess}
       />
     </div>
   )

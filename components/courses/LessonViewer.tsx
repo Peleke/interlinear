@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ArrowLeft, CheckCircle, Loader2, ChevronDown, ChevronUp, Globe, EyeOff } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
@@ -33,9 +33,6 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
-    author_id: string
-    published_at?: string | null
-    published_by?: string | null
     courses?: {
       title: string
       difficulty_level: string
@@ -63,10 +60,6 @@ interface LessonViewerProps {
   courseId: string
   lessonId: string
   isCompleted: boolean
-  currentUser: {
-    id: string
-    email?: string
-  }
 }
 
 export default function LessonViewer({
@@ -77,8 +70,7 @@ export default function LessonViewer({
   dialog,
   courseId,
   lessonId,
-  isCompleted: initialIsCompleted,
-  currentUser
+  isCompleted: initialIsCompleted
 }: LessonViewerProps) {
   const router = useRouter()
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
@@ -92,8 +84,6 @@ export default function LessonViewer({
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [isUnpublishing, setIsUnpublishing] = useState(false)
-  const [isPublished, setIsPublished] = useState(!!lesson.published_at)
 
   // Auto-fetch or create course deck on mount
   useEffect(() => {
@@ -119,38 +109,6 @@ export default function LessonViewer({
     }
   }
 
-  const handleUnpublish = async () => {
-    if (!window.confirm('Are you sure you want to unpublish this lesson? It will no longer be visible to learners.')) {
-      return
-    }
-
-    setIsUnpublishing(true)
-    try {
-      const response = await fetch(`/api/lessons/${lessonId}/publish`, {
-        method: 'DELETE'
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to unpublish lesson')
-      }
-
-      setIsPublished(false)
-
-      // Refresh the page data to update cache
-      router.refresh()
-
-      toast.success('Lesson unpublished successfully', {
-        description: 'The lesson is no longer visible to learners.',
-        duration: 3000
-      })
-    } catch (error) {
-      console.error('Unpublish error:', error)
-      toast.error(`Failed to unpublish lesson: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    } finally {
-      setIsUnpublishing(false)
-    }
-  }
 
   const handleToggleComplete = async () => {
     setIsCompleting(true)
@@ -230,44 +188,12 @@ export default function LessonViewer({
               <span>Back to Course</span>
             </Link>
 
-            <div className="flex items-center gap-4">
-              {/* Published Status */}
-              {isPublished && (
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Globe className="h-5 w-5" />
-                  <span className="text-sm font-medium">Published</span>
-                </div>
-              )}
-
-              {/* Completed Status */}
-              {isCompleted && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="text-sm font-medium">Completed</span>
-                </div>
-              )}
-
-              {/* Unpublish Button - Only for lesson author */}
-              {isPublished && currentUser.id === lesson.author_id && (
-                <button
-                  onClick={handleUnpublish}
-                  disabled={isUnpublishing}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUnpublishing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Unpublishing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-4 w-4" />
-                      <span>Unpublish</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+            {isCompleted && (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="h-5 w-5" />
+                <span className="text-sm font-medium">Completed</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

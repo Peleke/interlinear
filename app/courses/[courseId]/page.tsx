@@ -32,11 +32,12 @@ export default async function CoursePage({
     redirect('/courses')
   }
 
-  // Get lessons for this course
+  // Get lessons for this course (only published ones for learners)
   const { data: lessons, error: lessonsError } = await supabase
     .from('lessons')
     .select('*')
     .eq('course_id', courseId)
+    .not('published_at', 'is', null)
     .order('sequence_order', { ascending: true })
 
   if (lessonsError) {

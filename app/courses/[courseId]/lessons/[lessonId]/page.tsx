@@ -23,7 +23,7 @@ export default async function LessonPage({
   // Get lesson details with course info
   const { data: lesson, error: lessonError } = await supabase
     .from('lessons')
-    .select('id, title, overview, author_id, published_at, published_by, courses(title, difficulty_level)')
+    .select('*, courses(title, difficulty_level)')
     .eq('id', lessonId)
     .eq('course_id', courseId)
     .single()
@@ -105,7 +105,6 @@ export default async function LessonPage({
       courseId={courseId}
       lessonId={lessonId}
       isCompleted={isCompleted}
-      currentUser={user}
     />
   )
 }
