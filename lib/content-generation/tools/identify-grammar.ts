@@ -17,6 +17,7 @@ const GrammarInputSchema = z.object({
   targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).default('A1'),
   language: z.enum(['es', 'la']).default('es'),
   maxConcepts: z.number().default(5),
+  existingConcepts: z.string().optional().describe('Existing concepts to avoid duplicating (comma-separated name:description pairs)'),
 })
 
 // Output schema
@@ -108,14 +109,24 @@ export async function identifyGrammar(
  * Build prompt for grammar identification
  */
 function buildPrompt(input: GrammarInput): string {
-  const { content, targetLevel, language, maxConcepts } = input
+  const { content, targetLevel, language, maxConcepts, existingConcepts } = input
 
   const languageName = language === 'es' ? 'Spanish' : 'Latin'
+
+  const deduplicationSection = existingConcepts
+    ? `
+
+IMPORTANT - AVOID DUPLICATES:
+This lesson already has these grammar concepts linked to it:
+${existingConcepts}
+
+Make sure any NEW grammar points you generate do NOT intersect with these existing concepts. Focus on identifying different, complementary grammar patterns that aren't already covered.`
+    : ''
 
   return `You are an expert ${languageName} language teacher identifying grammar concepts for ${targetLevel} level learners.
 
 Content to analyze:
-${content}
+${content}${deduplicationSection}
 
 Task: Identify up to ${maxConcepts} key grammar concepts that appear in this text and are relevant for a ${targetLevel} level learner.
 

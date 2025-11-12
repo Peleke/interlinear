@@ -72,13 +72,22 @@ export async function generateDialogs(
   try {
     const prompt = buildPrompt(input)
 
-    const result = await generateObject({
-      model,
-      schema: z.object({
-        dialogs: z.array(DialogSchema),
+    console.log('📝 Dialog prompt length:', prompt.length, 'chars')
+    console.log('🤖 Calling generateObject for dialogs...')
+
+    // Add timeout wrapper to prevent hanging
+    const result = await Promise.race([
+      generateObject({
+        model,
+        schema: z.object({
+          dialogs: z.array(DialogSchema),
+        }),
+        prompt,
       }),
-      prompt,
-    })
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Dialog generation timeout after 2 minutes')), 120000)
+      )
+    ])
 
     const executionTime = Date.now() - startTime
 

@@ -155,11 +155,24 @@ export async function POST(
 
       const startTime = Date.now()
 
+      // Fetch existing grammar concepts for this lesson to avoid duplicates
+      const { data: existingLinks } = await supabase
+        .from('lesson_grammar_concepts')
+        .select('grammar_concepts(name, display_name, description)')
+        .eq('lesson_id', lessonId)
+
+      const existingConcepts = existingLinks?.map(link =>
+        `${link.grammar_concepts.name}: ${link.grammar_concepts.description}`
+      ).join(', ') || ''
+
+      console.log(`[Grammar] Found ${existingLinks?.length || 0} existing concepts for deduplication`)
+
       const grammarResult = await identifyGrammar({
         content: readingContent,
         targetLevel: targetLevel as any,
         language: language as 'es' | 'is',
         maxConcepts: generators.grammar.config.maxConcepts || 5,
+        existingConcepts, // Pass existing concepts to avoid duplicates
       })
 
       if (grammarResult.status === 'completed' && grammarResult.grammar_concepts) {
