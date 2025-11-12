@@ -20,7 +20,7 @@ export function calculateCost(inputTokens: number, outputTokens: number): number
 
 /**
  * Create OpenAI provider instance
- * Uses GPT-4o-mini for cost-effective generation
+ * Uses environment variable OPENAI_MODEL or defaults to gpt-4o-mini
  */
 export function createOpenAIProvider() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -31,7 +31,7 @@ export function createOpenAIProvider() {
 
   return new OpenAI({
     apiKey,
-    model: 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     maxTokens: 4096,
     temperature: 0.7,
   });
@@ -39,20 +39,21 @@ export function createOpenAIProvider() {
 
 /**
  * Default model configuration for different generation types
+ * All models use OPENAI_MODEL environment variable or default to gpt-4o-mini
  */
 export const MODEL_CONFIG = {
   vocabulary: {
-    model: 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     temperature: 0.7,
     maxTokens: 2000,
   },
   grammar: {
-    model: 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     temperature: 0.6,
     maxTokens: 1500,
   },
   exercises: {
-    model: 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     temperature: 0.8,
     maxTokens: 3000,
   },

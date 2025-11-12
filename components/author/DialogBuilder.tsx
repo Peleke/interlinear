@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { PlusCircle, Trash2, GripVertical, Save, CheckCircle2 } from 'lucide-react'
+import { Dialog as UIDialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PlusCircle, Trash2, GripVertical, Save, CheckCircle2, Sparkles, Loader2 } from 'lucide-react'
+import { ReadingSelector } from './ReadingSelector'
 
 interface DialogExchange {
   id: string
@@ -33,6 +35,15 @@ export function DialogBuilder({ lessonId, language }: Props) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // AI Generation state
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generatedDialogs, setGeneratedDialogs] = useState<any[]>([])
+  const [dialogCount, setDialogCount] = useState(2)
+  const [turnsPerDialog, setTurnsPerDialog] = useState(6)
+  const [complexity, setComplexity] = useState<'simple' | 'intermediate' | 'advanced'>('intermediate')
+  const [savingDialogIndex, setSavingDialogIndex] = useState<number | null>(null)
 
   // Load existing dialogs
   useEffect(() => {
@@ -167,6 +178,133 @@ export function DialogBuilder({ lessonId, language }: Props) {
     }
   }
 
+  const handleGenerate = async (selection: { readingIds?: string[], manualText?: string }) => {
+    setIsGenerating(true)
+    try {
+      let sourceText = ''
+
+      if (selection.manualText) {
+        sourceText = selection.manualText
+      } else if (selection.readingIds && selection.readingIds.length > 0) {
+        // Fetch reading content(s)
+        const response = await fetch(`/api/lessons/${lessonId}/readings`)
+        if (!response.ok) throw new Error('Failed to fetch readings')
+
+        const data = await response.json()
+        const selectedReadings = data.readings.filter((r: any) =>
+          selection.readingIds!.includes(r.id)
+        )
+
+        sourceText = selectedReadings.map((r: any) => r.content).join('\n\n')
+      }
+
+      if (!sourceText.trim()) {
+        throw new Error('No source text available')
+      }
+
+      const response = await fetch('/api/content-generation/dialogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: sourceText,
+          dialogCount,
+          turnsPerDialog,
+          complexity,
+          language,
+          targetLevel: 'A1',
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Generation failed')
+      }
+
+      const data = await response.json()
+      setGeneratedDialogs(data.dialogs || [])
+    } catch (error) {
+      console.error('Dialog generation failed:', error)
+      alert(error instanceof Error ? error.message : 'Generation failed')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const saveGeneratedDialog = async (dialog: any, index: number) => {
+    setSavingDialogIndex(index)
+    try {
+      const response = await fetch(`/api/lessons/${lessonId}/dialogs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: dialog.context,
+          setting: dialog.setting,
+          turns: dialog.turns,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save dialog')
+      }
+
+      await loadDialogs()
+      // Remove from generated list
+      setGeneratedDialogs(prev => prev.filter(d => d !== dialog))
+
+      if (generatedDialogs.length === 1) {
+        // Last one, close modal
+        setShowGenerateModal(false)
+      }
+    } catch (error) {
+      console.error('Failed to save generated dialog:', error)
+      alert(error instanceof Error ? error.message : 'Failed to save dialog')
+    } finally {
+      setSavingDialogIndex(null)
+    }
+  }
+
+  const saveAllGeneratedDialogs = async () => {
+    if (generatedDialogs.length === 0) return
+
+    const confirmMsg = `Save all ${generatedDialogs.length} generated dialogs to this lesson?`
+    if (!confirm(confirmMsg)) return
+
+    try {
+      setIsGenerating(true)
+
+      for (let i = 0; i < generatedDialogs.length; i++) {
+        const dialog = generatedDialogs[i]
+        setSavingDialogIndex(i)
+
+        const response = await fetch(`/api/lessons/${lessonId}/dialogs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            context: dialog.context,
+            setting: dialog.setting,
+            turns: dialog.turns,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to save dialog ${i + 1}`)
+        }
+      }
+
+      await loadDialogs()
+      setGeneratedDialogs([])
+      setShowGenerateModal(false)
+      setSaveMessage({ type: 'success', text: `Saved ${generatedDialogs.length} generated dialogs!` })
+      setTimeout(() => setSaveMessage(null), 3000)
+    } catch (error) {
+      console.error('Failed to save dialogs:', error)
+      alert(error instanceof Error ? error.message : 'Failed to save all dialogs')
+    } finally {
+      setIsGenerating(false)
+      setSavingDialogIndex(null)
+    }
+  }
+
   if (isLoading) {
     return <div className="p-4 text-center">Loading dialogs...</div>
   }
@@ -194,6 +332,10 @@ export function DialogBuilder({ lessonId, language }: Props) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={() => setShowGenerateModal(true)} variant="outline">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate with AI
+          </Button>
           <Button onClick={addDialog} variant="outline">
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Dialog
@@ -204,6 +346,151 @@ export function DialogBuilder({ lessonId, language }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* AI Generation Modal */}
+      <UIDialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Generate Conversational Dialogs
+            </DialogTitle>
+          </DialogHeader>
+
+          {generatedDialogs.length === 0 ? (
+            <div className="space-y-4">
+              <ReadingSelector
+                lessonId={lessonId}
+                onGenerate={handleGenerate}
+                isGenerating={isGenerating}
+                generateButtonText={`Generate ${dialogCount} Dialog${dialogCount !== 1 ? 's' : ''}`}
+              />
+
+              <div className="grid grid-cols-3 gap-4 pt-2">
+                <div>
+                  <Label htmlFor="dialog-count">Number of Dialogs</Label>
+                  <Input
+                    id="dialog-count"
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={dialogCount}
+                    onChange={(e) => setDialogCount(parseInt(e.target.value) || 2)}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="turns-per-dialog">Turns per Dialog</Label>
+                  <Input
+                    id="turns-per-dialog"
+                    type="number"
+                    min={4}
+                    max={12}
+                    value={turnsPerDialog}
+                    onChange={(e) => setTurnsPerDialog(parseInt(e.target.value) || 6)}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="complexity">Complexity</Label>
+                  <select
+                    id="complexity"
+                    className="w-full mt-2 rounded-md border border-input bg-background px-3 py-2"
+                    value={complexity}
+                    onChange={(e) => setComplexity(e.target.value as any)}
+                  >
+                    <option value="simple">Simple</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Review and save generated dialogs:
+                </p>
+                <Button
+                  size="sm"
+                  onClick={saveAllGeneratedDialogs}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving All...
+                    </>
+                  ) : (
+                    `Save All ${generatedDialogs.length} Dialogs`
+                  )}
+                </Button>
+              </div>
+
+              {generatedDialogs.map((dialog, i) => (
+                <Card key={i} className="border-blue-200">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {dialog.context}
+                    </CardTitle>
+                    {dialog.setting && (
+                      <p className="text-sm text-muted-foreground">{dialog.setting}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      {dialog.turns.map((turn: any, j: number) => (
+                        <div key={j} className="border-l-2 border-blue-500 pl-3 py-1">
+                          <p className="text-sm font-medium text-blue-600">{turn.speaker}</p>
+                          <p className="text-sm">{turn.text}</p>
+                          <p className="text-xs text-muted-foreground italic">{turn.translation}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => saveGeneratedDialog(dialog, i)}
+                        disabled={savingDialogIndex === i}
+                      >
+                        {savingDialogIndex === i ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          'Save to Lesson'
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setGeneratedDialogs(prev => prev.filter(d => d !== dialog))}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGenerateModal(false)
+                  setGeneratedDialogs([])
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </UIDialog>
 
       {dialogs.length === 0 ? (
         <Card>

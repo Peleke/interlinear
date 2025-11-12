@@ -47,8 +47,13 @@ export async function GET(
   { params }: { params: Promise<{ word: string }> }
 ) {
   const { word } = await params
+  const { searchParams } = new URL(request.url)
+  const language = (searchParams.get('language') || 'es') as 'es' | 'la'
+
+  console.log(`[MW API] Looking up word: ${word}, API_KEY exists: ${!!API_KEY}`)
 
   if (!API_KEY) {
+    console.error('[MW API] API key not found in environment')
     return NextResponse.json(
       { error: 'Dictionary API key not configured' },
       { status: 500 }
@@ -62,11 +67,27 @@ export async function GET(
     )
   }
 
+  // Only Spanish is supported via MW API currently
+  // Latin will be routed through DictionaryRouter when API is ready
+  if (language !== 'es') {
+    return NextResponse.json(
+      {
+        word: word.toLowerCase().trim(),
+        found: false,
+        language,
+        error: `Language '${language}' not yet supported via this endpoint`,
+      } as DictionaryResponse,
+      { status: 501 }
+    )
+  }
+
   const cleanWord = word.toLowerCase().trim()
 
   try {
     const url = `${MW_API_BASE}/${encodeURIComponent(cleanWord)}?key=${API_KEY}`
+    console.log(`[MW API] Fetching: ${url.replace(API_KEY, 'REDACTED')}`)
     const response = await fetch(url)
+    console.log(`[MW API] Response status: ${response.status}`)
 
     if (!response.ok) {
       if (response.status === 404) {

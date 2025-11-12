@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, X, BookOpen } from "lucide-react";
+import { Search, Plus, X, BookOpen, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { GenerateLessonModal } from "./GenerateLessonModal";
 
 interface LibraryReading {
   id: string;
@@ -24,9 +25,10 @@ interface LibraryReading {
 
 interface Props {
   lessonId: string;
+  language: "es" | "is";
 }
 
-export default function ReadingLinker({ lessonId }: Props) {
+export default function ReadingLinker({ lessonId, language }: Props) {
   const [linkedReadings, setLinkedReadings] = useState<LibraryReading[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LibraryReading[]>([]);
@@ -34,6 +36,8 @@ export default function ReadingLinker({ lessonId }: Props) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [editingReadingId, setEditingReadingId] = useState<string | null>(null);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedReadingForGeneration, setSelectedReadingForGeneration] = useState<LibraryReading | null>(null);
 
   // New reading form
   const [newReading, setNewReading] = useState({
@@ -411,6 +415,19 @@ export default function ReadingLinker({ lessonId }: Props) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedReadingForGeneration(reading);
+                          setShowGenerateModal(true);
+                        }}
+                        title="Generate lesson content from this reading"
+                      >
+                        <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
+                        Generate Lesson
+                      </Button>
                       <div className="flex items-center gap-2">
                         <Label className="text-xs cursor-pointer">
                           {reading.is_required ? "Required" : "Optional"}
@@ -438,6 +455,19 @@ export default function ReadingLinker({ lessonId }: Props) {
           </div>
         )}
       </div>
+
+      {/* Generate Lesson Modal */}
+      {selectedReadingForGeneration && (
+        <GenerateLessonModal
+          open={showGenerateModal}
+          onOpenChange={setShowGenerateModal}
+          readingId={selectedReadingForGeneration.id}
+          readingTitle={selectedReadingForGeneration.title}
+          readingLevel={selectedReadingForGeneration.difficulty_level || undefined}
+          lessonId={lessonId}
+          language={language}
+        />
+      )}
     </div>
   );
 }
