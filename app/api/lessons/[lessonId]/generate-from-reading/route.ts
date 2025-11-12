@@ -28,6 +28,28 @@ interface RequestBody {
   }
 }
 
+/**
+ * Helper functions for vocabulary auto-save
+ */
+function mapPartOfSpeech(pos: string): 'noun' | 'verb' | 'adjective' | 'adverb' | 'other' {
+  if (!pos) return 'other'
+  const normalized = pos.toLowerCase()
+  if (normalized.includes('noun')) return 'noun'
+  if (normalized.includes('verb')) return 'verb'
+  if (normalized.includes('adjective')) return 'adjective'
+  if (normalized.includes('adverb')) return 'adverb'
+  return 'other'
+}
+
+function mapDifficultyLevel(difficulty: string): 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' {
+  if (!difficulty) return 'A2'
+  const normalized = difficulty.toLowerCase()
+  if (normalized === 'basic') return 'A2'
+  if (normalized === 'intermediate') return 'B1'
+  if (normalized === 'advanced') return 'C1'
+  return 'A2'
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ lessonId: string }> }
@@ -114,7 +136,7 @@ export async function POST(
         lessonId,
         readingText: readingContent,
         targetLevel: generators.vocabulary.config.cefrLevel || targetLevel,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         maxVocabularyItems: generators.vocabulary.config.maxVocabItems || 20,
         userId: user.id,
       })
@@ -141,6 +163,46 @@ export async function POST(
           created_by: user.id,
           completed_at: new Date().toISOString(),
         })
+
+        // AUTO-SAVE: Convert vocabulary to approval format and save to lesson
+        if (vocabResult.metadata?.vocabularyDetails && vocabResult.metadata.vocabularyDetails.length > 0) {
+          try {
+            console.log(`[Orchestration] Auto-saving ${vocabResult.metadata.vocabularyDetails.length} vocabulary items...`)
+
+            const vocabularyItems = vocabResult.metadata.vocabularyDetails.map((item: any) => ({
+              word: item.word || item.lemma,
+              english_translation: item.definition || `Definition for ${item.word || item.lemma}`,
+              part_of_speech: mapPartOfSpeech(item.partOfSpeech),
+              difficulty_level: mapDifficultyLevel(item.difficulty),
+              example_sentence: `Example: ${item.word || item.lemma} appears in the text.`,
+              appears_in_reading: true,
+              frequency: item.frequency || 50,
+              normalized_form: item.lemma || item.word,
+            }))
+
+            // Call vocabulary approval API
+            const approvalResponse = await fetch(`${request.url.split('/generate-from-reading')[0]}/vocabulary/approve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                vocabulary: vocabularyItems,
+                language: language as 'es' | 'la',
+              }),
+            })
+
+            if (approvalResponse.ok) {
+              console.log(`[Orchestration] Successfully auto-saved ${vocabularyItems.length} vocabulary items`)
+              results.vocabulary.autoSaved = true
+              results.vocabulary.savedCount = vocabularyItems.length
+            } else {
+              console.error('[Orchestration] Failed to auto-save vocabulary:', await approvalResponse.text())
+              results.vocabulary.autoSaveError = 'Failed to save vocabulary to lesson'
+            }
+          } catch (error) {
+            console.error('[Orchestration] Auto-save vocabulary error:', error)
+            results.vocabulary.autoSaveError = error instanceof Error ? error.message : 'Unknown error'
+          }
+        }
       } else {
         progress.vocabulary = { status: 'failed', error: 'Vocabulary extraction failed' }
         await supabase.from('generation_jobs').update({ progress }).eq('id', job.id)
@@ -170,7 +232,7 @@ export async function POST(
       const grammarResult = await identifyGrammar({
         content: readingContent,
         targetLevel: targetLevel as any,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         maxConcepts: generators.grammar.config.maxConcepts || 5,
         existingConcepts, // Pass existing concepts to avoid duplicates
       })
@@ -275,7 +337,7 @@ export async function POST(
           type: type as 'fill_blank' | 'multiple_choice' | 'translation',
           count: exercisesPerType,
           targetLevel: targetLevel as any,
-          language: language as 'es' | 'is',
+          language: language as 'es' | 'la',
         })
 
         console.log(`Exercise result for ${type}:`, {
@@ -343,7 +405,7 @@ export async function POST(
       const dialogResult = await generateDialogs({
         content: readingContent,
         targetLevel: targetLevel as any,
-        language: language as 'es' | 'is',
+        language: language as 'es' | 'la',
         dialogCount: generators.dialogs.config.dialogCount || 2,
         turnsPerDialog: 6, // Default 6 turns per dialog
         complexity: generators.dialogs.config.dialogComplexity || 'intermediate',
