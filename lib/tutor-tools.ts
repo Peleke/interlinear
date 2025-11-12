@@ -534,7 +534,7 @@ Identify all grammar, vocabulary, and syntax errors. For each error, provide:
 3. The appropriate correction
 4. A clear, educational explanation of the error
 
-Respond with valid JSON using this exact structure:
+Respond with ONLY valid JSON (no markdown, no code blocks):
 
 {
   "errors": [
@@ -548,7 +548,7 @@ Respond with valid JSON using this exact structure:
   ]
 }
 
-If there are no errors, return: {"errors": []}. MUST return valid JSON only.`
+If there are no errors, return: {"errors": []}. MUST return ONLY valid JSON - no markdown, no code blocks.`
       } else {
         return `Analiza esta conversación de un estudiante de español nivel ${session.level}:
 
@@ -560,7 +560,7 @@ Identifica todos los errores gramaticales, de vocabulario y sintaxis. Para cada 
 3. La corrección apropiada
 4. Una explicación clara y didáctica del error
 
-Responde con JSON válido usando esta estructura exacta:
+Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "errors": [
@@ -574,7 +574,7 @@ Responde con JSON válido usando esta estructura exacta:
   ]
 }
 
-Si no hay errores, devuelve: {"errors": []}. DEBE devolver solo JSON válido.`
+Si no hay errores, devuelve: {"errors": []}. DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código.`
       }
     }
 
@@ -586,8 +586,12 @@ Si no hay errores, devuelve: {"errors": []}. DEBE devolver solo JSON válido.`
         30000
       )
       
-      // Parse JSON response manually
-      const content = response.content as string
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+      
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+      
       return JSON.parse(content)
     }) as { errors: ErrorAnalysis[] }
 
@@ -631,7 +635,7 @@ export const generateOverviewTool = tool(
 
 ${text.content}
 
-Provide a structured analysis in English. Respond with valid JSON using this exact structure:
+Provide a structured analysis in English. Respond with ONLY valid JSON (no markdown, no code blocks):
 
 {
   "summary": "2-3 sentence summary of main topic and key points",
@@ -640,13 +644,13 @@ Provide a structured analysis in English. Respond with valid JSON using this exa
   "syntaxPatterns": ["pattern 1", "pattern 2", "pattern 3"]
 }
 
-Be specific and educational. Include important grammatical structures (cases, verb forms, constructions), semantic fields (e.g., "military", "politics", "nature"), and notable syntactic constructions (e.g., "ablative absolute", "indirect statement"). MUST return valid JSON only.`
+Be specific and educational. Include important grammatical structures (cases, verb forms, constructions), semantic fields (e.g., "military", "politics", "nature"), and notable syntactic constructions (e.g., "ablative absolute", "indirect statement"). MUST return ONLY valid JSON - no markdown, no code blocks, no explanations.`
       } else {
         return `Analiza este texto en español como un profesor experimentado:
 
 ${text.content}
 
-Proporciona un análisis estructurado. Responde con JSON válido usando esta estructura exacta:
+Proporciona un análisis estructurado. Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "summary": "resumen de 2-3 oraciones del tema principal y puntos clave",
@@ -655,7 +659,7 @@ Proporciona un análisis estructurado. Responde con JSON válido usando esta est
   "syntaxPatterns": ["patrón 1", "patrón 2", "patrón 3"]
 }
 
-Sé específico y didáctico. Incluye estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.), campos semánticos (ej: "familia", "negocios", "naturaleza"), y construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva"). DEBE devolver solo JSON válido.`
+Sé específico y didáctico. Incluye estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.), campos semánticos (ej: "familia", "negocios", "naturaleza"), y construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva"). DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código, sin explicaciones.`
       }
     }
 
@@ -667,8 +671,12 @@ Sé específico y didáctico. Incluye estructuras gramaticales importantes (subj
         30000
       )
       
-      // Parse JSON response manually
-      const content = response.content as string
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+      
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+      
       return JSON.parse(content)
     }) as ProfessorOverview
 
@@ -729,7 +737,7 @@ Common Latin errors to check for:
 - Word order issues
 - Using Spanish/English words instead of Latin
 
-Respond with valid JSON using this exact structure:
+Respond with ONLY valid JSON (no markdown, no code blocks):
 
 {
   "hasErrors": true/false,
@@ -744,7 +752,7 @@ Respond with valid JSON using this exact structure:
   ]
 }
 
-Be encouraging but STRICT! If there are errors, explain them clearly. MUST return valid JSON only.`
+Be encouraging but STRICT! If there are errors, explain them clearly. MUST return ONLY valid JSON - no markdown, no code blocks.`
       } else {
         return `Eres un profesor de español analizando el mensaje de un estudiante de nivel ${level}.
 
@@ -757,7 +765,7 @@ Categorías:
 - vocabulary: elección incorrecta de palabras, cognados falsos
 - syntax: orden de palabras, palabras faltantes, palabras extra
 
-Responde con JSON válido usando esta estructura exacta:
+Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "hasErrors": true/false,
@@ -772,7 +780,7 @@ Responde con JSON válido usando esta estructura exacta:
   ]
 }
 
-¡Sé alentador! Si no hay errores, elogia al estudiante. DEBE devolver solo JSON válido.`
+¡Sé alentador! Si no hay errores, elogia al estudiante. DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código.`
       }
     }
 
@@ -788,8 +796,12 @@ Responde con JSON válido usando esta estructura exacta:
           30000
         )
         
-        // Parse JSON response manually
-        const content = response.content as string
+        // Parse JSON response manually, stripping any markdown
+        let content = response.content as string
+        
+        // Strip markdown code blocks if present
+        content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+        
         return JSON.parse(content)
       }) as {
         hasErrors: boolean
@@ -906,7 +918,7 @@ BREAKDOWN:
 - Vocabulary: ${errorBreakdown.vocabulary}
 - Syntax: ${errorBreakdown.syntax}
 
-Provide a POSITIVE AND ENCOURAGING evaluation in English. Respond with valid JSON using this exact structure:
+Provide a POSITIVE AND ENCOURAGING evaluation in English. Respond with ONLY valid JSON (no markdown, no code blocks):
 
 {
   "rating": "one of: ${ratingOptions}",
@@ -931,7 +943,7 @@ IMPORTANT:
 - Focus on growth, not errors
 - Make the student feel good about their progress
 - Provide feedback in clear, warm English
-- MUST return valid JSON only`
+- MUST return ONLY valid JSON - no markdown, no code blocks`
       } else {
         return `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.
 
@@ -946,7 +958,7 @@ DESGLOSE:
 - Vocabulario: ${errorBreakdown.vocabulary}
 - Sintaxis: ${errorBreakdown.syntax}
 
-Proporciona una evaluación POSITIVA Y ALENTADORA. Responde con JSON válido usando esta estructura exacta:
+Proporciona una evaluación POSITIVA Y ALENTADORA. Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "rating": "uno de: ${ratingOptions}",
@@ -970,7 +982,7 @@ IMPORTANTE:
 - SIEMPRE sé positivo y alentador
 - Enfócate en el crecimiento, no en los errores
 - Haz que el estudiante se sienta bien con su progreso
-- DEBE devolver solo JSON válido`
+- DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código`
       }
     }
 
@@ -982,8 +994,12 @@ IMPORTANTE:
         30000
       )
       
-      // Parse JSON response manually
-      const content = response.content as string
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+      
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+      
       return JSON.parse(content)
     }) as ProfessorReview
 
