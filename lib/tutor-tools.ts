@@ -622,71 +622,104 @@ const AnalyzeMessageSchema = z.object({
 
 export const analyzeUserMessageTool = tool(
   async ({ userMessage, level, language = 'es' }) => {
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // DEBUG: Log what we're receiving
+    console.log(`[DEBUG] analyzeUserMessageTool called with:`, {
+      userMessage,
+      level,
+      language,
+      messageLength: userMessage?.length
+    })
+
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o-mini",  // Cost-effective for simple corrections
       temperature: 0.3
-    }).withStructuredOutput(TurnCorrectionOutputSchema)
+    })
 
-    // Generate language-appropriate system prompt
+    // Generate language-appropriate system prompt with JSON format
     const getSystemPrompt = () => {
       if (language === 'la') {
-        return `You are a Latin teacher analyzing a level ${level} student's message.
+        return `You are a strict Latin teacher analyzing a level ${level} student's Latin message. You MUST find errors if they exist!
 
 Student's message: "${userMessage}"
 
-Analyze this message for errors. Return:
-1. If it has any errors (true/false)
-2. The fully corrected version
-3. List of specific errors with explanations
+Analyze this Latin message for errors. Be VERY STRICT - even small mistakes should be caught. 
 
 Categories:
-- grammar: verbal conjugation, agreement, tenses, cases, etc.
-- vocabulary: incorrect word choice, anachronisms
+- grammar: verbal conjugation, noun cases, agreement, tenses, etc.
+- vocabulary: incorrect word choice, anachronisms, non-Latin words
 - syntax: word order, missing words, extra words
 
-Be encouraging! If there are no errors, praise the student.
+Common Latin errors to check for:
+- Wrong verb conjugations (amo vs amamo vs amamus)
+- Wrong noun cases (accusative vs nominative) 
+- Wrong adjective agreement
+- Missing or wrong prepositions
+- Word order issues
+- Using Spanish/English words instead of Latin
 
-IMPORTANT: If NO errors, return:
+Respond with valid JSON using this exact structure:
+
 {
-  "hasErrors": false,
-  "correctedText": "[original message unchanged]",
-  "errors": []
-}`
+  "hasErrors": true/false,
+  "correctedText": "corrected version or original if no errors",
+  "errors": [
+    {
+      "errorText": "the wrong part",
+      "correction": "the correct version", 
+      "explanation": "why it's wrong",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+Be encouraging but STRICT! If there are errors, explain them clearly. MUST return valid JSON only.`
       } else {
         return `Eres un profesor de español analizando el mensaje de un estudiante de nivel ${level}.
 
 Mensaje del estudiante: "${userMessage}"
 
-Analiza este mensaje en busca de errores. Devuelve:
-1. Si tiene algún error (true/false)
-2. La versión completamente corregida
-3. Lista de errores específicos con explicaciones
+Analiza este mensaje en busca de errores.
 
 Categorías:
 - grammar: conjugación verbal, concordancia, tiempos, etc.
 - vocabulary: elección incorrecta de palabras, cognados falsos
 - syntax: orden de palabras, palabras faltantes, palabras extra
 
-¡Sé alentador! Si no hay errores, elogia al estudiante.
+Responde con JSON válido usando esta estructura exacta:
 
-IMPORTANTE: Si NO hay errores, devuelve:
 {
-  "hasErrors": false,
-  "correctedText": "[mensaje original sin cambios]",
-  "errors": []
-}`
+  "hasErrors": true/false,
+  "correctedText": "versión corregida o original si no hay errores",
+  "errors": [
+    {
+      "errorText": "la parte incorrecta",
+      "correction": "la versión correcta",
+      "explanation": "por qué está mal",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+¡Sé alentador! Si no hay errores, elogia al estudiante. DEBE devolver solo JSON válido.`
       }
     }
 
     const systemPrompt = getSystemPrompt()
 
+    // DEBUG: Log the prompt being used
+    console.log(`[DEBUG] Using ${language} JSON mode prompt`)
+
     try {
       const result = await retryWithBackoff(async () => {
-        return await invokeWithTimeout(
+        const response = await invokeWithTimeout(
           model.invoke([{ role: "system", content: systemPrompt }]),
           30000
         )
+        
+        // Parse JSON response manually
+        const content = response.content as string
+        return JSON.parse(content)
       }) as {
         hasErrors: boolean
         correctedText: string
@@ -697,6 +730,13 @@ IMPORTANTE: Si NO hay errores, devuelve:
           category: 'grammar' | 'vocabulary' | 'syntax'
         }>
       }
+
+      // DEBUG: Log the result
+      console.log(`[DEBUG] Analysis result for ${language}:`, {
+        hasErrors: result.hasErrors,
+        errorCount: result.errors?.length || 0,
+        errors: result.errors
+      })
 
       return result
     } catch (error) {
