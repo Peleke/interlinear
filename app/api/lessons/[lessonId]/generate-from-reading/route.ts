@@ -283,7 +283,6 @@ export async function POST(
                 question: exercise.prompt, // Map 'prompt' to 'question' field
                 answer: exercise.correct_answer, // Map 'correct_answer' to 'answer' field
                 options: exercise.options || null,
-                difficulty_level: targetLevel,
               })
 
             if (insertError) {
