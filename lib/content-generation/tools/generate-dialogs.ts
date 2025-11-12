@@ -166,7 +166,14 @@ Guidelines:
 - Ensure cultural authenticity (use appropriate greetings, politeness levels, etc.)
 - Conversations should sound natural, not stilted or textbook-like
 - Include some back-and-forth (questions and answers, reactions, follow-ups)
-- End conversations naturally (don't cut off abruptly)
+
+CONCLUSION REQUIREMENTS:
+- End conversations with believable, natural conclusions that make sense in context
+- Use realistic closings like: goodbyes, "see you later", "thanks for the help", "have a good day", etc.
+- Avoid abrupt endings, random cliffhangers, or forced dramatic statements
+- The final turn should feel like a natural conversation endpoint that learners would actually encounter
+- Examples of GOOD endings: agreeing to meet later, thanking someone, saying goodbye after accomplishing the conversation's purpose
+- Examples of BAD endings: sudden topic changes, dramatic pronouncements, incomplete thoughts, or artificial excitement
 
 Generate exactly ${dialogCount} dialogs, each with ${turnsPerDialog} conversation turns.`
 }
