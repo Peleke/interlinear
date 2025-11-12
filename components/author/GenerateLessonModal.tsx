@@ -129,7 +129,10 @@ export function GenerateLessonModal({
 
   const pollJobStatus = async (jobId: string) => {
     try {
+      console.log(`[Poll ENTRY] Starting poll for job ${jobId}`)
       const response = await fetch(`/api/generation-jobs/${jobId}`);
+      console.log(`[Poll RESPONSE] Got response with status: ${response.status}`)
+
       if (!response.ok) {
         console.log(`[Poll] Failed to fetch job ${jobId}: ${response.status}`);
         return;
@@ -140,6 +143,11 @@ export function GenerateLessonModal({
         progress: job.progress,
         hasResults: !!job.results,
       });
+
+      // AGGRESSIVE DEBUG
+      if (job.status === 'processing') {
+        console.log(`[Poll AGGRESSIVE] Job still processing, progress:`, job.progress)
+      }
 
       // Update statuses from progress
       const statuses: GeneratorStatus[] = [];
@@ -250,10 +258,12 @@ export function GenerateLessonModal({
       // Store job ID and start polling
       if (result.jobId) {
         console.log(`[Generate] Job created: ${result.jobId}, starting polling...`);
+        alert(`DEBUG: Job created ${result.jobId}, starting polling!`); // AGGRESSIVE DEBUG
         setCurrentJobId(result.jobId);
 
         // Start polling every 2 seconds
         pollingIntervalRef.current = setInterval(() => {
+          console.log(`[Poll Debug] Calling pollJobStatus with jobId: ${result.jobId}`);
           pollJobStatus(result.jobId);
         }, 2000);
 
