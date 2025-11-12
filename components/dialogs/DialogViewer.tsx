@@ -18,9 +18,11 @@ interface DialogViewerProps {
   setting?: string
   exchanges: DialogExchange[]
   courseDeckId?: string
+  dialog?: any // For compatibility with preview data
+  previewMode?: boolean
 }
 
-export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId }: DialogViewerProps) {
+export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId, dialog, previewMode = false }: DialogViewerProps) {
   const [showAllTranslations, setShowAllTranslations] = useState(false)
   const [revealedExchanges, setRevealedExchanges] = useState<Set<string>>(new Set())
   const [loadingAudio, setLoadingAudio] = useState<Set<string>>(new Set())
@@ -343,15 +345,21 @@ export default function DialogViewer({ dialogId, context, setting, exchanges, co
           💡 <strong>Tip:</strong> Click on any line to reveal its English translation. Try to understand the Spanish first!
         </p>
 
-        {dialogId && (
-          <button
-            onClick={() => setShowRoleplayPanel(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-          >
-            <Theater className="h-4 w-4" />
-            <span>Practice This Dialog</span>
-          </button>
-        )}
+        {dialogId && (() => {
+          // Check if there are multiple speakers for roleplay
+          const speakers = Array.from(new Set(exchanges.map(e => e.speaker)))
+          const canRoleplay = speakers.length >= 2
+
+          return canRoleplay && (
+            <button
+              onClick={() => setShowRoleplayPanel(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            >
+              <Theater className="h-4 w-4" />
+              <span>Practice This Dialog</span>
+            </button>
+          )
+        })()}
       </div>
 
       {/* Roleplay Panel Modal */}

@@ -10,6 +10,7 @@ interface FillBlankExerciseProps {
   englishText?: string
   courseDeckId?: string
   onComplete?: (isCorrect: boolean, xpEarned: number) => void
+  previewMode?: boolean
 }
 
 interface ExerciseResult {
@@ -24,7 +25,8 @@ export default function FillBlankExercise({
   spanishText,
   englishText,
   courseDeckId,
-  onComplete
+  onComplete,
+  previewMode = false
 }: FillBlankExerciseProps) {
   const [userAnswer, setUserAnswer] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)

@@ -25,6 +25,7 @@ import { VocabularyManager } from './VocabularyManager'
 import GrammarConceptSelector from './GrammarConceptSelector'
 import ExerciseBuilder from './ExerciseBuilder'
 import ReadingLinker from './ReadingLinker'
+import LessonPreviewModal from './LessonPreviewModal'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -79,6 +80,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [lesson, setLesson] = useState(initialLesson)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
 
   // Auto-save with debouncing (500ms after last edit)
   const saveLesson = useCallback(async (updatedLesson: Lesson) => {
@@ -126,8 +128,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   }
 
   const handlePreview = () => {
-    // TODO: Open preview modal
-    console.log('Preview lesson:', lesson.id)
+    setPreviewModalOpen(true)
   }
 
   const handlePublish = async () => {
@@ -319,6 +320,13 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Preview Modal */}
+      <LessonPreviewModal
+        lessonId={lesson.id}
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+      />
     </div>
   )
 }
