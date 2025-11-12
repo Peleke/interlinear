@@ -322,6 +322,20 @@ export function GenerateLessonModal({
               Generating lesson content... This may take a few minutes.
             </div>
 
+            <div className="text-center mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('[Dismiss] User dismissed generation modal')
+                  setIsGenerating(false)
+                  onOpenChange(false)
+                }}
+              >
+                Dismiss
+              </Button>
+            </div>
+
             <div className="space-y-3">
               {generatorStatuses.map((status) => (
                 <div
