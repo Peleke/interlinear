@@ -14,9 +14,10 @@ interface ProfessorOverviewType {
 
 interface ProfessorOverviewProps {
   textId: string
+  language: 'es' | 'la'
 }
 
-export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
+export function ProfessorOverview({ textId, language }: ProfessorOverviewProps) {
   const [overview, setOverview] = useState<ProfessorOverviewType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +29,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
         const response = await fetch('/api/tutor/overview', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ textId })
+          body: JSON.stringify({ textId, language })
         })
 
         if (!response.ok) throw new Error('Failed to load overview')
@@ -43,7 +44,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
     }
 
     fetchOverview()
-  }, [textId])
+  }, [textId, language])
 
   if (loading) {
     return (
@@ -51,7 +52,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sepia-900">
             <BookOpen className="h-5 w-5" />
-            Professor's Overview
+{language === 'la' ? "Professor's Overview" : "Resumen del Profesor"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 animate-pulse">
@@ -81,7 +82,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sepia-900">
             <BookOpen className="h-5 w-5" />
-            Professor's Overview
+{language === 'la' ? "Professor's Overview" : "Resumen del Profesor"}
           </CardTitle>
           <Button
             variant="ghost"
@@ -101,14 +102,14 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
         <CardContent className="space-y-6">
           {/* Summary */}
           <div>
-            <h3 className="font-semibold text-sepia-900 mb-2">Resumen</h3>
+            <h3 className="font-semibold text-sepia-900 mb-2">{language === 'la' ? 'Summary' : 'Resumen'}</h3>
             <p className="text-sepia-700 leading-relaxed">{overview.summary}</p>
           </div>
 
           {/* Grammar Concepts */}
           <div>
             <h3 className="font-semibold text-sepia-900 mb-2">
-              Conceptos Gramaticales
+              {language === 'la' ? 'Grammar Concepts' : 'Conceptos Gramaticales'}
             </h3>
             <ul className="list-disc list-inside space-y-1 text-sepia-700">
               {overview.grammarConcepts.map((concept, idx) => (
@@ -120,7 +121,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
           {/* Vocabulary Themes */}
           <div>
             <h3 className="font-semibold text-sepia-900 mb-2">
-              Temas de Vocabulario
+              {language === 'la' ? 'Vocabulary Themes' : 'Temas de Vocabulario'}
             </h3>
             <ul className="list-disc list-inside space-y-1 text-sepia-700">
               {overview.vocabThemes.map((theme, idx) => (
@@ -132,7 +133,7 @@ export function ProfessorOverview({ textId }: ProfessorOverviewProps) {
           {/* Syntax Patterns */}
           <div>
             <h3 className="font-semibold text-sepia-900 mb-2">
-              Patrones de Sintaxis
+              {language === 'la' ? 'Syntax Patterns' : 'Patrones de Sintaxis'}
             </h3>
             <ul className="list-disc list-inside space-y-1 text-sepia-700">
               {overview.syntaxPatterns.map((pattern, idx) => (

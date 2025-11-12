@@ -269,7 +269,7 @@ export function ReaderClient() {
           />
         )}
         {mode === 'vocabulary' && <VocabularyPanel key={vocabKey} textId={currentLibraryId} />}
-        {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
+        {mode === 'tutor' && <TutorPanel textId={currentLibraryId} language={language} />}
         {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} courseId={courseId} />}
       </div>
     </div>

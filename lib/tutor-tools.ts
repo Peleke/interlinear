@@ -52,7 +52,8 @@ export interface ProfessorReview {
 
 const StartDialogSchema = z.object({
   textId: z.string().uuid(),
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 const ContinueDialogSchema = z.object({
@@ -65,12 +66,14 @@ const AnalyzeErrorsSchema = z.object({
 })
 
 const GenerateOverviewSchema = z.object({
-  textId: z.string().uuid()
+  textId: z.string().uuid(),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 const GenerateReviewSchema = z.object({
   sessionId: z.string().uuid(),
   level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  language: z.enum(['es', 'la']).default('es'),
   errors: z.array(z.object({
     turn: z.number().int().positive(),
     errorText: z.string(),
@@ -136,16 +139,23 @@ const TurnCorrectionOutputSchema = z.object({
 // UTILITY FUNCTIONS
 // ============================================================================
 
-// Detect language (English vs Spanish)
-function detectLanguage(text: string): 'en' | 'es' | 'mixed' {
+// Detect language (English vs Spanish vs Latin)
+function detectLanguage(text: string): 'en' | 'es' | 'la' | 'mixed' {
   const englishWords = text.match(/\b(the|is|are|was|were|have|has|been|to|of|and|a|in|that|it|for|not|with|as|you|this|be|on|at|by|from)\b/gi) || []
   const spanishWords = text.match(/\b(el|la|los|las|de|que|es|en|y|a|un|una|por|con|para|del|como|al|lo|su|se|las|más|pero|su|me|ya|ser|ha|ha|sido|está|están|fue|será|son)\b/gi) || []
+  const latinWords = text.match(/\b(est|sunt|eram|erat|fuit|sum|esse|et|in|ad|cum|per|ex|de|ab|pro|contra|inter|post|ante|sub|super|sine|propter|ob|quod|qui|quae|sed|autem|enim|nam|igitur|ergo|tamen|itaque|aut|vel|atque|nec|neque|non|nihil|quidam|aliquis|omnis|totus|magnus|parvus|bonus|malus|multus|paucus|primus|ultimus|novus|vetus|facere|dicere|dare|ire|venire|videre|audire|scire|posse|velle|debere|habere|tenere|capere|ducere|mittere|ponere|stare|sedere|iacere|currere|ambulare|venire|abire|redire|homo|vir|femina|puer|puella|rex|regina|deus|dea|terra|caelum|aqua|ignis|sol|luna|tempus|locus|urbs|domus|via|ager|silva|mons|mare|flumen|arbor|flos|animal|equus|canis|lex|ius|pax|bellum|victoria|mors|vita|corpus|anima|mens|cor|oculus|manus|pes|caput|verbum|nomen|res|causa|modus|genus|species|numerus|ordo|pars|totum)\b/gi) || []
 
-  const englishRatio = englishWords.length / (text.split(/\s+/).length || 1)
+  const wordCount = text.split(/\s+/).length || 1
+  const englishRatio = englishWords.length / wordCount
+  const spanishRatio = spanishWords.length / wordCount
+  const latinRatio = latinWords.length / wordCount
 
   if (englishRatio > 0.5) return 'en'
+  if (spanishRatio > 0.3) return 'es'
+  if (latinRatio > 0.2) return 'la'
   if (englishRatio > 0.2) return 'mixed'
-  return 'es'
+
+  return 'es' // Default fallback
 }
 
 // Retry with exponential backoff
@@ -186,7 +196,7 @@ async function invokeWithTimeout<T>(
 // ============================================================================
 
 export const startDialogTool = tool(
-  async ({ textId, level }) => {
+  async ({ textId, level, language = 'es' }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -216,7 +226,29 @@ export const startDialogTool = tool(
       temperature: 0.7
     })
 
-    const systemPrompt = `Eres un tutor de español nivel ${level}.
+    // Generate language-appropriate system prompt
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `You are a Latin conversation tutor for level ${level}.
+Start a natural conversation based on this Latin text:
+
+${text.content}
+
+The student has learned these vocabulary words:
+${vocabList}
+
+Create questions that:
+- Use vocabulary from the text
+- Are appropriate for level ${level}
+- Encourage complete responses
+- Are natural and encouraging
+- Help practice Latin conversation skills
+
+Respond in simple, clear Latin appropriate for level ${level}. If the student responds in English, gently guide them to use Latin.
+
+Your first question:`
+      } else {
+        return `Eres un tutor de español nivel ${level}.
 Inicia una conversación natural basada en este texto:
 
 ${text.content}
@@ -233,6 +265,10 @@ Haz preguntas que:
 Responde SOLO en español. No uses inglés.
 
 Primera pregunta:`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const response = await retryWithBackoff(async () => {
       return await invokeWithTimeout(
@@ -243,10 +279,11 @@ Primera pregunta:`
 
     const aiMessage = response.content as string
 
-    // Validate Spanish-only
+    // Validate target language
     const detectedLang = detectLanguage(aiMessage)
-    if (detectedLang === 'en') {
-      throw new Error('AI responded in English, enforcing Spanish-only')
+    const expectedLang = language || 'es'
+    if (detectedLang === 'en' && expectedLang !== 'en') {
+      throw new Error(`AI responded in English, enforcing ${expectedLang}-only`)
     }
 
     // Save first turn
@@ -291,6 +328,9 @@ export const continueDialogTool = tool(
       .single()
 
     if (sessionError || !session) throw new Error('Session not found')
+
+    // Get language from session context (default to Spanish for now)
+    const language = 'es' // TODO: Get from session metadata
 
     // Get conversation history
     const { data: turns, error: turnsError } = await supabase
@@ -341,10 +381,11 @@ Tu respuesta:`
 
     const aiMessage = response.content as string
 
-    // Validate Spanish-only
+    // Validate target language
     const detectedLang = detectLanguage(aiMessage)
-    if (detectedLang === 'en') {
-      throw new Error('AI responded in English, enforcing Spanish-only')
+    const expectedLang = language || 'es'
+    if (detectedLang === 'en' && expectedLang !== 'en') {
+      throw new Error(`AI responded in English, enforcing ${expectedLang}-only`)
     }
 
     // Update previous turn with user response
@@ -458,7 +499,7 @@ Si no hay errores, devuelve un array vacío.`
 // ============================================================================
 
 export const generateOverviewTool = tool(
-  async ({ textId }) => {
+  async ({ textId, language = 'es' }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -472,7 +513,22 @@ export const generateOverviewTool = tool(
       temperature: 0
     }).withStructuredOutput(ProfessorOverviewOutputSchema)
 
-    const systemPrompt = `Analiza este texto en español como un profesor experimentado:
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `Analyze this Latin text as an experienced professor:
+
+${text.content}
+
+Provide a structured analysis in English:
+
+1. SUMMARY (2-3 sentences): Main topic and key points
+2. GRAMMAR CONCEPTS: List of important grammatical structures (cases, verb forms, constructions, etc.)
+3. VOCABULARY THEMES: List of semantic fields present (e.g., "military", "politics", "nature")
+4. SYNTAX PATTERNS: List of notable syntactic constructions (e.g., "ablative absolute", "indirect statement")
+
+Be specific and educational.`
+      } else {
+        return `Analiza este texto en español como un profesor experimentado:
 
 ${text.content}
 
@@ -484,6 +540,10 @@ Proporciona un análisis estructurado:
 4. PATRONES DE SINTAXIS: Lista de construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva")
 
 Sé específico y didáctico.`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
       return await invokeWithTimeout(
@@ -582,7 +642,7 @@ IMPORTANTE: Si NO hay errores, devuelve:
 // ============================================================================
 
 export const generateProfessorReviewTool = tool(
-  async ({ sessionId, level, errors }) => {
+  async ({ sessionId, level, language = 'es', errors }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -624,7 +684,16 @@ export const generateProfessorReviewTool = tool(
       temperature: 0.7
     }).withStructuredOutput(ProfessorReviewOutputSchema)
 
-    const systemPrompt = `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.
+    // Generate language-appropriate professor review prompt
+    const getReviewPrompt = () => {
+      if (language === 'la') {
+        return `You are an experienced and ENCOURAGING Latin professor evaluating a level ${level} student.`
+      } else {
+        return `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.`
+      }
+    }
+
+    const systemPrompt = `${getReviewPrompt()}
 
 CONVERSACIÓN:
 ${transcript}
@@ -667,10 +736,15 @@ Proporciona una evaluación POSITIVA Y ALENTADORA:
    - Ya calculado, solo devuélvelo
 
 IMPORTANTE:
-- SIEMPRE sé positivo y alentador
+${language === 'la' ?
+  `- ALWAYS be positive and encouraging
+- Focus on growth, not errors
+- Make the student feel good about their progress
+- Provide feedback in clear, warm English (since Latin conversation assessment is complex)` :
+  `- SIEMPRE sé positivo y alentador
 - Enfócate en el crecimiento, no en los errores
 - Haz que el estudiante se sienta bien con su progreso
-- Usa español natural y cálido`
+- Usa español natural y cálido`}`
 
     const result = await retryWithBackoff(async () => {
       return await invokeWithTimeout(
@@ -779,10 +853,11 @@ Genera tu primera línea como ${oppositeCharacter}:`
 
     const aiMessage = response.content as string
 
-    // Validate Spanish-only
+    // Validate target language
     const detectedLang = detectLanguage(aiMessage)
-    if (detectedLang === 'en') {
-      throw new Error('AI responded in English, enforcing Spanish-only')
+    const expectedLang = language || 'es'
+    if (detectedLang === 'en' && expectedLang !== 'en') {
+      throw new Error(`AI responded in English, enforcing ${expectedLang}-only`)
     }
 
     // Save first turn
@@ -819,6 +894,9 @@ export const continueDialogRoleplayTool = tool(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
+
+    // Get language from session context (default to Spanish for now)
+    const language = 'es' // TODO: Get from session metadata
 
     // Get session with dialog
     const { data: session, error: sessionError } = await supabase
@@ -892,10 +970,11 @@ Responde SOLO en español como ${oppositeCharacter}:`
 
     const aiMessage = response.content as string
 
-    // Validate Spanish-only
+    // Validate target language
     const detectedLang = detectLanguage(aiMessage)
-    if (detectedLang === 'en') {
-      throw new Error('AI responded in English, enforcing Spanish-only')
+    const expectedLang = language || 'es'
+    if (detectedLang === 'en' && expectedLang !== 'en') {
+      throw new Error(`AI responded in English, enforcing ${expectedLang}-only`)
     }
 
     // Update previous turn with user response
