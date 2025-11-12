@@ -15,7 +15,9 @@ import {
 import { PlusCircle, Trash2, Save, CheckCircle2, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import VocabularyAutocomplete from './VocabularyAutocomplete'
-import { ContentGenerationButton } from '@/components/authoring/ContentGenerationButton'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ReadingSelector } from './ReadingSelector'
+import { Sparkles } from 'lucide-react'
 
 interface VocabItem {
   id: string
@@ -63,14 +65,15 @@ export function VocabularyManager({ lessonId, language }: Props) {
     type: 'success' | 'error'
     text: string
   } | null>(null)
-  const [readingText, setReadingText] = useState<string>('')
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [cefrLevel, setCefrLevel] = useState<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'>('A1')
+  const [maxVocabItems, setMaxVocabItems] = useState(20)
   const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map())
 
-  // Load existing vocabulary and reading text
+  // Load existing vocabulary
   useEffect(() => {
     loadVocabulary()
-    loadReadingText()
   }, [lessonId])
 
   const loadVocabulary = async () => {
@@ -85,18 +88,28 @@ export function VocabularyManager({ lessonId, language }: Props) {
     }
   }
 
-  const loadReadingText = async () => {
+  const handleGenerate = async (selection: { readingIds?: string[], manualText?: string }) => {
+    setIsGenerating(true)
     try {
-      // Fetch lesson readings to enable AI generation
-      const response = await fetch(`/api/lessons/${lessonId}/readings`)
-      if (response.ok) {
+      let sourceText = ''
+
+      if (selection.manualText) {
+        sourceText = selection.manualText
+      } else if (selection.readingIds && selection.readingIds.length > 0) {
+        // Fetch reading content(s)
+        const response = await fetch(`/api/lessons/${lessonId}/readings`)
+        if (!response.ok) throw new Error('Failed to fetch readings')
+
         const data = await response.json()
-        if (data.readings && data.readings.length > 0) {
-          // Use first reading's content for vocabulary generation
-          const firstReading = data.readings[0]
-          setReadingText(firstReading.content || '')
-          // Map difficulty_level to CEFR format (A1, A2, B1, B2, C1, C2)
-          const level = firstReading.difficulty_level || 'beginner'
+        const selectedReadings = data.readings.filter((r: any) =>
+          selection.readingIds!.includes(r.id)
+        )
+
+        sourceText = selectedReadings.map((r: any) => r.content).join('\n\n')
+
+        // Use first reading's difficulty level for CEFR mapping
+        if (selectedReadings.length > 0) {
+          const level = selectedReadings[0].difficulty_level || 'beginner'
           const cefrMap: Record<string, 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'> = {
             'beginner': 'A1',
             'elementary': 'A2',
@@ -108,8 +121,45 @@ export function VocabularyManager({ lessonId, language }: Props) {
           setCefrLevel((cefrMap[level] || 'A1') as 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2')
         }
       }
+
+      if (!sourceText.trim()) {
+        throw new Error('No source text available')
+      }
+
+      // Call vocabulary extraction API
+      const generateResponse = await fetch('/api/workflows/content-generation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lessonId,
+          readingText: sourceText,
+          targetLevel: cefrLevel,
+          language,
+          maxVocabularyItems: maxVocabItems,
+        }),
+      })
+
+      if (!generateResponse.ok) {
+        throw new Error('Failed to generate vocabulary')
+      }
+
+      const result = await generateResponse.json()
+      await loadVocabulary()
+      setShowGenerateModal(false)
+
+      setSaveMessage({
+        type: 'success',
+        text: 'Vocabulary generated successfully!',
+      })
+      setTimeout(() => setSaveMessage(null), 3000)
     } catch (error) {
-      console.error('Failed to load reading text:', error)
+      console.error('Vocabulary generation failed:', error)
+      setSaveMessage({
+        type: 'error',
+        text: 'Failed to generate vocabulary. Please try again.',
+      })
+    } finally {
+      setIsGenerating(false)
     }
   }
 
@@ -308,15 +358,15 @@ export function VocabularyManager({ lessonId, language }: Props) {
             </p>
           </div>
           <div className="flex gap-3">
-            {readingText && (
-              <ContentGenerationButton
-                lessonId={lessonId}
-                readingText={readingText}
-                targetLevel={cefrLevel}
-                language={language}
-                onComplete={loadVocabulary}
-              />
-            )}
+            <Button
+              onClick={() => setShowGenerateModal(true)}
+              variant="outline"
+              size="default"
+              className="px-4 py-2"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate Vocabulary
+            </Button>
             <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Word
@@ -508,6 +558,53 @@ export function VocabularyManager({ lessonId, language }: Props) {
           ))}
         </div>
       )}
+
+      {/* Generation Modal */}
+      <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Generate Vocabulary with AI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="cefr-level">Target CEFR Level</Label>
+                <Select value={cefrLevel} onValueChange={(v: any) => setCefrLevel(v)}>
+                  <SelectTrigger id="cefr-level" className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A1">A1 - Beginner</SelectItem>
+                    <SelectItem value="A2">A2 - Elementary</SelectItem>
+                    <SelectItem value="B1">B1 - Intermediate</SelectItem>
+                    <SelectItem value="B2">B2 - Upper Intermediate</SelectItem>
+                    <SelectItem value="C1">C1 - Advanced</SelectItem>
+                    <SelectItem value="C2">C2 - Proficient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="max-vocab">Max Vocabulary Items (5-50)</Label>
+                <Input
+                  id="max-vocab"
+                  type="number"
+                  min={5}
+                  max={50}
+                  value={maxVocabItems}
+                  onChange={(e) => setMaxVocabItems(parseInt(e.target.value) || 20)}
+                  className="mt-2"
+                />
+              </div>
+            </div>
+            <ReadingSelector
+              lessonId={lessonId}
+              onGenerate={handleGenerate}
+              isGenerating={isGenerating}
+              generateButtonText="Extract Vocabulary"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

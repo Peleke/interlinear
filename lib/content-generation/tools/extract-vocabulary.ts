@@ -92,37 +92,55 @@ export async function extractVocabulary(
 
   // PHASE 2: Dictionary API Lookup (Fast, Accurate, Cheap)
   console.log('📚 Phase 2: Dictionary API lookup...')
+  console.log(`🔄 Processing ${topCandidates.length} candidates in batches of 10...`)
 
   const vocabularyItems: VocabularyItem[] = []
+  const BATCH_SIZE = 10 // Process 10 words at a time to avoid rate limits
 
-  // Look up each candidate in dictionary
-  for (const candidate of topCandidates) {
-    try {
-      // Dictionary API lookup via router
-      const dictData = await DictionaryRouter.lookup(candidate.word, language)
+  // Process in batches
+  for (let i = 0; i < topCandidates.length; i += BATCH_SIZE) {
+    const batch = topCandidates.slice(i, i + BATCH_SIZE)
+    console.log(`📦 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(topCandidates.length / BATCH_SIZE)}...`)
 
-      if (dictData.found && dictData.definitions.length > 0) {
-        // Extract example sentence from reading (simple string search)
-        const example = findExampleInReading(candidate.word, readingText)
+    // Parallel lookup for batch
+    const lookupPromises = batch.map(async (candidate) => {
+      try {
+        const dictData = await DictionaryRouter.lookup(candidate.word, language)
 
-        vocabularyItems.push({
-          word: candidate.word,
-          english_translation: dictData.definitions[0].meanings[0] || 'unknown',
-          part_of_speech: mapPartOfSpeech(dictData.definitions[0].partOfSpeech),
-          difficulty_level: targetLevel, // Use target level (no CEFR classification)
-          example_sentence: example,
-          appears_in_reading: true, // Verified by NLP.js
-          frequency: candidate.frequency,
-          normalized_form: candidate.stem, // For dictionary API lookups
-        })
+        if (dictData.found && dictData.definitions.length > 0) {
+          const example = findExampleInReading(candidate.word, readingText)
+
+          return {
+            word: candidate.word,
+            english_translation: dictData.definitions[0].meanings[0] || 'unknown',
+            part_of_speech: mapPartOfSpeech(dictData.definitions[0].partOfSpeech),
+            difficulty_level: targetLevel,
+            example_sentence: example,
+            appears_in_reading: true,
+            frequency: candidate.frequency,
+            normalized_form: candidate.stem,
+          }
+        }
+        return null
+      } catch (error) {
+        console.warn(`⚠️  Dictionary lookup failed for ${candidate.word}:`, error instanceof Error ? error.message : error)
+        return null
       }
-    } catch (error) {
-      console.error(`Dictionary lookup failed for ${candidate.word}:`, error)
-      // Continue with next word
+    })
+
+    const batchResults = await Promise.all(lookupPromises)
+    const validItems = batchResults.filter((item): item is VocabularyItem => item !== null)
+    vocabularyItems.push(...validItems)
+
+    console.log(`✅ Batch complete: ${validItems.length}/${batch.length} successful`)
+
+    // Small delay between batches to respect rate limits
+    if (i + BATCH_SIZE < topCandidates.length) {
+      await new Promise(resolve => setTimeout(resolve, 100))
     }
   }
 
-  console.log(`✅ Dictionary lookup completed for ${vocabularyItems.length} items`)
+  console.log(`✅ Dictionary lookup completed: ${vocabularyItems.length}/${topCandidates.length} items successfully resolved`)
 
   return vocabularyItems
 }

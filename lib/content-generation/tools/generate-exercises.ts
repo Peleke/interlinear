@@ -1,28 +1,24 @@
 /**
- * Exercise Generation Tool (STUB)
+ * Exercise Generation Tool
  *
- * TODO: Implement real exercise generation with:
- * - Pedagogical exercise patterns
- * - Distractor generation algorithms
- * - Difficulty calibration
- * - Exercise type specialization
+ * LLM-powered exercise generation for language learning
+ * Supports: translation, multiple_choice, fill_blank
  *
- * For now: LLM-based generation stub
+ * Uses GPT-4 with structured output to generate exercises
+ * from provided content (reading text, sentences, vocabulary)
  */
 
 import { z } from 'zod'
+import { generateObject } from 'ai'
+import { model } from '../mastra.config'
 
 // Input schema
 const ExerciseInputSchema = z.object({
-  readingText: z.string(),
-  vocabularyItems: z.array(z.string()),
-  grammarConcepts: z.array(z.string()),
-  targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  content: z.string().describe('Content to generate exercises from (reading, sentence, or vocabulary list)'),
+  type: z.enum(['translation', 'multiple_choice', 'fill_blank']).describe('Type of exercise to generate'),
+  count: z.number().default(3).describe('Number of exercises to generate'),
+  targetLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).default('A1'),
   language: z.enum(['es', 'la']).default('es'),
-  exerciseTypes: z
-    .array(z.enum(['translation', 'multiple_choice', 'fill_blank']))
-    .default(['translation', 'multiple_choice', 'fill_blank']),
-  exercisesPerType: z.number().default(3),
 })
 
 // Output schema
@@ -38,14 +34,14 @@ const ExerciseSchema = z.object({
 })
 
 export const ExerciseOutputSchema = z.object({
-  lessonId: z.string(),
   exercises: z.array(ExerciseSchema),
   status: z.enum(['completed', 'failed']),
   metadata: z.object({
     exerciseCount: z.number(),
-    byType: z.record(z.string(), z.number()),
     executionTime: z.number(),
-    cost: z.number(),
+    promptTokens: z.number(),
+    completionTokens: z.number(),
+    totalTokens: z.number(),
   }),
 })
 
@@ -54,52 +50,114 @@ export type Exercise = z.infer<typeof ExerciseSchema>
 export type ExerciseOutput = z.infer<typeof ExerciseOutputSchema>
 
 /**
- * Generate Exercises (STUB)
+ * Generate Exercises with LLM
  *
- * Currently returns empty array - will be LLM-powered in future
+ * Uses GPT-4 with structured output to generate exercises
  */
 export async function generateExercises(
   input: ExerciseInput
 ): Promise<ExerciseOutput> {
   const startTime = Date.now()
 
-  console.log('🎯 Exercise generation (STUB - returns empty)')
-  console.log(`📄 Text length: ${input.readingText.length} chars`)
-  console.log(`📝 Vocabulary items: ${input.vocabularyItems.length}`)
-  console.log(`📊 Grammar concepts: ${input.grammarConcepts.length}`)
-  console.log(
-    `🎲 Types: ${input.exerciseTypes.join(', ')} (${input.exercisesPerType} each)`
-  )
+  console.log('🎯 Generating exercises with LLM')
+  console.log(`📄 Content length: ${input.content.length} chars`)
+  console.log(`🎲 Type: ${input.type}, Count: ${input.count}`)
+  console.log(`🎯 Level: ${input.targetLevel}, Language: ${input.language}`)
 
-  // TODO: Implement real exercise generation
-  // For now, return empty array (stub)
-  const exercises: Exercise[] = []
+  try {
+    const prompt = buildPrompt(input)
 
-  const executionTime = Date.now() - startTime
+    const result = await generateObject({
+      model,
+      schema: z.object({
+        exercises: z.array(ExerciseSchema),
+      }),
+      prompt,
+    })
 
-  // Count exercises by type
-  const byType: Record<string, number> = {}
-  input.exerciseTypes.forEach((type) => {
-    byType[type] = 0
-  })
+    const executionTime = Date.now() - startTime
 
-  return {
-    lessonId: '', // Will be set by workflow
-    exercises,
-    status: 'completed',
-    metadata: {
-      exerciseCount: exercises.length,
-      byType,
-      executionTime,
-      cost: 0, // No LLM calls in stub
-    },
+    console.log(`✅ Generated ${result.object.exercises.length} exercises in ${executionTime}ms`)
+    console.log(`📊 Token usage: ${result.usage?.promptTokens || 0} prompt + ${result.usage?.completionTokens || 0} completion`)
+
+    return {
+      exercises: result.object.exercises,
+      status: 'completed',
+      metadata: {
+        exerciseCount: result.object.exercises.length,
+        executionTime,
+        promptTokens: result.usage?.promptTokens || 0,
+        completionTokens: result.usage?.completionTokens || 0,
+        totalTokens: result.usage?.totalTokens || 0,
+      },
+    }
+  } catch (error) {
+    console.error('❌ Exercise generation failed:', error)
+
+    return {
+      exercises: [],
+      status: 'failed',
+      metadata: {
+        exerciseCount: 0,
+        executionTime: Date.now() - startTime,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+      },
+    }
   }
 }
 
 /**
- * LLM Prompt for future implementation
- *
- * This will be used when we integrate exercise generation system
+ * Build prompt for exercise generation
+ */
+function buildPrompt(input: ExerciseInput): string {
+  const { content, type, count, targetLevel, language } = input
+
+  const languageName = language === 'es' ? 'Spanish' : 'Latin'
+
+  const typeInstructions = {
+    translation: `Generate ${count} translation exercises. Each exercise should:
+- Present a sentence in ${languageName} to translate to English, OR
+- Present an English sentence to translate to ${languageName}
+- Use vocabulary and grammar appropriate for ${targetLevel} level
+- Provide the correct translation as the answer
+- Include a brief explanation of key grammar/vocabulary points`,
+
+    multiple_choice: `Generate ${count} multiple choice exercises. Each exercise should:
+- Present a ${languageName} sentence with a blank (use "____")
+- Provide 4 options to fill the blank
+- Make the first option the correct answer
+- Make other options plausible but clearly wrong (common mistakes)
+- Include an explanation of why the correct answer is right`,
+
+    fill_blank: `Generate ${count} fill-in-the-blank exercises. Each exercise should:
+- Present a ${languageName} sentence with a blank (use "_____")
+- The blank should test vocabulary or grammar from the content
+- Provide the correct word/phrase as the answer
+- Include an explanation of the grammar point or vocabulary meaning`,
+  }
+
+  return `You are an expert ${languageName} language teacher creating exercises for ${targetLevel} level learners.
+
+Content to base exercises on:
+${content}
+
+Task: ${typeInstructions[type]}
+
+Guidelines:
+- Base exercises on the provided content when possible
+- Ensure difficulty matches ${targetLevel} level
+- Make exercises clear and unambiguous
+- Provide helpful explanations that teach, not just confirm
+- For multiple choice, ensure distractors are believable
+- Use natural, authentic ${languageName}
+
+Generate exactly ${count} ${type.replace('_', ' ')} exercises.`
+}
+
+/**
+ * Legacy prompt template (kept for reference)
  */
 export const EXERCISE_GENERATION_PROMPT = `You are an expert language teacher creating exercises for language learners.
 

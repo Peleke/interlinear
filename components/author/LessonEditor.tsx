@@ -306,7 +306,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
             )}
 
             {activeTab === 'readings' && (
-              <ReadingLinker lessonId={lesson.id} />
+              <ReadingLinker lessonId={lesson.id} language={lesson.language} />
             )}
           </div>
         </main>

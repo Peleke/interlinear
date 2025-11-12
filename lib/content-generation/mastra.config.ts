@@ -21,9 +21,10 @@ export const openai = createOpenAI({
 
 /**
  * Default model for content generation
- * Using GPT-4 Turbo for all generation tasks
+ * Uses environment variable OPENAI_MODEL or defaults to gpt-4o-mini
+ * Supports structured output (requires gpt-4o, gpt-4o-mini, or newer)
  */
-export const model = openai('gpt-4-turbo')
+export const model = openai(process.env.OPENAI_MODEL || 'gpt-4o-mini')
 
 /**
  * Mastra instance for interlinear content generation
