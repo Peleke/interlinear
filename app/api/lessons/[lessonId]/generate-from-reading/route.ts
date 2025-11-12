@@ -265,6 +265,12 @@ export async function POST(
           language: language as 'es' | 'is',
         })
 
+        console.log(`Exercise result for ${type}:`, {
+          status: exerciseResult.status,
+          exerciseCount: exerciseResult.exercises?.length || 0,
+          hasExercises: !!exerciseResult.exercises,
+        })
+
         if (exerciseResult.status === 'completed' && exerciseResult.exercises) {
           // Save exercises
           for (const exercise of exerciseResult.exercises) {
@@ -340,7 +346,6 @@ export async function POST(
               lesson_id: lessonId,
               title: dialog.context || 'Generated Dialog', // Use context as title
               context: dialog.context,
-              difficulty_level: targetLevel, // Use reading's target level
             })
             .select('id')
             .single()

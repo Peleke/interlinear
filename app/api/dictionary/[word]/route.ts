@@ -50,7 +50,10 @@ export async function GET(
   const { searchParams } = new URL(request.url)
   const language = (searchParams.get('language') || 'es') as 'es' | 'la'
 
+  console.log(`[MW API] Looking up word: ${word}, API_KEY exists: ${!!API_KEY}`)
+
   if (!API_KEY) {
+    console.error('[MW API] API key not found in environment')
     return NextResponse.json(
       { error: 'Dictionary API key not configured' },
       { status: 500 }
@@ -82,7 +85,9 @@ export async function GET(
 
   try {
     const url = `${MW_API_BASE}/${encodeURIComponent(cleanWord)}?key=${API_KEY}`
+    console.log(`[MW API] Fetching: ${url.replace(API_KEY, 'REDACTED')}`)
     const response = await fetch(url)
+    console.log(`[MW API] Response status: ${response.status}`)
 
     if (!response.ok) {
       if (response.status === 404) {

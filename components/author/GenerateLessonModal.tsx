@@ -245,6 +245,7 @@ export function GenerateLessonModal({
       }
 
       const result = await response.json();
+      console.log('[Generate] Generation response:', result);
 
       // Store job ID and start polling
       if (result.jobId) {
