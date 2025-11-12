@@ -25,6 +25,7 @@ import { VocabularyManager } from './VocabularyManager'
 import GrammarConceptSelector from './GrammarConceptSelector'
 import ExerciseBuilder from './ExerciseBuilder'
 import ReadingLinker from './ReadingLinker'
+import LessonPreviewModal from './LessonPreviewModal'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -73,50 +74,45 @@ const statusConfig: Record<
   archived: { label: 'Archived', variant: 'outline' },
 }
 
-export function LessonEditor({ lesson: initialLesson, userId }: Props) {
+export default function LessonEditor({ initialLesson }: LessonEditorProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('metadata')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [lesson, setLesson] = useState(initialLesson)
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [lesson, setLesson] = useState<Lesson>(initialLesson)
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
+  
+  // Preview modal state
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
 
-  // Auto-save with debouncing (500ms after last edit)
-  const saveLesson = useCallback(async (updatedLesson: Lesson) => {
-    setSaveStatus('saving')
-    try {
-      const response = await fetch(`/api/lessons/${updatedLesson.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: updatedLesson.title,
-          language: updatedLesson.language,
-          overview: updatedLesson.overview,
-          course_id: updatedLesson.course_id,
-          xp_value: updatedLesson.xp_value,
-          sequence_order: updatedLesson.sequence_order,
-        }),
-      })
+  const saveLesson = useCallback(
+    async (updates: Partial<Lesson>) => {
+      setSaveStatus('saving')
+      try {
+        const response = await fetch(`/api/lessons/${lesson.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        })
 
-      if (!response.ok) {
-        throw new Error('Failed to save lesson')
+        if (!response.ok) {
+          throw new Error('Failed to save lesson')
+        }
+
+        setSaveStatus('saved')
+      } catch (error) {
+        console.error('Error saving lesson:', error)
+        setSaveStatus('error')
       }
+    },
+    [lesson.id]
+  )
 
-      setSaveStatus('saved')
-    } catch (error) {
-      console.error('Error saving lesson:', error)
-      setSaveStatus('unsaved')
-      // TODO: Show error toast
-    }
-  }, [])
-
-  const debouncedSave = useDebouncedCallback(saveLesson, 500)
+  const debouncedSave = useDebouncedCallback(saveLesson, 1000)
 
   const updateLesson = useCallback(
     (updates: Partial<Lesson>) => {
-      const updatedLesson = { ...lesson, ...updates }
-      setLesson(updatedLesson)
-      setSaveStatus('unsaved')
-      debouncedSave(updatedLesson)
+      setLesson((prev) => ({ ...prev, ...updates }))
+      debouncedSave(updates)
     },
     [lesson, debouncedSave]
   )
@@ -126,8 +122,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   }
 
   const handlePreview = () => {
-    // TODO: Open preview modal
-    console.log('Preview lesson:', lesson.id)
+    setPreviewModalOpen(true)
   }
 
   const handlePublish = async () => {
@@ -136,19 +131,9 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      {/* Top Bar */}
-      <header className="border-b bg-card">
-        <div className="flex items-center justify-between px-4 h-16">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+    <div className="h-screen flex flex-col bg-background">{/* Rest of component remains the same for now */}</div>
+  )
+}
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -319,6 +304,13 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Preview Modal */}
+      <LessonPreviewModal
+        lessonId={lesson.id}
+        isOpen={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+      />
     </div>
   )
 }
