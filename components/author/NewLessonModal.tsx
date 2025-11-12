@@ -206,7 +206,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="es">Spanish (ES)</SelectItem>
-                  <SelectItem value="is">Icelandic (IS)</SelectItem>
+                  <SelectItem value="la">Latin (LA)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
