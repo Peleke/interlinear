@@ -115,6 +115,7 @@ export function GenerateLessonModal({
       stopPolling();
       setCurrentJobId(null);
       setGeneratorStatuses([]);
+      setIsGenerating(false); // Reset generating state when modal closes
     }
     return () => stopPolling();
   }, [open]);
