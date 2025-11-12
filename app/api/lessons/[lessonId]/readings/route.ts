@@ -42,7 +42,8 @@ export async function POST(
   try {
     const supabase = await createClient()
     const { lessonId } = await params
-    const { readingId } = await request.json()
+    const body = await request.json()
+    const readingId = body.reading_id || body.readingId
 
     if (!readingId) {
       return NextResponse.json({ error: 'Reading ID is required' }, { status: 400 })
