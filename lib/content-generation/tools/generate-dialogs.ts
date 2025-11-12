@@ -134,6 +134,8 @@ ${content}
 
 Task: Generate ${dialogCount} conversational dialogs with ${turnsPerDialog} turns each.
 
+IMPORTANT: Return ONLY valid JSON. Do not include any extra text, symbols, or formatting outside the JSON structure.
+
 Dialog Requirements:
 - Create realistic, natural conversations that ${targetLevel} learners would encounter
 - Each dialog should have a clear context/scenario (e.g., "At a restaurant", "Meeting a friend")

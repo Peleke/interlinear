@@ -197,15 +197,19 @@ export async function POST(
             conceptId = newConcept.id
           }
 
-          // Link to lesson
+          // Link to lesson (with upsert for duplicate handling)
           const { error: linkError } = await supabase
             .from('lesson_grammar_concepts')
-            .insert({
-              lesson_id: lessonId,
-              grammar_concept_id: conceptId,
-            })
-            .onConflict('lesson_id,grammar_concept_id')
-            .ignoreDuplicates()
+            .upsert(
+              {
+                lesson_id: lessonId,
+                grammar_concept_id: conceptId,
+              },
+              {
+                onConflict: 'lesson_id,grammar_concept_id',
+                ignoreDuplicates: true
+              }
+            )
 
           if (!linkError) {
             savedConcepts.push(conceptId)
