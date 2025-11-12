@@ -268,18 +268,21 @@ export async function POST(
         if (exerciseResult.status === 'completed' && exerciseResult.exercises) {
           // Save exercises
           for (const exercise of exerciseResult.exercises) {
+            console.log(`Saving exercise: ${exercise.prompt} → ${exercise.correct_answer}`)
             const { error: insertError } = await supabase
               .from('lesson_exercises')
               .insert({
                 lesson_id: lessonId,
                 exercise_type: type,
-                question: exercise.question,
-                answer: exercise.answer,
+                question: exercise.prompt, // Map 'prompt' to 'question' field
+                answer: exercise.correct_answer, // Map 'correct_answer' to 'answer' field
                 options: exercise.options || null,
                 difficulty_level: targetLevel,
               })
 
-            if (!insertError) {
+            if (insertError) {
+              console.error(`Failed to save exercise:`, insertError)
+            } else {
               totalExercises++
             }
           }
@@ -335,9 +338,9 @@ export async function POST(
             .from('lesson_dialogs')
             .insert({
               lesson_id: lessonId,
-              title: dialog.title,
+              title: dialog.context || 'Generated Dialog', // Use context as title
               context: dialog.context,
-              difficulty_level: dialog.difficulty_level,
+              difficulty_level: targetLevel, // Use reading's target level
             })
             .select('id')
             .single()
@@ -348,18 +351,25 @@ export async function POST(
           }
 
           // Insert exchanges
-          if (dialog.turns) {
+          if (dialog.turns && dialog.turns.length > 0) {
+            console.log(`Saving ${dialog.turns.length} exchanges for dialog ${dialogData.id}`)
             for (let i = 0; i < dialog.turns.length; i++) {
               const turn = dialog.turns[i]
-              await supabase.from('dialog_exchanges').insert({
+              const { error: exchangeError } = await supabase.from('dialog_exchanges').insert({
                 dialog_id: dialogData.id,
                 speaker: turn.speaker,
-                text: turn.text,
-                translation: turn.translation,
+                spanish: turn.text, // Map 'text' to 'spanish' field
+                english: turn.translation, // Map 'translation' to 'english' field
                 notes: turn.notes || null,
                 sequence_order: i + 1,
               })
+
+              if (exchangeError) {
+                console.error(`Failed to save exchange ${i + 1}:`, exchangeError)
+              }
             }
+          } else {
+            console.warn(`Dialog has no turns:`, dialog)
           }
 
           savedDialogs++
