@@ -57,6 +57,8 @@ export default function ExerciseBuilder({ lessonId }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [savingExerciseIndex, setSavingExerciseIndex] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
   // Language state for lesson (will be determined from lesson data or exercises)
   const [lessonLanguage, setLessonLanguage] = useState<LanguageCode>('es');
   const targetLanguage: LanguageCode = 'en'; // Always English for now
@@ -192,20 +194,32 @@ export default function ExerciseBuilder({ lessonId }: Props) {
     }
   };
 
-  const deleteExercise = async (exerciseId: string) => {
-    if (!confirm('Are you sure you want to delete this exercise?')) return;
+  const openDeleteModal = (exerciseId: string) => {
+    setExerciseToDelete(exerciseId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteExercise = async () => {
+    if (!exerciseToDelete) return;
 
     try {
-      const response = await fetch(`/api/exercises/${exerciseId}`, {
+      const response = await fetch(`/api/exercises/${exerciseToDelete}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
         await loadExercises();
+        setShowDeleteModal(false);
+        setExerciseToDelete(null);
       }
     } catch (error) {
       console.error("Failed to delete exercise:", error);
     }
+  };
+
+  const cancelDeleteExercise = () => {
+    setShowDeleteModal(false);
+    setExerciseToDelete(null);
   };
 
   const resetForm = () => {
@@ -566,7 +580,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => deleteExercise(exercise.id)}
+              onClick={() => openDeleteModal(exercise.id)}
               className="text-destructive hover:text-destructive"
             >
               <X className="h-4 w-4" />
@@ -698,6 +712,31 @@ export default function ExerciseBuilder({ lessonId }: Props) {
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-destructive" />
+              Delete Exercise
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete this exercise? This action cannot be undone.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={cancelDeleteExercise}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDeleteExercise}>
+                Delete Exercise
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
