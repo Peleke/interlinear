@@ -36,6 +36,7 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
+    language?: 'es' | 'la'
     courses?: {
       title: string
       difficulty_level: string
@@ -176,6 +177,7 @@ export function LessonViewer({
                       setting={dialog.setting || undefined}
                       exchanges={dialog.exchanges}
                       previewMode={previewMode}
+                      language={lesson.language || 'es'}
                     />
                   </div>
                 )}

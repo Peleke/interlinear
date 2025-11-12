@@ -6,7 +6,8 @@ import { z } from 'zod'
 const StartDialogRoleplayRequestSchema = z.object({
   dialogId: z.string().uuid(),
   selectedRole: z.string().min(1),
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 export async function POST(request: NextRequest) {

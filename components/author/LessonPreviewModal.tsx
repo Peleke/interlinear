@@ -31,6 +31,7 @@ interface LessonPreviewData {
     id: string
     title: string
     overview?: string | null
+    language?: 'es' | 'la'
     courses?: {
       title: string
       difficulty_level: string

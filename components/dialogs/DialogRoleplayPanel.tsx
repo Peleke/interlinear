@@ -31,6 +31,7 @@ interface DialogRoleplayPanelProps {
   setting?: string
   exchanges: DialogExchange[]
   courseDeckId?: string
+  language?: 'es' | 'la'
   onClose: () => void
 }
 
@@ -42,6 +43,7 @@ export function DialogRoleplayPanel({
   setting,
   exchanges,
   courseDeckId,
+  language = 'es',
   onClose
 }: DialogRoleplayPanelProps) {
   const [stage, setStage] = useState<RoleplayStage>('selection')
@@ -86,7 +88,8 @@ export function DialogRoleplayPanel({
         body: JSON.stringify({
           dialogId,
           selectedRole,
-          level: selectedLevel
+          level: selectedLevel,
+          language
         })
       })
 
@@ -139,7 +142,8 @@ export function DialogRoleplayPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          userResponse: userMessage
+          userResponse: userMessage,
+          language
         })
       })
 
@@ -206,7 +210,8 @@ export function DialogRoleplayPanel({
         body: JSON.stringify({
           sessionId,
           level: selectedLevel,
-          errors: allErrors
+          errors: allErrors,
+          language
         })
       })
 
@@ -374,7 +379,7 @@ export function DialogRoleplayPanel({
                   variant="outline"
                   className="border-red-500 bg-white text-red-700 hover:bg-red-50"
                 >
-                  Terminar Diálogo
+                  {language === 'la' ? 'End Dialog' : 'Terminar Diálogo'}
                 </Button>
               </div>
             </form>

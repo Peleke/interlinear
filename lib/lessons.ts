@@ -5,7 +5,7 @@ export interface CreateLessonParams {
   title: string
   author_id: string
   overview?: string
-  language?: 'es' | 'is'
+  language?: 'es' | 'la'
   xp_value?: number
   sequence_order?: number
 }
@@ -13,7 +13,7 @@ export interface CreateLessonParams {
 export interface UpdateLessonParams {
   title?: string
   overview?: string
-  language?: 'es' | 'is'
+  language?: 'es' | 'la'
   course_id?: string | null
   xp_value?: number
   sequence_order?: number
@@ -22,7 +22,7 @@ export interface UpdateLessonParams {
 export interface ListLessonsParams {
   author_id?: string
   status?: 'draft' | 'published' | 'archived'
-  language?: 'es' | 'is'
+  language?: 'es' | 'la'
   sort_by?: 'updated_at' | 'title' | 'sequence_order'
   sort_order?: 'asc' | 'desc'
   limit?: number

@@ -86,12 +86,14 @@ const GenerateReviewSchema = z.object({
 const StartDialogRoleplaySchema = z.object({
   dialogId: z.string().uuid(),
   selectedRole: z.string().min(1),
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 const ContinueDialogRoleplaySchema = z.object({
   sessionId: z.string().uuid(),
-  userResponse: z.string().min(1).max(1000)
+  userResponse: z.string().min(1).max(1000),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 // Structured output schemas
@@ -113,6 +115,18 @@ const ProfessorOverviewOutputSchema = z.object({
 
 const ProfessorReviewOutputSchema = z.object({
   rating: z.enum(['Excelente', 'Muy Bien', 'Bien', 'Necesita Práctica']),
+  summary: z.string().min(50),
+  strengths: z.array(z.string()).min(2).max(3),
+  improvements: z.array(z.string()).min(1).max(2),
+  errorBreakdown: z.object({
+    grammar: z.number().int().min(0),
+    vocabulary: z.number().int().min(0),
+    syntax: z.number().int().min(0)
+  })
+})
+// English version for Latin lessons
+const ProfessorReviewOutputSchemaEN = z.object({
+  rating: z.enum(['Excellent', 'Very Good', 'Good', 'Needs Practice']),
   summary: z.string().min(50),
   strengths: z.array(z.string()).min(2).max(3),
   improvements: z.array(z.string()).min(1).max(2),
@@ -701,9 +715,20 @@ export const generateProfessorReviewTool = tool(
 
     if (turnsError) throw turnsError
 
+    // Build language-appropriate transcript labels
+    const getTranscriptLabels = () => {
+      if (language === 'la') {
+        return { turnLabel: 'Turn', studentLabel: 'Student' }
+      } else {
+        return { turnLabel: 'Turno', studentLabel: 'Estudiante' }
+      }
+    }
+
+    const { turnLabel, studentLabel } = getTranscriptLabels()
+
     // Build conversation transcript
     const transcript = turns.map((turn) => {
-      return `Turno ${turn.turn_number}:\nEstudiante: ${turn.user_response}`
+      return `${turnLabel} ${turn.turn_number}:\n${studentLabel}: ${turn.user_response}`
     }).join('\n\n')
 
     // Calculate error breakdown
@@ -713,22 +738,60 @@ export const generateProfessorReviewTool = tool(
       syntax: errors.filter(e => e.category === 'syntax').length
     }
 
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o",
       temperature: 0.7
-    }).withStructuredOutput(ProfessorReviewOutputSchema)
+    })
 
-    // Generate language-appropriate professor review prompt
-    const getReviewPrompt = () => {
+    // Generate fully language-appropriate professor review prompt
+    const getSystemPrompt = () => {
+      const ratingOptions = language === 'la' 
+        ? '"Excellent", "Very Good", "Good", "Needs Practice"'
+        : '"Excelente", "Muy Bien", "Bien", "Necesita Práctica"'
+
       if (language === 'la') {
-        return `You are an experienced and ENCOURAGING Latin professor evaluating a level ${level} student.`
-      } else {
-        return `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.`
-      }
-    }
+        return `You are an experienced and ENCOURAGING Latin professor evaluating a level ${level} student.
 
-    const systemPrompt = `${getReviewPrompt()}
+CONVERSATION:
+${transcript}
+
+ERRORS MADE (${errors.length} total):
+${errors.map(e => `- ${e.errorText} → ${e.correction} (${e.category})`).join('\n')}
+
+BREAKDOWN:
+- Grammar: ${errorBreakdown.grammar}
+- Vocabulary: ${errorBreakdown.vocabulary}
+- Syntax: ${errorBreakdown.syntax}
+
+Provide a POSITIVE AND ENCOURAGING evaluation in English. Respond with valid JSON using this exact structure:
+
+{
+  "rating": "one of: ${ratingOptions}",
+  "summary": "encouraging paragraph (2-3 sentences) in English",
+  "strengths": ["specific thing 1", "specific thing 2", "specific thing 3"],
+  "improvements": ["constructive suggestion 1", "constructive suggestion 2"],
+  "errorBreakdown": {
+    "grammar": ${errorBreakdown.grammar},
+    "vocabulary": ${errorBreakdown.vocabulary},
+    "syntax": ${errorBreakdown.syntax}
+  }
+}
+
+RATING GUIDELINES:
+- "Excellent": 0-2 errors
+- "Very Good": 3-5 errors  
+- "Good": 6-8 errors
+- "Needs Practice": 9+ errors
+
+IMPORTANT:
+- ALWAYS be positive and encouraging
+- Focus on growth, not errors
+- Make the student feel good about their progress
+- Provide feedback in clear, warm English
+- MUST return valid JSON only`
+      } else {
+        return `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.
 
 CONVERSACIÓN:
 ${transcript}
@@ -741,51 +804,45 @@ DESGLOSE:
 - Vocabulario: ${errorBreakdown.vocabulary}
 - Sintaxis: ${errorBreakdown.syntax}
 
-Proporciona una evaluación POSITIVA Y ALENTADORA:
+Proporciona una evaluación POSITIVA Y ALENTADORA. Responde con JSON válido usando esta estructura exacta:
 
-1. CALIFICACIÓN (rating):
-   - "Excelente": 0-2 errores
-   - "Muy Bien": 3-5 errores
-   - "Bien": 6-8 errores
-   - "Necesita Práctica": 9+ errores
+{
+  "rating": "uno de: ${ratingOptions}",
+  "summary": "párrafo alentador (2-3 oraciones)",
+  "strengths": ["cosa específica 1", "cosa específica 2", "cosa específica 3"],
+  "improvements": ["sugerencia constructiva 1", "sugerencia constructiva 2"],
+  "errorBreakdown": {
+    "grammar": ${errorBreakdown.grammar},
+    "vocabulary": ${errorBreakdown.vocabulary},
+    "syntax": ${errorBreakdown.syntax}
+  }
+}
 
-2. RESUMEN (summary):
-   - Párrafo alentador (2-3 oraciones)
-   - SIEMPRE empieza con algo positivo
-   - Menciona el esfuerzo y progreso
-   - Usa tono cálido y motivador
-   - NO seas crítico ni negativo
-
-3. FORTALEZAS (strengths):
-   - 2-3 cosas ESPECÍFICAS que el estudiante hizo bien
-   - Puede ser uso correcto de vocabulario, gramática, fluidez, etc.
-   - Sé específico y genuino
-
-4. ÁREAS DE MEJORA (improvements):
-   - 1-2 sugerencias CONSTRUCTIVAS
-   - Enfócate en las categorías con más errores
-   - Usa lenguaje positivo: "Puedes mejorar..." no "Fallaste en..."
-   - Ofrece consejos prácticos
-
-5. DESGLOSE DE ERRORES (errorBreakdown):
-   - Ya calculado, solo devuélvelo
+GUÍAS DE CALIFICACIÓN:
+- "Excelente": 0-2 errores
+- "Muy Bien": 3-5 errores
+- "Bien": 6-8 errores
+- "Necesita Práctica": 9+ errores
 
 IMPORTANTE:
-${language === 'la' ?
-  `- ALWAYS be positive and encouraging
-- Focus on growth, not errors
-- Make the student feel good about their progress
-- Provide feedback in clear, warm English (since Latin conversation assessment is complex)` :
-  `- SIEMPRE sé positivo y alentador
+- SIEMPRE sé positivo y alentador
 - Enfócate en el crecimiento, no en los errores
 - Haz que el estudiante se sienta bien con su progreso
-- Usa español natural y cálido`}`
+- DEBE devolver solo JSON válido`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
-      return await invokeWithTimeout(
+      const response = await invokeWithTimeout(
         model.invoke([{ role: "system", content: systemPrompt }]),
         30000
       )
+      
+      // Parse JSON response manually
+      const content = response.content as string
+      return JSON.parse(content)
     }) as ProfessorReview
 
     return {
@@ -805,7 +862,7 @@ ${language === 'la' ?
 // ============================================================================
 
 export const startDialogRoleplayTool = tool(
-  async ({ dialogId, selectedRole, level }) => {
+  async ({ dialogId, selectedRole, level, language = 'es' }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -867,7 +924,30 @@ export const startDialogRoleplayTool = tool(
       temperature: 0.7
     })
 
-    const systemPrompt = `Eres ${oppositeCharacter} en este diálogo en español.
+    // Generate language-appropriate system prompt
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `You are ${oppositeCharacter} in this Latin dialogue.
+
+CONTEXT: ${dialog.context || 'N/A'}
+${dialog.setting ? `SETTING: ${dialog.setting}` : ''}
+
+ORIGINAL DIALOGUE (for reference):
+${formattedExchanges}
+
+The student is playing the role of ${selectedRole} at level ${level}.
+
+Instructions:
+- Stay in character as ${oppositeCharacter}
+- Begin the conversation naturally
+- Match the general tone of the original dialogue
+- Use vocabulary appropriate for level ${level}
+- Be warm and encouraging
+- Speak ONLY in Latin appropriate for level ${level}
+
+Generate your first line as ${oppositeCharacter}:`
+      } else {
+        return `Eres ${oppositeCharacter} en este diálogo en español.
 
 CONTEXTO: ${dialog.context || 'N/A'}
 ${dialog.setting ? `ESCENARIO: ${dialog.setting}` : ''}
@@ -886,6 +966,10 @@ Instrucciones:
 - Habla SOLO en español
 
 Genera tu primera línea como ${oppositeCharacter}:`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const response = await retryWithBackoff(async () => {
       return await invokeWithTimeout(
@@ -933,13 +1017,12 @@ Genera tu primera línea como ${oppositeCharacter}:`
 // ============================================================================
 
 export const continueDialogRoleplayTool = tool(
-  async ({ sessionId, userResponse }) => {
+  async ({ sessionId, userResponse, language = 'es' }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    // Get language from session context (default to Spanish for now)
-    const language = 'es' // TODO: Get from session metadata
+    // Language is now passed as parameter from API
 
     // Get session with dialog
     const { data: session, error: sessionError } = await supabase
@@ -989,7 +1072,25 @@ export const continueDialogRoleplayTool = tool(
       temperature: 0.7
     })
 
-    const systemPrompt = `Eres ${oppositeCharacter} en este diálogo.
+    // Generate language-appropriate system prompt
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `You are ${oppositeCharacter} in this Latin dialogue.
+
+Conversation so far:
+${history}
+
+${session.selected_role} responded: "${userResponse}"
+
+${shouldEnd ? 'This is the final response. End the conversation naturally.' : 'Continue the conversation:'}
+- Stay in character as ${oppositeCharacter}
+- Respond naturally
+- Use level ${session.level} vocabulary
+- ${shouldEnd ? 'Say goodbye kindly' : 'Keep the conversation flowing'}
+
+Respond ONLY in Latin appropriate for level ${session.level} as ${oppositeCharacter}:`
+      } else {
+        return `Eres ${oppositeCharacter} en este diálogo.
 
 Conversación hasta ahora:
 ${history}
@@ -1003,6 +1104,10 @@ ${shouldEnd ? 'Esta es la última respuesta. Finaliza la conversación naturalme
 - ${shouldEnd ? 'Despídete amablemente' : 'Mantén la conversación fluida'}
 
 Responde SOLO en español como ${oppositeCharacter}:`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const response = await retryWithBackoff(async () => {
       return await invokeWithTimeout(
