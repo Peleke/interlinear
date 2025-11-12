@@ -258,7 +258,6 @@ export function GenerateLessonModal({
       // Store job ID and start polling
       if (result.jobId) {
         console.log(`[Generate] Job created: ${result.jobId}, starting polling...`);
-        alert(`DEBUG: Job created ${result.jobId}, starting polling!`); // AGGRESSIVE DEBUG
         setCurrentJobId(result.jobId);
 
         // Start polling every 2 seconds
@@ -332,17 +331,18 @@ export function GenerateLessonModal({
               Generating lesson content... This may take a few minutes.
             </div>
 
-            <div className="text-center mb-4">
+            <div className="text-center mb-6">
               <Button
-                variant="outline"
-                size="sm"
+                variant="default"
+                size="lg"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2.5 rounded-lg font-medium"
                 onClick={() => {
                   console.log('[Dismiss] User dismissed generation modal')
                   setIsGenerating(false)
                   onOpenChange(false)
                 }}
               >
-                Dismiss
+                Dismiss & Continue Working
               </Button>
             </div>
 

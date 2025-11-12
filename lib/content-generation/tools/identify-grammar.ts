@@ -27,7 +27,7 @@ const GrammarConceptSchema = z.object({
   cefr_level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
   description: z.string(), // Brief description of the concept
   content: z.string(), // Detailed explanation with examples
-  example_from_text: z.string(),
+  example_from_text: z.string().optional(),
   additional_examples: z.array(z.string()).optional(),
 })
 
