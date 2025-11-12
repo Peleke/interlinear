@@ -323,11 +323,14 @@ export const continueDialogTool = tool(
     // Get session
     const { data: session, error: sessionError } = await supabase
       .from('tutor_sessions')
-      .select('*, library_texts(*)')
+      .select('*')
       .eq('id', sessionId)
       .single()
 
     if (sessionError || !session) throw new Error('Session not found')
+
+    // Get text separately (no foreign key constraint after migration)
+    const text = await LibraryService.getText(session.text_id)
 
     // Get language from session context (default to Spanish for now)
     const language = 'es' // TODO: Get from session metadata
