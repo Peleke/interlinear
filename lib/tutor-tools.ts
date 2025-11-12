@@ -332,8 +332,8 @@ export const continueDialogTool = tool(
     // Get text separately (no foreign key constraint after migration)
     const text = await LibraryService.getText(session.text_id)
 
-    // Get language from session context (default to Spanish for now)
-    const language = 'es' // TODO: Get from session metadata
+    // Get language from the text
+    const language = (text.language as 'es' | 'la') || 'es'
 
     // Get conversation history
     const { data: turns, error: turnsError } = await supabase
@@ -344,9 +344,17 @@ export const continueDialogTool = tool(
 
     if (turnsError) throw turnsError
 
-    // Build conversation history
+    // Build conversation history with language-appropriate labels
+    const getLabels = (lang: string) => {
+      if (lang === 'la') {
+        return { tutor: 'Magister', student: 'Discipulus' };
+      }
+      return { tutor: 'Tutor', student: 'Estudiante' };
+    };
+
+    const labels = getLabels(language);
     const history = turns.map(turn => {
-      return `Tutor: ${turn.ai_message}${turn.user_response ? `\nEstudiante: ${turn.user_response}` : ''}`
+      return `${labels.tutor}: ${turn.ai_message}${turn.user_response ? `\n${labels.student}: ${turn.user_response}` : ''}`
     }).join('\n\n')
 
     const nextTurnNumber = turns.length + 1
@@ -358,7 +366,27 @@ export const continueDialogTool = tool(
       temperature: 0.7
     })
 
-    const systemPrompt = `Eres un tutor de español nivel ${session.level}.
+    // Generate language-specific system prompt
+    const generateSystemPrompt = () => {
+      if (language === 'la') {
+        return `You are a Latin conversation tutor for level ${session.level}.
+Conversation so far:
+${history}
+
+The student responded: "${userResponse}"
+
+${shouldEnd ? 'This is the final question. Thank the student and suggest ending the session with "Excellent practice! Let us review what you have learned."' : 'Continue the conversation:'}
+- Acknowledge their response
+- ${shouldEnd ? 'End the conversation naturally' : 'Ask a follow-up question'}
+- Use vocabulary from the text
+- Maintain level ${session.level}
+- Be encouraging
+
+Respond ONLY in Latin appropriate for level ${session.level}.
+
+Your response:`
+      } else {
+        return `Eres un tutor de español nivel ${session.level}.
 Conversación hasta ahora:
 ${history}
 
@@ -374,6 +402,10 @@ ${shouldEnd ? 'Esta es la última pregunta. Agradece al estudiante y sugiere ter
 Responde SOLO en español.
 
 Tu respuesta:`
+      }
+    };
+
+    const systemPrompt = generateSystemPrompt();
 
     const response = await retryWithBackoff(async () => {
       return await invokeWithTimeout(

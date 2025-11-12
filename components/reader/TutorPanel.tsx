@@ -215,7 +215,10 @@ export function TutorPanel({ textId, language }: TutorPanelProps) {
             className="w-full"
             size="lg"
           >
-            {loading ? 'Starting...' : 'Start Dialog'}
+{loading ?
+              (language === 'la' ? 'Starting...' : 'Iniciando...') :
+              (language === 'la' ? 'Start Dialog' : 'Iniciar Diálogo')
+            }
           </Button>
         </div>
       )}
@@ -227,6 +230,7 @@ export function TutorPanel({ textId, language }: TutorPanelProps) {
           initialMessages={messages}
           onMessagesUpdate={setMessages}
           onEnd={handleEndDialog}
+          language={language}
         />
       )}
 
