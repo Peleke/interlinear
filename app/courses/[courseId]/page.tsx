@@ -72,7 +72,7 @@ export default async function CoursePage({
         <div className="max-w-4xl mx-auto px-6 py-12">
           <div className="flex items-center gap-2 mb-4">
             <span className="inline-block px-3 py-1 text-sm font-medium bg-white text-sepia-700 rounded border border-sepia-200">
-              {course.level}
+              {course.difficulty_level}
             </span>
             <span className="inline-block px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded border border-green-200">
               Enrolled
@@ -95,7 +95,7 @@ export default async function CoursePage({
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              <span>{course.level} Level</span>
+              <span>{course.difficulty_level} Level</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5" />

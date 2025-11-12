@@ -131,7 +131,7 @@ export default async function DashboardPage() {
                   id={course.id}
                   title={course.title}
                   description={course.description}
-                  level={course.level}
+                  level={course.difficulty_level}
                   lessonCount={course.lessonCount}
                   progress={course.progress}
                   isEnrolled={true}

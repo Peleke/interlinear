@@ -20,7 +20,7 @@ export default async function CoursesPage() {
   const { data: courses, error: coursesError } = await supabase
     .from('courses')
     .select('*')
-    .order('level', { ascending: true })
+    .order('difficulty_level', { ascending: true })
 
   if (coursesError) {
     console.error('Failed to fetch courses:', coursesError)
@@ -85,7 +85,7 @@ export default async function CoursesPage() {
                 id={course.id}
                 title={course.title}
                 description={course.description}
-                level={course.level}
+                level={course.difficulty_level}
                 lessonCount={course.lessonCount}
                 estimatedHours={Math.ceil((course.lessonCount * 30) / 60)}
                 isEnrolled={course.isEnrolled}
