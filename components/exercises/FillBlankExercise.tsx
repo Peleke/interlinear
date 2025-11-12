@@ -6,6 +6,7 @@ import { Loader2, CheckCircle, XCircle, BookmarkPlus } from 'lucide-react'
 interface FillBlankExerciseProps {
   exerciseId: string
   prompt: string
+  correctAnswer?: string
   spanishText?: string
   englishText?: string
   courseDeckId?: string
@@ -22,6 +23,7 @@ interface ExerciseResult {
 export default function FillBlankExercise({
   exerciseId,
   prompt,
+  correctAnswer,
   spanishText,
   englishText,
   courseDeckId,
@@ -46,25 +48,47 @@ export default function FillBlankExercise({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/exercises/${exerciseId}/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_answer: userAnswer })
-      })
+      if (previewMode) {
+        // Mock response in preview mode - simulate correct/incorrect based on actual answer
+        const isCorrect = correctAnswer && userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+        const mockData = {
+          is_correct: isCorrect || false,
+          correct_answer: correctAnswer || 'No answer provided',
+          xp_earned: isCorrect ? 10 : 0
+        }
 
-      if (!response.ok) {
-        throw new Error('Validation failed')
-      }
+        // Simulate network delay for realistic preview
+        await new Promise(resolve => setTimeout(resolve, 500))
 
-      const data = await response.json()
-      setResult(data)
+        setResult(mockData)
 
-      if (onComplete) {
-        onComplete(data.is_correct, data.xp_earned)
+        if (onComplete) {
+          onComplete(mockData.is_correct, mockData.xp_earned)
+        }
+      } else {
+        // Real API call in non-preview mode
+        const response = await fetch(`/api/exercises/${exerciseId}/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_answer: userAnswer })
+        })
+
+        if (!response.ok) {
+          throw new Error('Validation failed')
+        }
+
+        const data = await response.json()
+        setResult(data)
+
+        if (onComplete) {
+          onComplete(data.is_correct, data.xp_earned)
+        }
       }
     } catch (error) {
       console.error('Exercise submission error:', error)
-      alert('Failed to submit answer. Please try again.')
+      if (!previewMode) {
+        alert('Failed to submit answer. Please try again.')
+      }
     } finally {
       setIsSubmitting(false)
     }

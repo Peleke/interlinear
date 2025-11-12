@@ -44,21 +44,41 @@ export default function MultipleChoiceExercise({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`/api/exercises/${exerciseId}/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer: selectedChoice })
-      })
+      if (previewMode) {
+        // Mock response in preview mode - simulate correct/incorrect based on actual answer
+        const isCorrect = correctAnswer && selectedChoice.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
+        const mockData = {
+          is_correct: isCorrect || false,
+          correct_answer: correctAnswer || 'No correct answer available',
+          xp_earned: isCorrect ? 10 : 0
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to validate exercise')
-      }
+        // Simulate network delay for realistic preview
+        await new Promise(resolve => setTimeout(resolve, 500))
 
-      const data = await response.json()
-      setResult(data)
+        setResult(mockData)
 
-      if (onComplete) {
-        onComplete(data.is_correct, data.xp_earned || 0)
+        if (onComplete) {
+          onComplete(mockData.is_correct, mockData.xp_earned)
+        }
+      } else {
+        // Real API call in non-preview mode
+        const response = await fetch(`/api/exercises/${exerciseId}/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answer: selectedChoice })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to validate exercise')
+        }
+
+        const data = await response.json()
+        setResult(data)
+
+        if (onComplete) {
+          onComplete(data.is_correct, data.xp_earned || 0)
+        }
       }
     } catch (error) {
       console.error('Error validating exercise:', error)

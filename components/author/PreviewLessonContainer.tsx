@@ -5,6 +5,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Eye } from 'lucide-react'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
+import MultipleChoiceExercise from '@/components/exercises/MultipleChoiceExercise'
+import TranslationExercise from '@/components/exercises/TranslationExercise'
 import DialogViewer from '@/components/dialogs/DialogViewer'
 
 interface DialogExchange {
@@ -344,17 +346,67 @@ export function LessonViewer({
               </div>
               {exercisesExpanded && (
                 <div className="space-y-6">
-                  {exercises.map((exercise) => (
-                    <FillBlankExercise
-                      key={exercise.id}
-                      exerciseId={exercise.id}
-                      prompt={exercise.prompt}
-                      spanishText={exercise.spanish_text || undefined}
-                      englishText={exercise.english_text || undefined}
-                      previewMode={previewMode}
-                      onComplete={() => handlePreviewExerciseComplete(exercise.id)}
-                    />
-                  ))}
+                  {exercises.map((exercise, index) => {
+                    // Determine exercise type - handle both old and new structure
+                    const exerciseType = exercise.type || exercise.exercise_type || 'fill_blank'
+
+                    // Render appropriate exercise component based on type
+                    switch (exerciseType) {
+                      case 'fill_blank':
+                        return (
+                          <FillBlankExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            previewMode={previewMode}
+                            onComplete={() => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      case 'multiple_choice':
+                        return (
+                          <MultipleChoiceExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            choices={exercise.options?.choices || exercise.options || []}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            previewMode={previewMode}
+                            onComplete={(isCorrect: boolean, xpEarned: number) => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      case 'translation':
+                        return (
+                          <TranslationExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            direction={exercise.direction}
+                            previewMode={previewMode}
+                            onComplete={(isCorrect: boolean, xpEarned: number) => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      default:
+                        // Fallback for unknown exercise types
+                        return (
+                          <div key={exercise.id || index} className="border border-sepia-200 rounded-lg p-4">
+                            <h3 className="font-semibold text-sepia-900 mb-2">
+                              Exercise {index + 1} - Type: {exerciseType} (Unsupported)
+                            </h3>
+                            <p className="text-sm text-amber-600">
+                              This exercise type is not yet supported in preview mode.
+                            </p>
+                          </div>
+                        )
+                    }
+                  })}
                 </div>
               )}
             </div>

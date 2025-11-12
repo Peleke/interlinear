@@ -101,15 +101,26 @@ export async function GET(
       console.error('Readings fetch error:', readingsError)
     }
 
-    // Get exercises
-    const { data: exercises, error: exercisesError } = await supabase
+    // Get OLD structure exercises
+    const { data: oldExercises, error: oldExercisesError } = await supabase
       .from('exercises')
       .select('*')
       .eq('lesson_id', lessonId)
       .order('created_at')
 
-    if (exercisesError) {
-      console.error('Exercises fetch error:', exercisesError)
+    if (oldExercisesError) {
+      console.error('Old exercises fetch error:', oldExercisesError)
+    }
+
+    // Get NEW structure exercises
+    const { data: newExercises, error: newExercisesError } = await supabase
+      .from('lesson_exercises')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .order('created_at')
+
+    if (newExercisesError) {
+      console.error('New exercises fetch error:', newExercisesError)
     }
 
     // Get dialogs
@@ -161,6 +172,13 @@ export async function GET(
       console.error('Grammar concepts fetch error:', grammarError)
     }
 
+    // Detect which structure this lesson uses (like in live lesson page)
+    const hasOldStructure = (lessonContent && lessonContent.length > 0) || (oldExercises && oldExercises.length > 0)
+    const hasNewStructure = (newExercises && newExercises.length > 0) || (grammarConcepts && grammarConcepts.length > 0)
+
+    // Use appropriate exercise data based on structure
+    const exercises = hasNewStructure ? (newExercises || []) : (oldExercises || [])
+
     // Format the response for the preview modal
     const previewData = {
       lesson: {
@@ -171,9 +189,9 @@ export async function GET(
       },
       lessonContent: lessonContent || [],
       readings: readings || [],
-      exercises: exercises || [],
+      exercises: exercises,
       dialogs: formattedDialogs,
-      grammarConcepts: (grammarConcepts || []).map((gc: any) => gc.grammar_concepts)
+      grammarConcepts: (grammarConcepts || []).map((gc: any) => gc.grammar_concepts).filter(Boolean)
     }
 
     return NextResponse.json(previewData)
