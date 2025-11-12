@@ -10,7 +10,6 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertTriangle, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -92,23 +91,23 @@ export default function UnpublishConfirmationModal({
         </DialogHeader>
 
         <div className="space-y-4">
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
+          <div className="flex p-4 rounded-lg border border-amber-200 bg-amber-50">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="text-sm text-amber-800">
               <strong>This action will:</strong>
-              <ul className="mt-2 ml-4 list-disc space-y-1 text-sm">
+              <ul className="mt-2 ml-4 list-disc space-y-1">
                 <li>Remove the lesson from learner course views</li>
                 <li>Make the lesson inaccessible to students</li>
                 <li>Allow you to edit the lesson again</li>
               </ul>
-            </AlertDescription>
-          </Alert>
+            </div>
+          </div>
 
           {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="flex p-4 rounded-lg border border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+              <div className="text-sm text-red-800">{error}</div>
+            </div>
           )}
 
           <div className="flex gap-3 justify-end">
