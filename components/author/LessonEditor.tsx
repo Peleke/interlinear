@@ -26,6 +26,7 @@ import GrammarConceptSelector from './GrammarConceptSelector'
 import ExerciseBuilder from './ExerciseBuilder'
 import ReadingLinker from './ReadingLinker'
 import LessonPreviewModal from './LessonPreviewModal'
+import PublishConfirmationModal from './PublishConfirmationModal'
 
 type TabId = 'metadata' | 'dialogs' | 'vocabulary' | 'grammar' | 'exercises' | 'readings'
 type LessonStatus = 'draft' | 'published' | 'archived'
@@ -40,6 +41,10 @@ interface Lesson {
   xp_value: number
   sequence_order: number
   updated_at: string
+  published_at?: string | null
+  published_by?: string | null
+  version: number
+  author_id: string
   course?: {
     id: string
     title: string
@@ -81,6 +86,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const [lesson, setLesson] = useState(initialLesson)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [publishModalOpen, setPublishModalOpen] = useState(false)
 
   // Auto-save with debouncing (500ms after last edit)
   const saveLesson = useCallback(async (updatedLesson: Lesson) => {
@@ -131,10 +137,26 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
     setPreviewModalOpen(true)
   }
 
-  const handlePublish = async () => {
-    // TODO: Implement publish workflow
-    console.log('Publish lesson:', lesson.id)
+  const handlePublish = () => {
+    setPublishModalOpen(true)
   }
+
+  const handlePublishSuccess = () => {
+    // Refresh the lesson data to get updated published status
+    setLesson(prev => ({
+      ...prev,
+      published_at: new Date().toISOString(),
+      published_by: userId,
+      version: prev.version + 1,
+      status: 'published'
+    }))
+  }
+
+  // Check if lesson is published
+  const isPublished = lesson.published_at !== null && lesson.published_at !== undefined
+
+  // Check if user can edit this lesson
+  const canEdit = lesson.author_id === userId && !isPublished
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -194,7 +216,11 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
                 <Eye className="mr-2 h-4 w-4" />
                 Preview
               </Button>
-              {lesson.status === 'draft' && (
+              {isPublished ? (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Published v{lesson.version}
+                </Badge>
+              ) : (
                 <Button size="sm" onClick={handlePublish}>
                   <Send className="mr-2 h-4 w-4" />
                   Publish
@@ -247,7 +273,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-4xl mx-auto">
             {/* Published Lesson Warning */}
-            {lesson.status === 'published' && (
+            {isPublished && (
               <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
@@ -326,6 +352,15 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
         lessonId={lesson.id}
         isOpen={previewModalOpen}
         onClose={() => setPreviewModalOpen(false)}
+      />
+
+      {/* Publish Modal */}
+      <PublishConfirmationModal
+        lessonId={lesson.id}
+        lessonTitle={lesson.title}
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        onPublishSuccess={handlePublishSuccess}
       />
     </div>
   )
