@@ -280,9 +280,11 @@ export async function POST(
               .insert({
                 lesson_id: lessonId,
                 exercise_type: type,
-                question: exercise.prompt, // Map 'prompt' to 'question' field
-                answer: exercise.correct_answer, // Map 'correct_answer' to 'answer' field
+                prompt: exercise.prompt, // Direct field mapping - DB has 'prompt'
+                answer: exercise.correct_answer, // Map 'correct_answer' to 'answer'
                 options: exercise.options || null,
+                xp_value: 10, // Default XP value
+                sequence_order: totalExercises, // Simple ordering by creation
               })
 
             if (insertError) {
@@ -363,7 +365,6 @@ export async function POST(
                 speaker: turn.speaker,
                 spanish: turn.text, // Map 'text' to 'spanish' field
                 english: turn.translation, // Map 'translation' to 'english' field
-                notes: turn.notes || null,
                 sequence_order: i + 1,
               })
 
