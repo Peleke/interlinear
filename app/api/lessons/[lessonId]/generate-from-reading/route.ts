@@ -165,11 +165,11 @@ export async function POST(
         })
 
         // AUTO-SAVE: Convert vocabulary to approval format and save to lesson
-        if (vocabResult.metadata?.vocabularyDetails && vocabResult.metadata.vocabularyDetails.length > 0) {
+        if (vocabResult.vocabulary && vocabResult.vocabulary.length > 0) {
           try {
-            console.log(`[Orchestration] Auto-saving ${vocabResult.metadata.vocabularyDetails.length} vocabulary items...`)
+            console.log(`[Orchestration] Auto-saving ${vocabResult.vocabulary.length} vocabulary items...`)
 
-            const vocabularyItems = vocabResult.metadata.vocabularyDetails.map((item: any) => ({
+            const vocabularyItems = vocabResult.vocabulary.map((item: any) => ({
               word: item.word || item.lemma,
               english_translation: item.definition || `Definition for ${item.word || item.lemma}`,
               part_of_speech: mapPartOfSpeech(item.partOfSpeech),
@@ -180,23 +180,70 @@ export async function POST(
               normalized_form: item.lemma || item.word,
             }))
 
-            // Call vocabulary approval API
-            const approvalResponse = await fetch(`${request.url.split('/generate-from-reading')[0]}/vocabulary/approve`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                vocabulary: vocabularyItems,
-                language: language as 'es' | 'la',
-              }),
-            })
+            // Save vocabulary directly to database (avoiding fetch 401 issue)
+            const vocabularyItemRecords = vocabularyItems.map((item) => ({
+              spanish: item.word,
+              english: item.english_translation,
+              part_of_speech: item.part_of_speech,
+              difficulty_level: item.difficulty_level,
+              language: language, // Add language column for multi-language support
+              ai_generated: true,
+              ai_metadata: {
+                source: 'vocabulary-extraction-workflow',
+                timestamp: new Date().toISOString(),
+                approved_by: user.id,
+                example_sentence: item.example_sentence,
+                frequency_score: item.frequency,
+                appears_in_reading: item.appears_in_reading,
+                normalized_form: item.normalized_form,
+                language: language,
+              },
+            }))
 
-            if (approvalResponse.ok) {
-              console.log(`[Orchestration] Successfully auto-saved ${vocabularyItems.length} vocabulary items`)
-              results.vocabulary.autoSaved = true
-              results.vocabulary.savedCount = vocabularyItems.length
+            const { data: insertedVocabItems, error: itemsError } = await supabase
+              .from('lesson_vocabulary_items')
+              .upsert(vocabularyItemRecords, {
+                onConflict: 'spanish,english,language',
+                ignoreDuplicates: false,
+              })
+              .select('id, spanish, english')
+
+            if (itemsError) {
+              console.error('[Orchestration] Failed to save vocabulary items:', itemsError)
+              results.vocabulary.autoSaveError = 'Failed to save vocabulary items'
+            } else if (!insertedVocabItems || insertedVocabItems.length === 0) {
+              console.error('[Orchestration] No vocabulary items returned after insert')
+              results.vocabulary.autoSaveError = 'Failed to create vocabulary items'
             } else {
-              console.error('[Orchestration] Failed to auto-save vocabulary:', await approvalResponse.text())
-              results.vocabulary.autoSaveError = 'Failed to save vocabulary to lesson'
+              // Create lesson-vocabulary associations
+              const junctionRecords = insertedVocabItems.map((item) => ({
+                lesson_id: lessonId,
+                vocabulary_id: item.id,
+                is_new: true,
+                ai_generated: true,
+                ai_metadata: {
+                  source: 'vocabulary-extraction-workflow',
+                  timestamp: new Date().toISOString(),
+                  approved_by: user.id,
+                },
+              }))
+
+              const { data: insertedAssociations, error: junctionError } = await supabase
+                .from('lesson_vocabulary')
+                .upsert(junctionRecords, {
+                  onConflict: 'lesson_id,vocabulary_id',
+                  ignoreDuplicates: true,
+                })
+                .select()
+
+              if (junctionError) {
+                console.error('[Orchestration] Failed to create lesson associations:', junctionError)
+                results.vocabulary.autoSaveError = 'Failed to link vocabulary to lesson'
+              } else {
+                console.log(`[Orchestration] Successfully auto-saved ${insertedVocabItems.length} vocabulary items`)
+                results.vocabulary.autoSaved = true
+                results.vocabulary.savedCount = insertedVocabItems.length
+              }
             }
           } catch (error) {
             console.error('[Orchestration] Auto-save vocabulary error:', error)
@@ -350,6 +397,21 @@ export async function POST(
           // Save exercises
           for (const exercise of exerciseResult.exercises) {
             console.log(`Saving exercise: ${exercise.prompt} → ${exercise.correct_answer}`)
+
+            // Detect translation direction for proper UI display
+            let direction = null;
+            if (type === 'translation') {
+              const prompt = exercise.prompt.toLowerCase();
+              if (prompt.includes('latin') && prompt.includes('english')) {
+                direction = prompt.includes('latin sentence into english') ? `${language}_to_en` : `en_to_${language}`;
+              } else if (prompt.includes('spanish') && prompt.includes('english')) {
+                direction = prompt.includes('spanish sentence into english') ? `${language}_to_en` : `en_to_${language}`;
+              } else {
+                // Default direction based on language
+                direction = `${language}_to_en`;
+              }
+            }
+
             const { error: insertError } = await supabase
               .from('lesson_exercises')
               .insert({
@@ -357,7 +419,8 @@ export async function POST(
                 exercise_type: type,
                 prompt: exercise.prompt, // Direct field mapping - DB has 'prompt'
                 answer: exercise.correct_answer, // Map 'correct_answer' to 'answer'
-                options: exercise.options || null,
+                options: exercise.options ? { choices: exercise.options } : null,
+                direction: direction, // Add direction for translation exercises
                 xp_value: 10, // Default XP value
                 sequence_order: totalExercises, // Simple ordering by creation
               })
