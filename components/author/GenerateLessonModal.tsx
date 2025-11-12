@@ -74,6 +74,7 @@ export function GenerateLessonModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatorStatuses, setGeneratorStatuses] = useState<GeneratorStatus[]>([]);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [userDismissed, setUserDismissed] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Generator configurations
@@ -112,13 +113,24 @@ export function GenerateLessonModal({
   // Cleanup polling on unmount or modal close
   useEffect(() => {
     if (!open) {
+      // If user dismissed manually, keep polling in background
+      if (userDismissed) {
+        console.log('[Cleanup] Modal closed by user dismiss - keeping background polling active')
+        setIsGenerating(false); // Hide UI state but keep polling
+        return; // Don't stop polling
+      }
+
+      // Otherwise, modal was closed normally - clean up everything
       stopPolling();
       setCurrentJobId(null);
       setGeneratorStatuses([]);
-      setIsGenerating(false); // Reset generating state when modal closes
+      setIsGenerating(false);
+    } else {
+      // Modal opened - reset dismiss flag
+      setUserDismissed(false);
     }
-    return () => stopPolling();
-  }, [open]);
+    return () => stopPolling(); // Always cleanup on unmount
+  }, [open, userDismissed]);
 
   const stopPolling = () => {
     if (pollingIntervalRef.current) {
@@ -337,7 +349,8 @@ export function GenerateLessonModal({
                 size="lg"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2.5 rounded-lg font-medium"
                 onClick={() => {
-                  console.log('[Dismiss] User dismissed generation modal')
+                  console.log('[Dismiss] User dismissed generation modal - continuing background polling')
+                  setUserDismissed(true)
                   setIsGenerating(false)
                   onOpenChange(false)
                 }}
