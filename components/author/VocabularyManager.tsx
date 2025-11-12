@@ -387,10 +387,10 @@ export function VocabularyManager({ lessonId, language }: Props) {
               onClick={() => setShowGenerateModal(true)}
               variant="outline"
               size="default"
-              className="px-4 py-2"
+              className="px-6 py-3"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Vocabulary
+              Extract
             </Button>
             <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
