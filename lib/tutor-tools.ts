@@ -497,35 +497,98 @@ export const analyzeErrorsTool = tool(
 
     if (turnsError) throw turnsError
 
+    // Determine language from session data (check if it's a dialog session with Latin content)
+    const language = session.dialog_id ? 'la' : 'es' // Simple heuristic for now
+
+    // Build language-appropriate transcript
+    const getTranscriptLabels = () => {
+      if (language === 'la') {
+        return { turnLabel: 'Turn', studentLabel: 'Student' }
+      } else {
+        return { turnLabel: 'Turno', studentLabel: 'Estudiante' }
+      }
+    }
+
+    const { turnLabel, studentLabel } = getTranscriptLabels()
+
     // Build transcript
     const transcript = turns.map((turn) => {
-      return `Turno ${turn.turn_number}:\nEstudiante: ${turn.user_response}`
+      return `${turnLabel} ${turn.turn_number}:\n${studentLabel}: ${turn.user_response}`
     }).join('\n\n')
 
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o",
       temperature: 0
-    }).withStructuredOutput(ErrorAnalysisOutputSchema)
+    })
 
-    const systemPrompt = `Analiza esta conversación de un estudiante de español nivel ${session.level}:
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `Analyze this Latin conversation from a level ${session.level} student:
 
 ${transcript}
 
-Identifica todos los errores gramaticales, de vocabulario y sintaxis.
-Para cada error, proporciona:
+Identify all grammar, vocabulary, and syntax errors. For each error, provide:
+1. The turn number where it occurred
+2. The exact incorrect phrase from the student
+3. The appropriate correction
+4. A clear, educational explanation of the error
+
+Respond with valid JSON using this exact structure:
+
+{
+  "errors": [
+    {
+      "turnNumber": 1,
+      "errorText": "incorrect phrase",
+      "correction": "correct version",
+      "explanation": "explanation of the error",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+If there are no errors, return: {"errors": []}. MUST return valid JSON only.`
+      } else {
+        return `Analiza esta conversación de un estudiante de español nivel ${session.level}:
+
+${transcript}
+
+Identifica todos los errores gramaticales, de vocabulario y sintaxis. Para cada error, proporciona:
 1. El número de turno donde ocurrió
 2. La frase incorrecta exacta del estudiante
 3. La corrección apropiada
 4. Una explicación clara y didáctica del error
 
-Si no hay errores, devuelve un array vacío.`
+Responde con JSON válido usando esta estructura exacta:
+
+{
+  "errors": [
+    {
+      "turnNumber": 1,
+      "errorText": "frase incorrecta",
+      "correction": "versión correcta",
+      "explanation": "explicación del error",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+Si no hay errores, devuelve: {"errors": []}. DEBE devolver solo JSON válido.`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
-      return await invokeWithTimeout(
+      const response = await invokeWithTimeout(
         model.invoke([{ role: "system", content: systemPrompt }]),
         30000
       )
+      
+      // Parse JSON response manually
+      const content = response.content as string
+      return JSON.parse(content)
     }) as { errors: ErrorAnalysis[] }
 
     // Mark session as completed
@@ -556,11 +619,11 @@ export const generateOverviewTool = tool(
     // Get text
     const text = await LibraryService.getText(textId)
 
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o",
       temperature: 0
-    }).withStructuredOutput(ProfessorOverviewOutputSchema)
+    })
 
     const getSystemPrompt = () => {
       if (language === 'la') {
@@ -568,37 +631,45 @@ export const generateOverviewTool = tool(
 
 ${text.content}
 
-Provide a structured analysis in English:
+Provide a structured analysis in English. Respond with valid JSON using this exact structure:
 
-1. SUMMARY (2-3 sentences): Main topic and key points
-2. GRAMMAR CONCEPTS: List of important grammatical structures (cases, verb forms, constructions, etc.)
-3. VOCABULARY THEMES: List of semantic fields present (e.g., "military", "politics", "nature")
-4. SYNTAX PATTERNS: List of notable syntactic constructions (e.g., "ablative absolute", "indirect statement")
+{
+  "summary": "2-3 sentence summary of main topic and key points",
+  "grammarConcepts": ["concept 1", "concept 2", "concept 3"],
+  "vocabularyThemes": ["theme 1", "theme 2", "theme 3"], 
+  "syntaxPatterns": ["pattern 1", "pattern 2", "pattern 3"]
+}
 
-Be specific and educational.`
+Be specific and educational. Include important grammatical structures (cases, verb forms, constructions), semantic fields (e.g., "military", "politics", "nature"), and notable syntactic constructions (e.g., "ablative absolute", "indirect statement"). MUST return valid JSON only.`
       } else {
         return `Analiza este texto en español como un profesor experimentado:
 
 ${text.content}
 
-Proporciona un análisis estructurado:
+Proporciona un análisis estructurado. Responde con JSON válido usando esta estructura exacta:
 
-1. RESUMEN (2-3 oraciones): El tema principal y puntos clave
-2. CONCEPTOS GRAMATICALES: Lista de estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.)
-3. TEMAS DE VOCABULARIO: Lista de campos semánticos presentes (ej: "familia", "negocios", "naturaleza")
-4. PATRONES DE SINTAXIS: Lista de construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva")
+{
+  "summary": "resumen de 2-3 oraciones del tema principal y puntos clave",
+  "grammarConcepts": ["concepto 1", "concepto 2", "concepto 3"],
+  "vocabularyThemes": ["tema 1", "tema 2", "tema 3"],
+  "syntaxPatterns": ["patrón 1", "patrón 2", "patrón 3"]
+}
 
-Sé específico y didáctico.`
+Sé específico y didáctico. Incluye estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.), campos semánticos (ej: "familia", "negocios", "naturaleza"), y construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva"). DEBE devolver solo JSON válido.`
       }
     }
 
     const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
-      return await invokeWithTimeout(
+      const response = await invokeWithTimeout(
         model.invoke([{ role: "system", content: systemPrompt }]),
         30000
       )
+      
+      // Parse JSON response manually
+      const content = response.content as string
+      return JSON.parse(content)
     }) as ProfessorOverview
 
     return result
