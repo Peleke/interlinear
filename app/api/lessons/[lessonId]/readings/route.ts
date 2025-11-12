@@ -34,3 +34,76 @@ export async function GET(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ lessonId: string }> }
+) {
+  try {
+    const supabase = await createClient()
+    const { lessonId } = await params
+    const { readingId } = await request.json()
+
+    if (!readingId) {
+      return NextResponse.json({ error: 'Reading ID is required' }, { status: 400 })
+    }
+
+    // Check if lesson exists
+    const { data: lesson, error: lessonError } = await supabase
+      .from('lessons')
+      .select('id')
+      .eq('id', lessonId)
+      .single()
+
+    if (lessonError || !lesson) {
+      return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
+    }
+
+    // Check if reading exists
+    const { data: reading, error: readingError } = await supabase
+      .from('library_readings')
+      .select('id')
+      .eq('id', readingId)
+      .single()
+
+    if (readingError || !reading) {
+      return NextResponse.json({ error: 'Reading not found' }, { status: 404 })
+    }
+
+    // Check if relationship already exists
+    const { data: existing, error: checkError } = await supabase
+      .from('lesson_readings')
+      .select('id')
+      .eq('lesson_id', lessonId)
+      .eq('reading_id', readingId)
+      .single()
+
+    if (existing) {
+      return NextResponse.json({ error: 'Reading already linked to lesson' }, { status: 409 })
+    }
+
+    // Create the lesson-reading relationship
+    const { data: lessonReading, error } = await supabase
+      .from('lesson_readings')
+      .insert({
+        lesson_id: lessonId,
+        reading_id: readingId
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Failed to link reading to lesson:', error)
+      return NextResponse.json({ error: 'Failed to link reading to lesson' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      lessonReading,
+      message: 'Reading linked to lesson successfully'
+    })
+  } catch (error) {
+    console.error('Link reading API error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
