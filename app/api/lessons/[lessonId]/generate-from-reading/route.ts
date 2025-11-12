@@ -343,7 +343,6 @@ export async function POST(
             .from('lesson_dialogs')
             .insert({
               lesson_id: lessonId,
-              title: dialog.context || 'Generated Dialog', // Use context as title
               context: dialog.context,
             })
             .select('id')
