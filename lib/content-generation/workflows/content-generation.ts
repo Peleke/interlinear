@@ -1,17 +1,29 @@
 /**
  * Content Generation Workflow
  *
- * Orchestrates vocabulary, grammar, and exercise generation
+ * Orchestrates vocabulary, grammar, and exercise generation using the new
+ * language processor architecture with factory pattern.
+ *
+ * Architecture:
+ * - Uses LanguageProcessorFactory to get appropriate processor (Spanish NLP.js or Latin LLM)
+ * - Each processor implements the same interface with language-specific capabilities
+ * - Spanish: Fast NLP.js-based processing with dictionary APIs
+ * - Latin: LLM-based processing for complex morphological analysis
  *
  * Flow:
- * 1. Extract vocabulary from reading (NLP.js + Dictionary APIs) - WORKING
- * 2. Identify grammar concepts (STUB - returns empty for now)
- * 3. Generate exercises (STUB - returns empty for now)
- * 4. Return results for user review
+ * 1. Extract vocabulary using language-specific processor - IMPLEMENTED
+ * 2. Identify grammar concepts using processor capabilities - IMPLEMENTED
+ * 3. Generate exercises based on processor's custom exercise types - IMPLEMENTED
+ * 4. Return unified results with processor-specific metadata
  *
- * Note: Grammar and exercises are stubbed pending Vector DB integration
+ * Benefits:
+ * - Language-agnostic workflow logic
+ * - Processor-specific optimizations (NLP.js vs LLM)
+ * - Extensible for future languages
+ * - Comprehensive error handling and cost tracking
  *
  * @see docs/prd/EPIC_7_MASTRA_ARCHITECTURE.md
+ * @see lib/content-generation/interfaces/language-processor.ts
  */
 
 import { createWorkflow, createStep } from '@mastra/core/workflows'
@@ -33,6 +45,38 @@ import {
 /**
  * Workflow input schema
  */
+import { createLanguageProcessor } from '../tools/language-processor-factory'
+
+/**
+ * Helper function to map CEFR levels to processor difficulty levels
+ */
+function mapCEFRToDifficulty(cefrLevel: string): 'basic' | 'intermediate' | 'advanced' | undefined {
+  switch (cefrLevel) {
+    case 'A1':
+    case 'A2':
+      return 'basic'
+    case 'B1':
+    case 'B2':
+      return 'intermediate'
+    case 'C1':
+    case 'C2':
+      return 'advanced'
+    default:
+      return undefined // No filter
+  }
+}
+
+/**
+ * Helper function to map processor difficulty to CEFR levels
+ */
+function mapDifficultyToCEFR(difficulty: 'basic' | 'intermediate' | 'advanced'): 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' {
+  switch (difficulty) {
+    case 'basic': return 'A2'
+    case 'intermediate': return 'B1'
+    case 'advanced': return 'C1'
+    default: return 'A2'
+  }
+}
 export const contentGenerationInputSchema = z.object({
   lessonId: z.string().describe('Lesson ID for tracking'),
   readingText: z.string().describe('Reading text to analyze'),
@@ -77,20 +121,28 @@ const extractVocabularyStep = createStep({
     console.log(`[Workflow] Language: ${inputData.language}, Level: ${inputData.targetLevel}`)
 
     try {
-      // Extract vocabulary using our tool
-      const vocabulary = await extractVocabulary({
-        readingText: inputData.readingText,
-        targetLevel: inputData.targetLevel,
+      // Get the appropriate language processor
+      const processor = await createLanguageProcessor(inputData.language)
+      
+      // Extract vocabulary using the processor
+      const vocabularyCandidates = await processor.extractVocabulary(inputData.readingText, {
         maxItems: inputData.maxVocabularyItems,
-        language: inputData.language,
+        includeFrequency: true,
+        includeMorphology: true,
+        difficultyFilter: mapCEFRToDifficulty(inputData.targetLevel)
       })
+
+      // Transform to the expected legacy format for compatibility
+      const vocabulary = vocabularyCandidates.map(candidate => candidate.word)
 
       const executionTime = Date.now() - startTime
 
       console.log(`[Workflow] Extracted ${vocabulary.length} vocabulary items in ${executionTime}ms`)
 
-      // Estimate cost (Dictionary API: ~$0.0001 per word)
-      const estimatedCost = vocabulary.length * 0.0001
+      // Estimate cost based on processor type
+      const estimatedCost = inputData.language === 'la' 
+        ? vocabularyCandidates.length * 0.001  // Higher cost for LLM-based Latin processing
+        : vocabularyCandidates.length * 0.0001 // Lower cost for NLP.js Spanish processing
 
       return {
         lessonId: inputData.lessonId,
@@ -100,6 +152,8 @@ const extractVocabularyStep = createStep({
           vocabularyCount: vocabulary.length,
           executionTime,
           cost: estimatedCost,
+          processorType: inputData.language === 'la' ? 'LLM' : 'NLP.js',
+          vocabularyDetails: vocabularyCandidates, // Include full details for advanced use
         },
       }
     } catch (error) {
@@ -112,6 +166,7 @@ const extractVocabularyStep = createStep({
         metadata: {
           vocabularyCount: 0,
           executionTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
         },
       }
     }
@@ -126,20 +181,55 @@ const identifyGrammarStep = createStep({
   inputSchema: contentGenerationInputSchema,
   outputSchema: GrammarOutputSchema,
   execute: async ({ inputData }) => {
-    console.log(`[Workflow] Identifying grammar (STUB - returns empty)`)
+    const startTime = Date.now()
+    
+    console.log(`[Workflow] Identifying grammar for lesson ${inputData.lessonId}`)
+    console.log(`[Workflow] Language: ${inputData.language}, Level: ${inputData.targetLevel}`)
 
-    const grammarOutput = await identifyGrammar({
-      readingText: inputData.readingText,
-      targetLevel: inputData.targetLevel,
-      language: inputData.language,
-      maxConcepts: 5,
-    })
+    try {
+      // Get the appropriate language processor
+      const processor = await createLanguageProcessor(inputData.language)
 
-    console.log(`[Workflow] Grammar identification completed (${grammarOutput.metadata.conceptCount} concepts)`)
+      // Identify grammar using the processor
+      const grammarConcepts = await processor.identifyGrammar(inputData.readingText, {
+        maxConcepts: 5,
+        complexityLevel: mapCEFRToDifficulty(inputData.targetLevel) || 'all',
+        includeExamples: true
+      })
 
-    return {
-      ...grammarOutput,
-      lessonId: inputData.lessonId,
+      const executionTime = Date.now() - startTime
+
+      console.log(`[Workflow] Grammar identification completed (${grammarConcepts.length} concepts) in ${executionTime}ms`)
+
+      return {
+        lessonId: inputData.lessonId,
+        concepts: grammarConcepts.map(concept => ({
+          name: concept.name,
+          description: concept.description,
+          examples: concept.examples.map(ex => ex.text),
+          difficulty: concept.complexity
+        })),
+        status: 'completed',
+        metadata: {
+          conceptCount: grammarConcepts.length,
+          executionTime,
+          processorType: inputData.language === 'la' ? 'LLM' : 'NLP.js',
+          detailedConcepts: grammarConcepts, // Include full details
+        },
+      }
+    } catch (error) {
+      console.error('[Workflow] Grammar identification failed:', error)
+
+      return {
+        lessonId: inputData.lessonId,
+        concepts: [],
+        status: 'failed',
+        metadata: {
+          conceptCount: 0,
+          executionTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      }
     }
   },
 })
@@ -156,26 +246,95 @@ const generateExercisesStep = createStep({
     language: z.enum(['es', 'la']),
     vocabularyItems: z.array(z.string()),
     grammarConcepts: z.array(z.string()),
+    // Optional: Include full vocabulary and grammar details if available
+    vocabularyDetails: z.array(z.any()).optional(),
+    grammarDetails: z.array(z.any()).optional(),
   }),
   outputSchema: ExerciseOutputSchema,
   execute: async ({ inputData }) => {
-    console.log(`[Workflow] Generating exercises (STUB - returns empty)`)
+    const startTime = Date.now()
+    
+    console.log(`[Workflow] Generating exercises for lesson ${inputData.lessonId}`)
+    console.log(`[Workflow] Language: ${inputData.language}, Level: ${inputData.targetLevel}`)
 
-    const exerciseOutput = await generateExercises({
-      readingText: inputData.readingText,
-      vocabularyItems: inputData.vocabularyItems,
-      grammarConcepts: inputData.grammarConcepts,
-      targetLevel: inputData.targetLevel,
-      language: inputData.language,
-      exerciseTypes: ['translation', 'multiple_choice', 'fill_blank'],
-      exercisesPerType: 3,
-    })
+    try {
+      // Get the appropriate language processor
+      const processor = await createLanguageProcessor(inputData.language)
 
-    console.log(`[Workflow] Exercise generation completed (${exerciseOutput.metadata.exerciseCount} exercises)`)
+      // Prepare vocabulary data (use detailed data if available)
+      const vocabularyData = inputData.vocabularyDetails || inputData.vocabularyItems.map(word => ({
+        word,
+        lemma: word,
+        definition: `Definition for ${word}`,
+        partOfSpeech: 'unknown',
+        frequency: 50,
+        difficulty: mapCEFRToDifficulty(inputData.targetLevel) || 'basic'
+      }))
 
-    return {
-      ...exerciseOutput,
-      lessonId: inputData.lessonId,
+      // Prepare grammar data (use detailed data if available)  
+      const grammarData = inputData.grammarDetails || inputData.grammarConcepts.map(concept => ({
+        id: concept.toLowerCase().replace(/\s+/g, '_'),
+        name: concept,
+        description: `Grammar concept: ${concept}`,
+        complexity: mapCEFRToDifficulty(inputData.targetLevel) || 'basic',
+        examples: [],
+        category: 'general'
+      }))
+
+      // Determine exercise types based on language and capabilities
+      const exerciseTypes = processor.capabilities.customExerciseTypes || ['translation', 'multiple_choice', 'fill_blank']
+      const selectedTypes = exerciseTypes.slice(0, 3) // Limit to 3 types
+
+      // Create exercise context
+      const exerciseContext = {
+        originalText: inputData.readingText,
+        vocabulary: vocabularyData,
+        grammarConcepts: grammarData,
+        exerciseTypes: selectedTypes,
+        maxExercises: 9, // 3 per type
+        targetDifficulty: mapCEFRToDifficulty(inputData.targetLevel) || 'basic'
+      }
+
+      // Generate exercises using the processor
+      const exercises = await processor.generateExercises(exerciseContext)
+
+      const executionTime = Date.now() - startTime
+
+      console.log(`[Workflow] Exercise generation completed (${exercises.length} exercises) in ${executionTime}ms`)
+
+      return {
+        lessonId: inputData.lessonId,
+        exercises: exercises.map(exercise => ({
+          id: exercise.id,
+          type: exercise.type,
+          prompt: exercise.question,
+          correct_answer: exercise.correctAnswer,
+          options: exercise.distractors,
+          explanation: exercise.explanation,
+          difficulty: exercise.difficulty
+        })),
+        status: 'completed',
+        metadata: {
+          exerciseCount: exercises.length,
+          exerciseTypes: selectedTypes,
+          executionTime,
+          processorType: inputData.language === 'la' ? 'LLM' : 'NLP.js',
+          detailedExercises: exercises, // Include full details
+        },
+      }
+    } catch (error) {
+      console.error('[Workflow] Exercise generation failed:', error)
+
+      return {
+        lessonId: inputData.lessonId,
+        exercises: [],
+        status: 'failed',
+        metadata: {
+          exerciseCount: 0,
+          executionTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      }
     }
   },
 })
