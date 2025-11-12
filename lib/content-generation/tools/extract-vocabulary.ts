@@ -70,37 +70,97 @@ export async function extractVocabulary(
 ): Promise<ExtractVocabularyOutput> {
   const { readingText, targetLevel, maxItems, language = 'es' } = input
 
-  // PHASE 1: NLP.js Pre-processing (Fast, Local, Free)
-  console.log('📊 Phase 1: NLP.js analysis...')
+  console.log(`📊 Phase 1: ${language.toUpperCase()} vocabulary extraction...`)
   console.log(`📄 Reading text length: ${readingText.length} chars`)
   console.log(`🎯 Target: ${maxItems} items, language: ${language}`)
 
-  const nlpCandidates = extractSpanishVocabCandidates(readingText, maxItems * 2) // Get 2x for filtering
+  let vocabularyItems: VocabularyItem[] = []
 
-  console.log(`✅ NLP.js extracted ${nlpCandidates.length} candidates`)
-  if (nlpCandidates.length > 0) {
-    console.log(`📝 Sample candidates:`, nlpCandidates.slice(0, 5).map(c => `${c.word} (${c.frequency}x)`))
+  if (language === 'la') {
+    // Latin: Use LLM-based processing for sophisticated morphological analysis
+    console.log('🏛️  Using LLM for Latin morphological analysis...')
+
+    try {
+      // Import Latin processor dynamically to avoid Spanish NLP dependencies
+      const { LatinLanguageProcessor } = await import('./latin-language-processor')
+      const processor = new LatinLanguageProcessor()
+
+      // Use the LLM-based vocabulary extraction
+      const latinVocab = await processor.extractVocabulary(readingText, {
+        maxItems,
+        includeFrequency: true,
+        includeMorphology: true,
+        difficultyFilter: mapTargetLevelToDifficulty(targetLevel)
+      })
+
+      console.log(`✅ Latin LLM extracted ${latinVocab.length} vocabulary items`)
+
+      // Convert to existing VocabularyItem format for compatibility
+      vocabularyItems = latinVocab.map(vocab => ({
+        word: vocab.word,
+        english_translation: vocab.definition,
+        part_of_speech: vocab.partOfSpeech,
+        difficulty_level: targetLevel,
+        example_sentence: findExampleInReading(vocab.word, readingText),
+        appears_in_reading: true,
+        frequency: vocab.frequency || 1,
+        normalized_form: vocab.lemma,
+      }))
+
+    } catch (error) {
+      console.error('❌ Latin LLM processing failed:', error instanceof Error ? error.message : error)
+
+      // Fallback: Basic Latin tokenization + dictionary lookup
+      console.log('🔄 Falling back to basic Latin tokenization...')
+      const basicTokens = readingText.toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 2)
+        .slice(0, maxItems)
+        .map(word => ({ word, frequency: 1, stem: word }))
+
+      await processWithDictionary(basicTokens, readingText, targetLevel, language, vocabularyItems)
+    }
+
   } else {
-    console.warn('⚠️  NLP.js returned 0 candidates! Checking tokenization...')
-    // Try basic tokenization test
-    const testTokens = extractSpanishVocabCandidates('hola mundo', 5)
-    console.log('🧪 Test tokenization result:', testTokens)
+    // Spanish: Use fast NLP.js processing
+    console.log('🚀 Using NLP.js for Spanish analysis...')
+
+    const nlpCandidates = extractSpanishVocabCandidates(readingText, maxItems * 2)
+
+    console.log(`✅ NLP.js extracted ${nlpCandidates.length} candidates`)
+    if (nlpCandidates.length > 0) {
+      console.log(`📝 Sample candidates:`, nlpCandidates.slice(0, 5).map(c => `${c.word} (${c.frequency}x)`))
+    } else {
+      console.warn('⚠️  NLP.js returned 0 candidates! Checking tokenization...')
+      const testTokens = extractSpanishVocabCandidates('hola mundo', 5)
+      console.log('🧪 Test tokenization result:', testTokens)
+    }
+
+    const topCandidates = nlpCandidates.slice(0, maxItems)
+    await processWithDictionary(topCandidates, readingText, targetLevel, language, vocabularyItems)
   }
 
-  // Take top N by frequency
-  const topCandidates = nlpCandidates.slice(0, maxItems)
+  console.log(`✅ Final result: ${vocabularyItems.length} vocabulary items extracted`)
+  return vocabularyItems
+}
 
-  // PHASE 2: Dictionary API Lookup (Fast, Accurate, Cheap)
+// Helper function for dictionary-based processing (used by both Spanish and Latin fallback)
+async function processWithDictionary(
+  candidates: Array<{word: string, frequency: number, stem?: string}>,
+  readingText: string,
+  targetLevel: string,
+  language: string,
+  vocabularyItems: VocabularyItem[]
+) {
   console.log('📚 Phase 2: Dictionary API lookup...')
-  console.log(`🔄 Processing ${topCandidates.length} candidates in batches of 10...`)
+  console.log(`🔄 Processing ${candidates.length} candidates in batches of 10...`)
 
-  const vocabularyItems: VocabularyItem[] = []
-  const BATCH_SIZE = 10 // Process 10 words at a time to avoid rate limits
+  const BATCH_SIZE = 10
 
   // Process in batches
-  for (let i = 0; i < topCandidates.length; i += BATCH_SIZE) {
-    const batch = topCandidates.slice(i, i + BATCH_SIZE)
-    console.log(`📦 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(topCandidates.length / BATCH_SIZE)}...`)
+  for (let i = 0; i < candidates.length; i += BATCH_SIZE) {
+    const batch = candidates.slice(i, i + BATCH_SIZE)
+    console.log(`📦 Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(candidates.length / BATCH_SIZE)}...`)
 
     // Parallel lookup for batch
     const lookupPromises = batch.map(async (candidate) => {
@@ -118,7 +178,7 @@ export async function extractVocabulary(
             example_sentence: example,
             appears_in_reading: true,
             frequency: candidate.frequency,
-            normalized_form: candidate.stem,
+            normalized_form: candidate.stem || candidate.word,
           }
         }
         return null
@@ -135,14 +195,29 @@ export async function extractVocabulary(
     console.log(`✅ Batch complete: ${validItems.length}/${batch.length} successful`)
 
     // Small delay between batches to respect rate limits
-    if (i + BATCH_SIZE < topCandidates.length) {
+    if (i + BATCH_SIZE < candidates.length) {
       await new Promise(resolve => setTimeout(resolve, 100))
     }
   }
 
-  console.log(`✅ Dictionary lookup completed: ${vocabularyItems.length}/${topCandidates.length} items successfully resolved`)
+  console.log(`✅ Dictionary lookup completed: ${vocabularyItems.length}/${candidates.length} items successfully resolved`)
+}
 
-  return vocabularyItems
+// Helper function to map CEFR levels to difficulty
+function mapTargetLevelToDifficulty(targetLevel: string): 'basic' | 'intermediate' | 'advanced' | undefined {
+  switch (targetLevel) {
+    case 'A1':
+    case 'A2':
+      return 'basic'
+    case 'B1':
+    case 'B2':
+      return 'intermediate'
+    case 'C1':
+    case 'C2':
+      return 'advanced'
+    default:
+      return undefined
+  }
 }
 
 /**

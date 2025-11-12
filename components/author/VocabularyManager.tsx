@@ -35,7 +35,7 @@ interface VocabItem {
 
 interface Props {
   lessonId: string
-  language: 'es' | 'is'
+  language: 'es' | 'la'
 }
 
 const PARTS_OF_SPEECH = [
@@ -288,8 +288,33 @@ export function VocabularyManager({ lessonId, language }: Props) {
     }
   }
 
-  const deleteVocabItem = (id: string) => {
-    setVocabulary(vocabulary.filter((item) => item.id !== id))
+  const deleteVocabItem = async (id: string) => {
+    try {
+      // DELETE API expects the lesson_vocabulary_items.id as the vocabulary_id
+      const response = await fetch(`/api/lessons/${lessonId}/vocabulary/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete vocabulary item')
+      }
+
+      // Remove from local state
+      setVocabulary(vocabulary.filter((item) => item.id !== id))
+
+      setSaveMessage({
+        type: 'success',
+        text: 'Vocabulary item removed successfully!',
+      })
+      setTimeout(() => setSaveMessage(null), 3000)
+    } catch (error) {
+      console.error('Failed to delete vocabulary:', error)
+      setSaveMessage({
+        type: 'error',
+        text: 'Failed to remove vocabulary item. Please try again.',
+      })
+      setTimeout(() => setSaveMessage(null), 5000)
+    }
   }
 
   const saveVocabulary = async () => {
@@ -362,10 +387,10 @@ export function VocabularyManager({ lessonId, language }: Props) {
               onClick={() => setShowGenerateModal(true)}
               variant="outline"
               size="default"
-              className="px-4 py-2"
+              className="px-6 py-3"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Vocabulary
+              Extract
             </Button>
             <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -394,8 +419,8 @@ export function VocabularyManager({ lessonId, language }: Props) {
               placeholder={
                 language === 'es'
                   ? 'Search Spanish words...'
-                  : language === 'is'
-                  ? 'Search Icelandic words...'
+                  : language === 'la'
+                  ? 'Search Latin words...'
                   : 'Search vocabulary...'
               }
             />

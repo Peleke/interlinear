@@ -82,6 +82,7 @@ export async function POST(
       english: item.english_translation,
       part_of_speech: item.part_of_speech,
       difficulty_level: item.difficulty_level,
+      language: language, // FIXED: Add language column to record
       ai_generated: true,
       ai_metadata: {
         source: 'vocabulary-extraction-workflow',
@@ -98,7 +99,7 @@ export async function POST(
     const { data: insertedVocabItems, error: itemsError } = await supabase
       .from('lesson_vocabulary_items')
       .upsert(vocabularyItemRecords, {
-        onConflict: 'spanish,english',
+        onConflict: 'spanish,english,language', // FIXED: Include language in conflict resolution
         ignoreDuplicates: false, // Update if exists
       })
       .select('id, spanish, english')

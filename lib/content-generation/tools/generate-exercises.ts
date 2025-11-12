@@ -116,26 +116,36 @@ function buildPrompt(input: ExerciseInput): string {
 
   const languageName = language === 'es' ? 'Spanish' : 'Latin'
 
+  // Language-specific guidance
+  const languageGuidance = {
+    'es': 'Use natural Spanish conversational patterns and common expressions. Focus on practical communication.',
+    'la': 'Use classical Latin with proper case endings and syntax. Include both formal literary and everyday expressions. Pay attention to noun declensions, verb conjugations, and word order flexibility. Use authentic Latin constructions appropriate for the learning level.'
+  }
+
   const typeInstructions = {
     translation: `Generate ${count} translation exercises. Each exercise should:
 - Present a sentence in ${languageName} to translate to English, OR
 - Present an English sentence to translate to ${languageName}
 - Use vocabulary and grammar appropriate for ${targetLevel} level
 - Provide the correct translation as the answer
-- Include a brief explanation of key grammar/vocabulary points`,
+- Include a brief explanation of key grammar/vocabulary points
+${language === 'la' ? '- For Latin: Pay attention to case endings, verb forms, and proper word order' : ''}`,
 
     multiple_choice: `Generate ${count} multiple choice exercises. Each exercise should:
-- Present a ${languageName} sentence with a blank (use "____")
-- Provide 4 options to fill the blank
+- Present a complete ${languageName} question or statement (NO blanks or underscores)
+- Provide 4 answer options as choices
 - Make the first option the correct answer
 - Make other options plausible but clearly wrong (common mistakes)
-- Include an explanation of why the correct answer is right`,
+- Focus on vocabulary meaning, grammar concepts, or comprehension
+- Include an explanation of why the correct answer is right
+${language === 'la' ? '- For Latin: Include questions about case usage, verb forms, and grammatical constructions' : ''}`,
 
     fill_blank: `Generate ${count} fill-in-the-blank exercises. Each exercise should:
 - Present a ${languageName} sentence with a blank (use "_____")
 - The blank should test vocabulary or grammar from the content
 - Provide the correct word/phrase as the answer
-- Include an explanation of the grammar point or vocabulary meaning`,
+- Include an explanation of the grammar point or vocabulary meaning
+${language === 'la' ? '- For Latin: Focus on proper case endings, verb conjugations, and grammatical agreement' : ''}`,
   }
 
   return `You are an expert ${languageName} language teacher creating exercises for ${targetLevel} level learners.
@@ -145,7 +155,10 @@ ${content}
 
 Task: ${typeInstructions[type]}
 
-Guidelines:
+Language-specific guidelines:
+${languageGuidance[language as keyof typeof languageGuidance]}
+
+General guidelines:
 - Base exercises on the provided content when possible
 - Ensure difficulty matches ${targetLevel} level
 - Make exercises clear and unambiguous

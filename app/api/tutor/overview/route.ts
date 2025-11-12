@@ -5,7 +5,8 @@ import { tutorLimiter } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const OverviewRequestSchema = z.object({
-  textId: z.string().uuid()
+  textId: z.string().uuid(),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 export async function POST(request: NextRequest) {

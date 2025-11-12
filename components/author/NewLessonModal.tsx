@@ -67,7 +67,7 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
   const [step, setStep] = useState<'template' | 'details'>('template')
   const [selectedTemplate, setSelectedTemplate] = useState<Template>('blank')
   const [title, setTitle] = useState('')
-  const [language, setLanguage] = useState<'es' | 'is'>('es')
+  const [language, setLanguage] = useState<'es' | 'la'>('es')
   const [courseId, setCourseId] = useState<string>('none')
   const [courses, setCourses] = useState<Course[]>([])
   const [isCreating, setIsCreating] = useState(false)
@@ -200,13 +200,13 @@ export function NewLessonModal({ open, onOpenChange, userId }: Props) {
 
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <Select value={language} onValueChange={(value) => setLanguage(value as 'es' | 'is')}>
+              <Select value={language} onValueChange={(value) => setLanguage(value as 'es' | 'la')}>
                 <SelectTrigger id="language">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="es">Spanish (ES)</SelectItem>
-                  <SelectItem value="is">Icelandic (IS)</SelectItem>
+                  <SelectItem value="la">Latin (LA)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

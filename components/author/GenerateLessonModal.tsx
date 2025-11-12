@@ -23,6 +23,15 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 
+// Language configuration for dynamic translation options
+const LANGUAGE_CONFIG = {
+  'es': { name: 'Spanish', flag: '🇪🇸', displayCode: 'ES' },
+  'la': { name: 'Latin', flag: '🏛️', displayCode: 'LA' },
+  'en': { name: 'English', flag: '🇺🇸', displayCode: 'EN' }
+} as const;
+
+type LanguageCode = keyof typeof LANGUAGE_CONFIG;
+
 interface GeneratorConfig {
   enabled: boolean;
   config: {
@@ -59,7 +68,7 @@ interface Props {
   readingTitle: string;
   readingLevel?: string;
   lessonId: string;
-  language: "es" | "is";
+  language: "es" | "la";
 }
 
 export function GenerateLessonModal({
@@ -72,6 +81,24 @@ export function GenerateLessonModal({
   language,
 }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Compute dynamic translation direction options based on language
+  const sourceLanguageConfig = LANGUAGE_CONFIG[language as LanguageCode] || LANGUAGE_CONFIG['es'];
+  const targetLanguageConfig = LANGUAGE_CONFIG['en'];
+
+  const getTranslationDirectionOptions = () => {
+    const sourceCode = sourceLanguageConfig.displayCode;
+    const targetCode = targetLanguageConfig.displayCode;
+    const sourceToTarget = `${language}_to_en` as const;
+    const targetToSource = `en_to_${language}` as const;
+
+    return {
+      sourceToTarget: { value: sourceToTarget, label: `${sourceCode} → ${targetCode}` },
+      targetToSource: { value: targetToSource, label: `${targetCode} → ${sourceCode}` },
+    };
+  };
+
+  const translationOptions = getTranslationDirectionOptions();
   const [generatorStatuses, setGeneratorStatuses] = useState<GeneratorStatus[]>([]);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
   const [userDismissed, setUserDismissed] = useState(false);
@@ -98,7 +125,7 @@ export function GenerateLessonModal({
     config: {
       exerciseTypes: ["fill_blank", "multiple_choice", "translation"],
       exercisesPerType: 3,
-      translationDirection: "es_to_en",
+      translationDirection: translationOptions.sourceToTarget.value,
     },
   });
 
@@ -590,8 +617,12 @@ export function GenerateLessonModal({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="es_to_en">ES → EN</SelectItem>
-                          <SelectItem value="en_to_es">EN → ES</SelectItem>
+                          <SelectItem value={translationOptions.sourceToTarget.value}>
+                            {translationOptions.sourceToTarget.label}
+                          </SelectItem>
+                          <SelectItem value={translationOptions.targetToSource.value}>
+                            {translationOptions.targetToSource.label}
+                          </SelectItem>
                           <SelectItem value="both">Both</SelectItem>
                         </SelectContent>
                       </Select>

@@ -59,6 +59,100 @@ export async function POST(request: NextRequest) {
     console.log(`[API] Vocabulary items: ${result.metadata.vocabularyCount}`)
     console.log(`[API] Execution time: ${result.metadata.executionTime}ms`)
 
+    // AUTO-SAVE: Convert vocabulary to approval format and save to lesson
+    if (result.status === 'completed' && result.vocabulary && result.vocabulary.length > 0) {
+      try {
+        console.log(`[Workflow] Auto-saving ${result.vocabulary.length} vocabulary items...`)
+
+        const vocabularyItems = result.vocabulary.map((item: any) => {
+          // Handle both string format (current workflow output) and object format (future)
+          const word = typeof item === 'string' ? item : (item.word || item.lemma)
+          const definition = typeof item === 'string' ? `Definition for ${item}` : item.definition
+
+          return {
+            word: word,
+            english_translation: definition || `Definition for ${word}`,
+            part_of_speech: 'other', // Default since we don't have detailed POS for workflow
+            difficulty_level: input.targetLevel.toLowerCase(),
+            example_sentence: `Example: ${word} appears in the text.`,
+            appears_in_reading: true,
+            frequency: typeof item === 'string' ? 50 : (item.frequency || 50),
+            normalized_form: typeof item === 'string' ? word : (item.lemma || item.word),
+          }
+        })
+
+        // Use same save approach as generate-from-reading endpoint
+        const vocabularyItemsForSave = result.vocabulary.map((item: any) => {
+          const word = typeof item === 'string' ? item : (item.word || item.lemma)
+          const definition = typeof item === 'string' ? `Definition for ${item}` : item.definition
+
+          return {
+            spanish: word,
+            english: definition || `Definition for ${word}`,
+            part_of_speech: 'other', // Default for workflow
+            difficulty_level: input.targetLevel.toLowerCase(),
+            is_new: true,
+          }
+        })
+
+        // Save vocabulary directly using supabase client (avoid auth issues with internal fetch)
+        // Delete all existing vocabulary links first
+        await supabase.from('lesson_vocabulary').delete().eq('lesson_id', input.lessonId)
+
+        // Process each vocabulary item
+        for (const item of vocabularyItemsForSave) {
+          // Check if vocabulary item already exists
+          let { data: existingItem } = await supabase
+            .from('lesson_vocabulary_items')
+            .select('*')
+            .eq('spanish', item.spanish)
+            .eq('english', item.english)
+            .maybeSingle()
+
+          if (existingItem) {
+            // Reuse existing item
+          } else {
+            // Create new vocabulary item
+            const { data: newItem, error: itemError } = await supabase
+              .from('lesson_vocabulary_items')
+              .insert({
+                spanish: item.spanish,
+                english: item.english,
+                part_of_speech: item.part_of_speech,
+                difficulty_level: item.difficulty_level,
+              })
+              .select()
+              .single()
+
+            if (itemError) {
+              console.error('[Workflow] Failed to create vocabulary item:', itemError)
+              throw itemError
+            }
+
+            existingItem = newItem
+          }
+
+          // Link to lesson
+          const { error: linkError } = await supabase
+            .from('lesson_vocabulary')
+            .insert({
+              lesson_id: input.lessonId,
+              vocabulary_id: existingItem.id,
+              is_new: item.is_new,
+            })
+
+          if (linkError) {
+            console.error('[Workflow] Failed to link vocabulary to lesson:', linkError)
+            throw linkError
+          }
+        }
+
+        console.log(`[Workflow] Successfully saved ${vocabularyItemsForSave.length} vocabulary items`)
+      } catch (saveError) {
+        console.error('[Workflow] Auto-save failed:', saveError)
+      }
+    }
+
     // Log to database (ai_generations table)
     if (result.status === 'completed') {
       await supabase.from('ai_generations').insert({

@@ -138,7 +138,7 @@ export function EditCourseModal({ course, open, onOpenChange }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="es">🇪🇸 Spanish</SelectItem>
-                  <SelectItem value="is">🇮🇸 Icelandic</SelectItem>
+                  <SelectItem value="la">🏛️ Latin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

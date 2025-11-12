@@ -116,18 +116,53 @@ export class DictionaryRouter {
   }
 
   /**
-   * Latin lookup
-   * TODO: Integration point for Latin dictionary API
+   * Latin lookup via Latin Analysis API (Lewis & Short + CLTK)
    */
   private static async lookupLatin(word: string): Promise<DictionaryResponse> {
-    // TODO: Implement Latin dictionary API integration
-    // For now, return not found
-    return {
-      word,
-      found: false,
-      language: 'la',
-      definitions: [],
-      source: 'latin-dict',
+    const baseUrl = this.getBaseUrl()
+    const url = `${baseUrl}/api/latin/analyze?word=${encodeURIComponent(word)}`
+
+    try {
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error(`Latin API failed: ${response.status}`)
+      }
+
+      const latinData = await response.json()
+
+      // Adapt Latin API response to DictionaryResponse format
+      if (!latinData.dictionary || latinData.dictionary.definitions.length === 0) {
+        return {
+          word: latinData.form || word,
+          found: false,
+          language: 'la',
+          definitions: [],
+          source: 'latin-dict',
+        }
+      }
+
+      return {
+        word: latinData.dictionary.word,
+        found: true,
+        language: 'la',
+        definitions: [{
+          partOfSpeech: latinData.pos || 'unknown',
+          meanings: latinData.dictionary.definitions,
+        }],
+        pronunciations: [],
+        source: 'latin-dict',
+      }
+    } catch (error) {
+      console.error(`Latin lookup failed for ${word}:`, error)
+      // Return empty result instead of throwing
+      return {
+        word,
+        found: false,
+        language: 'la',
+        definitions: [],
+        source: 'latin-dict',
+      }
     }
   }
 }

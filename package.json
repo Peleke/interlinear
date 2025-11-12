@@ -14,7 +14,10 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "seed:lessons": "npx tsx scripts/parse-lessons.ts",
-    "seed:lessons:v2": "npx tsx scripts/seed-lessons-v2.ts"
+    "seed:lessons:v2": "npx tsx scripts/seed-lessons-v2.ts",
+    "test:latin-processor": "npx tsx scripts/test-latin-processor.ts",
+    "test:latin-workflow": "npx tsx scripts/test-latin-workflow.ts",
+    "test:integrated-extraction": "npx tsx scripts/test-integrated-extraction.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.44",

@@ -284,7 +284,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 >
                   <option value="es">Spanish (es)</option>
-                  <option value="is">Icelandic (is)</option>
+                  <option value="la">Latin (la)</option>
                 </select>
               </div>
             </div>

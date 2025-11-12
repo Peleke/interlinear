@@ -25,6 +25,7 @@ export function ReaderClient() {
   const [mode, setMode] = useState<Mode>('input')
   const [text, setText] = useState('')
   const [title, setTitle] = useState('')
+  const [language, setLanguage] = useState<'es' | 'la'>('es')
   const [currentLibraryId, setCurrentLibraryId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [vocabKey, setVocabKey] = useState(0)
@@ -117,7 +118,7 @@ export function ReaderClient() {
           body: JSON.stringify({
             title: `Reading ${new Date().toLocaleDateString()}`,
             content: text,
-            language: 'es',
+            language: language,
           }),
         })
 
@@ -171,6 +172,22 @@ export function ReaderClient() {
           <h2 className="text-2xl font-serif text-sepia-900">{title}</h2>
         </div>
       )}
+
+      {/* Language Selector */}
+      <div className="mb-4 flex items-center gap-3 px-2">
+        <label htmlFor="language-select" className="text-sm font-medium text-sepia-700">
+          Language:
+        </label>
+        <select
+          id="language-select"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value as 'es' | 'la')}
+          className="px-3 py-2 border border-sepia-300 rounded-md text-sm bg-white text-sepia-900 focus:outline-none focus:ring-2 focus:ring-sepia-500"
+        >
+          <option value="es">Spanish</option>
+          <option value="la">Latin</option>
+        </select>
+      </div>
 
       {/* Mode Switcher - Horizontal Scrolling Tabs */}
       <div className="relative mb-6 border-b border-sepia-300">
@@ -238,6 +255,7 @@ export function ReaderClient() {
         {mode === 'input' && (
           <TextInputPanel
             text={text}
+            language={language}
             onTextChange={setText}
             onRenderClick={handleRenderClick}
           />
@@ -245,12 +263,13 @@ export function ReaderClient() {
         {mode === 'render' && text && (
           <TextRenderPanel
             text={text}
+            language={language}
             onEditClick={() => setMode('input')}
             libraryId={currentLibraryId}
           />
         )}
         {mode === 'vocabulary' && <VocabularyPanel key={vocabKey} textId={currentLibraryId} />}
-        {mode === 'tutor' && <TutorPanel textId={currentLibraryId} />}
+        {mode === 'tutor' && <TutorPanel textId={currentLibraryId} language={language} />}
         {mode === 'flashcards' && <FlashcardsPanel textId={currentLibraryId} textTitle={title} courseId={courseId} />}
       </div>
     </div>

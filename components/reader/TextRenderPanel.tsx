@@ -10,11 +10,12 @@ import type { Token, Sentence, DictionaryResponse } from '@/types'
 
 interface TextRenderPanelProps {
   text: string
+  language: 'es' | 'la'
   onEditClick: () => void
   libraryId: string | null
 }
 
-export function TextRenderPanel({ text, onEditClick, libraryId }: TextRenderPanelProps) {
+export function TextRenderPanel({ text, language, onEditClick, libraryId }: TextRenderPanelProps) {
   const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null)
   const [lookupWord, setLookupWord] = useState<string | null>(null)
   const [savedWords, setSavedWords] = useState<Set<string>>(new Set())
@@ -218,7 +219,7 @@ export function TextRenderPanel({ text, onEditClick, libraryId }: TextRenderPane
       </div>
 
       {/* Audio Player */}
-      <AudioPlayer text={text} onPlaybackChange={handlePlaybackChange} />
+      <AudioPlayer text={text} language={language} onPlaybackChange={handlePlaybackChange} />
 
       {/* Main Content with Sidebar */}
       <div className="flex flex-col lg:flex-row gap-4 relative">
@@ -255,6 +256,7 @@ export function TextRenderPanel({ text, onEditClick, libraryId }: TextRenderPane
         {/* Definition Sidebar */}
         <DefinitionSidebar
           word={lookupWord}
+          language={language}
           onClose={handleSidebarClose}
           onDefinitionLoaded={handleDefinitionLoaded}
         />
