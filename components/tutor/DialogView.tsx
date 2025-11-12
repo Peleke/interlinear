@@ -34,13 +34,15 @@ interface DialogViewProps {
   initialMessages: DialogMessage[]
   onMessagesUpdate: (messages: DialogMessage[]) => void
   onEnd: () => void
+  language: 'es' | 'la'
 }
 
 export function DialogView({
   sessionId,
   initialMessages,
   onMessagesUpdate,
-  onEnd
+  onEnd,
+  language
 }: DialogViewProps) {
   const [messages, setMessages] = useState<DialogMessage[]>(initialMessages)
   const [input, setInput] = useState('')
@@ -228,7 +230,7 @@ export function DialogView({
             ) : (
               <Send className="mr-2 h-4 w-4" />
             )}
-            Enviar
+            {language === 'la' ? 'Send' : 'Enviar'}
           </Button>
           <Button
             onClick={handleEndDialog}
@@ -238,10 +240,10 @@ export function DialogView({
             {analyzing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analizando...
+                {language === 'la' ? 'Analyzing...' : 'Analizando...'}
               </>
             ) : (
-              'Terminar Diálogo'
+{language === 'la' ? 'End Dialog' : 'Terminar Diálogo'}
             )}
           </Button>
         </div>
