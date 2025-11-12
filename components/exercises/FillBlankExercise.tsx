@@ -161,7 +161,7 @@ export default function FillBlankExercise({
       {/* Exercise Header */}
       <div className="mb-4">
         <h4 className="text-lg font-semibold text-sepia-900 mb-2">
-          ✏️ Translation Exercise
+          ✏️ Fill in the Blank
         </h4>
         <p className="text-sepia-700">{prompt}</p>
       </div>
