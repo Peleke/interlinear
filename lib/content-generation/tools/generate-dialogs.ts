@@ -83,7 +83,7 @@ export async function generateDialogs(
     const executionTime = Date.now() - startTime
 
     console.log(`✅ Generated ${result.object.dialogs.length} dialogs in ${executionTime}ms`)
-    console.log(`📊 Token usage: ${result.usage.promptTokens} prompt + ${result.usage.completionTokens} completion`)
+    console.log(`📊 Token usage: ${result.usage?.promptTokens || 0} prompt + ${result.usage?.completionTokens || 0} completion`)
 
     return {
       dialogs: result.object.dialogs,
@@ -91,9 +91,9 @@ export async function generateDialogs(
       metadata: {
         dialogCount: result.object.dialogs.length,
         executionTime,
-        promptTokens: result.usage.promptTokens,
-        completionTokens: result.usage.completionTokens,
-        totalTokens: result.usage.totalTokens,
+        promptTokens: result.usage?.promptTokens || 0,
+        completionTokens: result.usage?.completionTokens || 0,
+        totalTokens: result.usage?.totalTokens || 0,
       },
     }
   } catch (error) {

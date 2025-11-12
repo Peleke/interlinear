@@ -78,7 +78,7 @@ export async function generateExercises(
     const executionTime = Date.now() - startTime
 
     console.log(`✅ Generated ${result.object.exercises.length} exercises in ${executionTime}ms`)
-    console.log(`📊 Token usage: ${result.usage.promptTokens} prompt + ${result.usage.completionTokens} completion`)
+    console.log(`📊 Token usage: ${result.usage?.promptTokens || 0} prompt + ${result.usage?.completionTokens || 0} completion`)
 
     return {
       exercises: result.object.exercises,
@@ -86,9 +86,9 @@ export async function generateExercises(
       metadata: {
         exerciseCount: result.object.exercises.length,
         executionTime,
-        promptTokens: result.usage.promptTokens,
-        completionTokens: result.usage.completionTokens,
-        totalTokens: result.usage.totalTokens,
+        promptTokens: result.usage?.promptTokens || 0,
+        completionTokens: result.usage?.completionTokens || 0,
+        totalTokens: result.usage?.totalTokens || 0,
       },
     }
   } catch (error) {

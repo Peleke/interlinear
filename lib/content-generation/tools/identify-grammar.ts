@@ -72,7 +72,7 @@ export async function identifyGrammar(
     const executionTime = Date.now() - startTime
 
     console.log(`✅ Identified ${result.object.grammar_concepts.length} grammar concepts in ${executionTime}ms`)
-    console.log(`📊 Token usage: ${result.usage.promptTokens} prompt + ${result.usage.completionTokens} completion`)
+    console.log(`📊 Token usage: ${result.usage?.promptTokens || 0} prompt + ${result.usage?.completionTokens || 0} completion`)
 
     return {
       grammar_concepts: result.object.grammar_concepts,
@@ -80,9 +80,9 @@ export async function identifyGrammar(
       metadata: {
         conceptCount: result.object.grammar_concepts.length,
         executionTime,
-        promptTokens: result.usage.promptTokens,
-        completionTokens: result.usage.completionTokens,
-        totalTokens: result.usage.totalTokens,
+        promptTokens: result.usage?.promptTokens || 0,
+        completionTokens: result.usage?.completionTokens || 0,
+        totalTokens: result.usage?.totalTokens || 0,
       },
     }
   } catch (error) {

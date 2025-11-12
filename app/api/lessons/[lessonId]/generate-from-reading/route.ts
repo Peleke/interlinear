@@ -145,7 +145,6 @@ export async function POST(
                 display_name: concept.display_name,
                 description: concept.description,
                 content: concept.content,
-                language: language,
               })
               .select('id')
               .single()
