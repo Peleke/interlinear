@@ -335,34 +335,32 @@ export class LatinLanguageProcessor extends BaseLanguageProcessor {
   }
 
   private buildVocabularyPrompt(text: string, options: VocabOptions): string {
-    return `Analyze this Latin text and extract vocabulary information:
+    const maxItems = options.maxItems || 20;
+    return `Extract EXACTLY ${maxItems} vocabulary words from this Latin text. NO MORE, NO LESS.
 
 "${text}"
 
-Please provide a JSON response with the following structure:
+JSON format - SIMPLE ONLY:
 {
   "words": [
     {
-      "word": "original word form as it appears",
-      "lemma": "dictionary form",
-      "definition": "English definition",
-      "partOfSpeech": "noun|verb|adjective|adverb|preposition|conjunction|pronoun|numeral",
-      "stem": "stem without inflection",
-      "case": "nominative|genitive|dative|accusative|ablative|vocative (if noun/adjective/pronoun)",
-      "number": "singular|plural",
-      "gender": "masculine|feminine|neuter (if applicable)",
-      "tense": "present|imperfect|future|perfect|pluperfect|futureperfect (if verb)",
-      "mood": "indicative|subjunctive|imperative|infinitive|participle (if verb)",
-      "voice": "active|passive (if verb)",
-      "frequency": estimated frequency (1-100),
-      "examples": ["example usage"]
+      "word": "puella",
+      "lemma": "puella",
+      "definition": "girl",
+      "partOfSpeech": "noun",
+      "difficulty": "beginner"
     }
   ]
 }
 
-Focus on significant words (not particles like -que, -ne unless specifically requested).
-Limit to ${options.maxItems} most important words.
-${options.includeMorphology ? 'Include detailed morphological analysis.' : 'Basic morphology only.'}`;
+RULES:
+1. EXACTLY ${maxItems} words - count them!
+2. NO extra fields (no stem, case, examples, frequency, morphology)
+3. Focus on nouns, verbs, adjectives - skip particles like -que, -ne
+4. difficulty: "beginner" | "intermediate" | "advanced"
+5. Keep definitions SHORT (1-3 words max)
+
+COUNT YOUR WORDS. STOP AT ${maxItems}.`;
   }
 
   private buildGrammarPrompt(text: string, options: GrammarOptions): string {
