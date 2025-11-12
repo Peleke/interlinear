@@ -18,23 +18,42 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user answer from request
+    // Get user answer from request (support both old and new parameter names)
     const body = await request.json()
-    const { user_answer } = body
+    const { user_answer, answer } = body
+    const userAnswerValue = user_answer || answer
 
-    if (!user_answer) {
+    if (!userAnswerValue) {
       return NextResponse.json(
-        { error: 'user_answer is required' },
+        { error: 'user_answer or answer is required' },
         { status: 400 }
       )
     }
 
-    // Fetch exercise data
-    const { data: exercise, error: exerciseError } = await supabase
-      .from('exercises')
+    // Try to fetch from new lesson_exercises table first, then fall back to old exercises table
+    let exercise = null
+    let exerciseError = null
+
+    // First try lesson_exercises (NEW structure)
+    const { data: newExercise, error: newError } = await supabase
+      .from('lesson_exercises')
       .select('answer, xp_value, lesson_id')
       .eq('id', exerciseId)
       .single()
+
+    if (newExercise && !newError) {
+      exercise = newExercise
+    } else {
+      // Fall back to old exercises table
+      const { data: oldExercise, error: oldError } = await supabase
+        .from('exercises')
+        .select('answer, xp_value, lesson_id')
+        .eq('id', exerciseId)
+        .single()
+
+      exercise = oldExercise
+      exerciseError = oldError
+    }
 
     if (exerciseError || !exercise) {
       return NextResponse.json(
@@ -44,7 +63,7 @@ export async function POST(
     }
 
     // Normalize and validate answer (case-insensitive, trimmed)
-    const userAnswerNormalized = user_answer.trim().toLowerCase()
+    const userAnswerNormalized = userAnswerValue.trim().toLowerCase()
     const correctAnswerNormalized = exercise.answer.trim().toLowerCase()
     const is_correct = userAnswerNormalized === correctAnswerNormalized
 
@@ -57,7 +76,7 @@ export async function POST(
       .insert({
         user_id: user.id,
         exercise_id: exerciseId,
-        user_answer,
+        user_answer: userAnswerValue,
         is_correct,
         xp_earned
       })
