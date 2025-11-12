@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +73,8 @@ export function GenerateLessonModal({
 }: Props) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatorStatuses, setGeneratorStatuses] = useState<GeneratorStatus[]>([]);
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Generator configurations
   const [vocabularyConfig, setVocabularyConfig] = useState<GeneratorConfig>({
@@ -107,6 +109,102 @@ export function GenerateLessonModal({
     },
   });
 
+  // Cleanup polling on unmount or modal close
+  useEffect(() => {
+    if (!open) {
+      stopPolling();
+      setCurrentJobId(null);
+      setGeneratorStatuses([]);
+    }
+    return () => stopPolling();
+  }, [open]);
+
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  const pollJobStatus = async (jobId: string) => {
+    try {
+      const response = await fetch(`/api/generation-jobs/${jobId}`);
+      if (!response.ok) return;
+
+      const job = await response.json();
+
+      // Update statuses from progress
+      const statuses: GeneratorStatus[] = [];
+      const progress = job.progress || {};
+      const results = job.results || {};
+
+      if (vocabularyConfig.enabled) {
+        statuses.push({
+          name: "Vocabulary",
+          status: progress.vocabulary?.status || "pending",
+          count: progress.vocabulary?.count || results.vocabulary?.count,
+          duration: results.vocabulary?.executionTime,
+          error: progress.vocabulary?.error,
+        });
+      }
+
+      if (grammarConfig.enabled) {
+        statuses.push({
+          name: "Grammar",
+          status: progress.grammar?.status || "pending",
+          count: progress.grammar?.count || results.grammar?.count,
+          duration: results.grammar?.executionTime,
+          error: progress.grammar?.error,
+        });
+      }
+
+      if (exercisesConfig.enabled) {
+        statuses.push({
+          name: "Exercises",
+          status: progress.exercises?.status || "pending",
+          count: progress.exercises?.count || results.exercises?.count,
+          duration: results.exercises?.executionTime,
+          error: progress.exercises?.error,
+        });
+      }
+
+      if (dialogsConfig.enabled) {
+        statuses.push({
+          name: "Dialogs",
+          status: progress.dialogs?.status || "pending",
+          count: progress.dialogs?.count || results.dialogs?.count,
+          duration: results.dialogs?.executionTime,
+          error: progress.dialogs?.error,
+        });
+      }
+
+      setGeneratorStatuses(statuses);
+
+      // If job is complete or failed, stop polling
+      if (job.status === "completed" || job.status === "failed") {
+        stopPolling();
+
+        // If completed successfully, wait 2 seconds then close and refresh
+        if (job.status === "completed") {
+          setTimeout(() => {
+            onOpenChange(false);
+            setIsGenerating(false);
+            setGeneratorStatuses([]);
+            setCurrentJobId(null);
+            // Trigger a page refresh to show new content
+            window.location.reload();
+          }, 2000);
+        } else {
+          // Failed - keep modal open to show errors
+          setIsGenerating(false);
+        }
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
+      // Continue polling on transient errors
+    }
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     setGeneratorStatuses([]);
@@ -134,51 +232,18 @@ export function GenerateLessonModal({
 
       const result = await response.json();
 
-      // Update statuses from result
-      const statuses: GeneratorStatus[] = [];
-      if (result.results?.vocabulary) {
-        statuses.push({
-          name: "Vocabulary",
-          status: "completed",
-          count: result.results.vocabulary.count,
-          duration: result.results.vocabulary.executionTime,
-        });
-      }
-      if (result.results?.grammar) {
-        statuses.push({
-          name: "Grammar",
-          status: "completed",
-          count: result.results.grammar.count,
-          duration: result.results.grammar.executionTime,
-        });
-      }
-      if (result.results?.exercises) {
-        statuses.push({
-          name: "Exercises",
-          status: "completed",
-          count: result.results.exercises.count,
-          duration: result.results.exercises.executionTime,
-        });
-      }
-      if (result.results?.dialogs) {
-        statuses.push({
-          name: "Dialogs",
-          status: "completed",
-          count: result.results.dialogs.count,
-          duration: result.results.dialogs.executionTime,
-        });
-      }
+      // Store job ID and start polling
+      if (result.jobId) {
+        setCurrentJobId(result.jobId);
 
-      setGeneratorStatuses(statuses);
+        // Start polling every 2 seconds
+        pollingIntervalRef.current = setInterval(() => {
+          pollJobStatus(result.jobId);
+        }, 2000);
 
-      // Wait 2 seconds to show success, then close
-      setTimeout(() => {
-        onOpenChange(false);
-        setIsGenerating(false);
-        setGeneratorStatuses([]);
-        // Trigger a page refresh to show new content
-        window.location.reload();
-      }, 2000);
+        // Poll immediately
+        pollJobStatus(result.jobId);
+      }
     } catch (error) {
       console.error("Generation error:", error);
       setGeneratorStatuses([
