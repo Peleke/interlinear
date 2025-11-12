@@ -218,15 +218,20 @@ export function GenerateLessonModal({
 
         // If completed successfully AND no failed generators, wait 2 seconds then close and refresh
         if (job.status === "completed" && !anyFailed) {
-          console.log(`[Poll] All generators succeeded, will close and refresh`);
-          setTimeout(() => {
-            onOpenChange(false);
-            setIsGenerating(false);
-            setGeneratorStatuses([]);
-            setCurrentJobId(null);
-            // Trigger a page refresh to show new content
-            window.location.reload();
-          }, 2000);
+          if (userDismissed) {
+            console.log(`[Poll] Job completed in background - user dismissed, not refreshing page`);
+            stopPolling(); // Clean up polling since job is done
+          } else {
+            console.log(`[Poll] All generators succeeded, will close and refresh`);
+            setTimeout(() => {
+              onOpenChange(false);
+              setIsGenerating(false);
+              setGeneratorStatuses([]);
+              setCurrentJobId(null);
+              // Trigger a page refresh to show new content
+              window.location.reload();
+            }, 2000);
+          }
         } else {
           // Failed or had errors - keep modal open to show errors
           console.log(`[Poll] Job had failures, keeping modal open`, { anyFailed, jobStatus: job.status });
