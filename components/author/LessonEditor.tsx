@@ -74,45 +74,51 @@ const statusConfig: Record<
   archived: { label: 'Archived', variant: 'outline' },
 }
 
-export default function LessonEditor({ initialLesson }: LessonEditorProps) {
+export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('metadata')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [lesson, setLesson] = useState<Lesson>(initialLesson)
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved')
-  
-  // Preview modal state
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [lesson, setLesson] = useState(initialLesson)
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
 
-  const saveLesson = useCallback(
-    async (updates: Partial<Lesson>) => {
-      setSaveStatus('saving')
-      try {
-        const response = await fetch(`/api/lessons/${lesson.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updates),
-        })
+  // Auto-save with debouncing (500ms after last edit)
+  const saveLesson = useCallback(async (updatedLesson: Lesson) => {
+    setSaveStatus('saving')
+    try {
+      const response = await fetch(`/api/lessons/${updatedLesson.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: updatedLesson.title,
+          language: updatedLesson.language,
+          overview: updatedLesson.overview,
+          course_id: updatedLesson.course_id,
+          xp_value: updatedLesson.xp_value,
+          sequence_order: updatedLesson.sequence_order,
+        }),
+      })
 
-        if (!response.ok) {
-          throw new Error('Failed to save lesson')
-        }
-
-        setSaveStatus('saved')
-      } catch (error) {
-        console.error('Error saving lesson:', error)
-        setSaveStatus('error')
+      if (!response.ok) {
+        throw new Error('Failed to save lesson')
       }
-    },
-    [lesson.id]
-  )
 
-  const debouncedSave = useDebouncedCallback(saveLesson, 1000)
+      setSaveStatus('saved')
+    } catch (error) {
+      console.error('Error saving lesson:', error)
+      setSaveStatus('unsaved')
+      // TODO: Show error toast
+    }
+  }, [])
+
+  const debouncedSave = useDebouncedCallback(saveLesson, 500)
 
   const updateLesson = useCallback(
     (updates: Partial<Lesson>) => {
-      setLesson((prev) => ({ ...prev, ...updates }))
-      debouncedSave(updates)
+      const updatedLesson = { ...lesson, ...updates }
+      setLesson(updatedLesson)
+      setSaveStatus('unsaved')
+      debouncedSave(updatedLesson)
     },
     [lesson, debouncedSave]
   )
@@ -131,9 +137,19 @@ export default function LessonEditor({ initialLesson }: LessonEditorProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">{/* Rest of component remains the same for now */}</div>
-  )
-}
+    <div className="h-screen flex flex-col bg-background">
+      {/* Top Bar */}
+      <header className="border-b bg-card">
+        <div className="flex items-center justify-between px-4 h-16">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={handleBack}>
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
             >
               <Menu className="h-5 w-5" />
             </Button>

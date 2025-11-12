@@ -18,9 +18,11 @@ interface DialogViewerProps {
   setting?: string
   exchanges: DialogExchange[]
   courseDeckId?: string
+  dialog?: any // For compatibility with preview data
+  previewMode?: boolean
 }
 
-export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId }: DialogViewerProps) {
+export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId, dialog, previewMode = false }: DialogViewerProps) {
   const [showAllTranslations, setShowAllTranslations] = useState(false)
   const [revealedExchanges, setRevealedExchanges] = useState<Set<string>>(new Set())
   const [loadingAudio, setLoadingAudio] = useState<Set<string>>(new Set())

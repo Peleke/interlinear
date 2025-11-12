@@ -160,7 +160,13 @@ export function LessonViewer({
             <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
               💬 Dialog Practice
             </h2>
-            <DialogViewer dialog={dialog} previewMode={previewMode} />
+            <DialogViewer
+              dialogId={dialog.id}
+              context={dialog.context}
+              setting={dialog.setting}
+              exchanges={dialog.exchanges}
+              previewMode={previewMode}
+            />
           </section>
         )}
 
