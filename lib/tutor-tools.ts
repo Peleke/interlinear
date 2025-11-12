@@ -717,9 +717,17 @@ export const startDialogRoleplayTool = tool(
       (a: any, b: any) => a.sequence_order - b.sequence_order
     )
 
+    // Debug logging
+    console.log('[DEBUG] Dialog ID:', dialogId)
+    console.log('[DEBUG] Selected role:', selectedRole)
+    console.log('[DEBUG] Exchanges count:', exchanges.length)
+    console.log('[DEBUG] Exchanges:', JSON.stringify(exchanges, null, 2))
+
     // Find opposite character
     const speakers = Array.from(new Set(exchanges.map((e: any) => e.speaker))) as string[]
+    console.log('[DEBUG] All speakers:', speakers)
     const oppositeCharacter = speakers.find(s => s !== selectedRole)
+    console.log('[DEBUG] Opposite character found:', oppositeCharacter)
 
     if (!oppositeCharacter) {
       throw new Error('Could not determine opposite character')

@@ -22,6 +22,13 @@ interface Dialog {
   exchanges: DialogExchange[]
 }
 
+interface GrammarConcept {
+  id: string
+  name: string
+  description?: string | null
+  content: string
+}
+
 interface LessonViewerProps {
   lesson: {
     id: string
@@ -29,7 +36,7 @@ interface LessonViewerProps {
     overview?: string | null
     courses?: {
       title: string
-      level: string
+      difficulty_level: string
     } | null
   }
   contentBlocks: Array<{
@@ -50,7 +57,8 @@ interface LessonViewerProps {
     content: string
     word_count: number
   }>
-  dialog: Dialog | null
+  dialogs: Dialog[] // Changed from single dialog to array
+  grammarConcepts: GrammarConcept[] // Added grammar concepts
   courseId: string
   previewMode?: boolean // Flag to indicate preview mode
 }
@@ -60,15 +68,27 @@ export function LessonViewer({
   contentBlocks,
   exercises,
   readings,
-  dialog,
+  dialogs,
+  grammarConcepts,
   courseId,
   previewMode = false
 }: LessonViewerProps) {
-  const [exercisesExpanded, setExercisesExpanded] = useState(true)
+  const [exercisesExpanded, setExercisesExpanded] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
+  const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
+  const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
+  const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
 
   // Preview mode simulated completion states
   const [previewCompletedExercises, setPreviewCompletedExercises] = useState<Set<string>>(new Set())
+
+  // Utility function to format grammar concept names
+  const formatConceptName = (name: string) => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
 
   // Handle exercise completion in preview mode
   const handlePreviewExerciseComplete = (exerciseId: string) => {
@@ -84,7 +104,7 @@ export function LessonViewer({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-parchment">
       {/* Preview Mode Indicator */}
       {previewMode && (
         <div className="sticky top-0 z-40 bg-blue-50 border-b border-blue-200 px-4 py-2">
@@ -96,17 +116,25 @@ export function LessonViewer({
         </div>
       )}
 
-      <div className="mx-auto max-w-4xl p-6 space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-            {lesson.courses?.level || 'Intermediate'} • {lesson.courses?.title || 'Course'}
+      {/* Lesson content - matches LessonViewer exactly */}
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Title section - exact match */}
+        <div className="mb-12">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-block px-3 py-1 text-sm font-medium bg-sepia-100 text-sepia-700 rounded">
+              {lesson.courses?.difficulty_level}
+            </span>
+            <span className="text-sm text-sepia-600">
+              {lesson.courses?.title}
+            </span>
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-900">{lesson.title}</h1>
+          <h1 className="text-4xl font-serif text-sepia-900 mb-4">
+            {lesson.title}
+          </h1>
 
           {lesson.overview && (
-            <div className="prose prose-gray max-w-none">
+            <div className="text-lg text-sepia-700 leading-relaxed prose prose-sepia max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {lesson.overview}
               </ReactMarkdown>
@@ -114,120 +142,254 @@ export function LessonViewer({
           )}
         </div>
 
-        {/* Readings */}
-        {readings && readings.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
-              📖 Reading
+        {/* Dialogs Section - Collapsible like in reference screen */}
+        {dialogs && dialogs.length > 0 && (
+          <div className="space-y-8 mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              💬 Dialogs
             </h2>
-            {readings.map((reading) => (
-              <div key={reading.id} className="bg-white rounded-lg border p-6 shadow-sm">
-                <h3 className="text-lg font-medium mb-3">{reading.title}</h3>
-                <div className="prose prose-gray max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {reading.content}
-                  </ReactMarkdown>
-                </div>
-                <div className="text-sm text-gray-500 mt-4">
-                  📊 {reading.word_count} words
-                </div>
+            {dialogs.map((dialog, index) => (
+              <div
+                key={dialog.id}
+                className="bg-purple-50 rounded-lg border border-purple-200"
+              >
+                <button
+                  onClick={() => setDialogsExpanded(prev => ({ ...prev, [dialog.id]: !prev[dialog.id] }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-purple-100 transition-colors rounded-t-lg"
+                >
+                  <h3 className="text-lg font-semibold text-sepia-900">
+                    💬 Dialog {index + 1}: {dialog.context}
+                  </h3>
+                  {dialogsExpanded[dialog.id] ? (
+                    <ChevronUp className="h-5 w-5 text-sepia-700" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-sepia-700" />
+                  )}
+                </button>
+                {dialogsExpanded[dialog.id] && (
+                  <div className="p-4">
+                    <DialogViewer
+                      dialogId={dialog.id}
+                      context={dialog.context}
+                      setting={dialog.setting || undefined}
+                      exchanges={dialog.exchanges}
+                      previewMode={previewMode}
+                    />
+                  </div>
+                )}
               </div>
             ))}
-          </section>
+          </div>
         )}
 
-        {/* Content Blocks */}
+        {/* Content blocks - Grammar & Vocabulary only (markdown dialog removed) */}
         {contentBlocks && contentBlocks.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
-              📝 Lesson Content
-            </h2>
-            {contentBlocks.map((block) => (
-              <div key={block.id} className="bg-white rounded-lg border p-6 shadow-sm">
-                <div className="prose prose-gray max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {block.content || 'No content available'}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+          <div className="space-y-8">
+            {contentBlocks.map((block) => {
+              // Skip markdown and interlinear content (dialog already rendered above)
+              if (block.content_type === 'markdown' || block.content_type === 'interlinear') {
+                return null
+              }
 
-        {/* Dialog */}
-        {dialog && (
-          <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">
-              💬 Dialog Practice
-            </h2>
-            <DialogViewer
-              dialogId={dialog.id}
-              context={dialog.context}
-              setting={dialog.setting}
-              exchanges={dialog.exchanges}
-              previewMode={previewMode}
-            />
-          </section>
-        )}
+              switch (block.content_type) {
 
-        {/* Exercises */}
-        {exercises && exercises.length > 0 && (
-          <section className="space-y-4">
-            <button
-              onClick={() => setExercisesExpanded(!exercisesExpanded)}
-              className="flex items-center gap-2 text-xl font-semibold text-gray-900 border-b pb-2 w-full hover:text-blue-600 transition-colors"
-            >
-              🏋️ Exercises ({exercises.length})
-              {exercisesExpanded ? (
-                <ChevronUp className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
-              )}
-            </button>
-
-            {exercisesExpanded && (
-              <div className="space-y-6">
-                {exercises.map((exercise, index) => (
-                  <div
-                    key={exercise.id}
-                    className="bg-white rounded-lg border p-6 shadow-sm"
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                        Exercise {index + 1}
-                      </span>
-                      {previewMode && previewCompletedExercises.has(exercise.id) && (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      )}
-                      {previewMode && (
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          Preview
-                        </span>
+                case 'vocabulary':
+                  return (
+                    <div
+                      key={block.id}
+                      className="bg-amber-50 rounded-lg border border-amber-200"
+                    >
+                      <button
+                        onClick={() => setVocabularyExpanded(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
+                        className="w-full flex items-center justify-between p-4 hover:bg-amber-100 transition-colors rounded-t-lg"
+                      >
+                        <h3 className="text-lg font-semibold text-sepia-900">
+                          📚 Vocabulary
+                        </h3>
+                        {vocabularyExpanded[block.id] ? (
+                          <ChevronUp className="h-5 w-5 text-sepia-700" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-sepia-700" />
+                        )}
+                      </button>
+                      {vocabularyExpanded[block.id] && (
+                        <div className="px-6 pb-6">
+                          <div className="prose prose-sepia max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {block.content || ''}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
                       )}
                     </div>
+                  )
 
-                    {exercise.type === 'fill_blank' && (
-                      <FillBlankExercise
-                        exerciseId={exercise.id}
-                        prompt={exercise.prompt}
-                        spanishText={exercise.spanish_text || ''}
-                        englishText={exercise.english_text}
-                        previewMode={previewMode}
-                        onComplete={() => handlePreviewExerciseComplete(exercise.id)}
-                      />
+                case 'grammar':
+                  return (
+                    <div
+                      key={block.id}
+                      className="bg-blue-50 rounded-lg border border-blue-200"
+                    >
+                      <button
+                        onClick={() => setGrammarExpanded(prev => ({ ...prev, [block.id]: !prev[block.id] }))}
+                        className="w-full flex items-center justify-between p-4 hover:bg-blue-100 transition-colors rounded-t-lg"
+                      >
+                        <h3 className="text-lg font-semibold text-sepia-900">
+                          ✏️ Grammar Note
+                        </h3>
+                        {grammarExpanded[block.id] ? (
+                          <ChevronUp className="h-5 w-5 text-sepia-700" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-sepia-700" />
+                        )}
+                      </button>
+                      {grammarExpanded[block.id] && (
+                        <div className="px-6 pb-6">
+                          <div className="prose prose-sepia max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {block.content || ''}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+
+                default:
+                  return null
+              }
+            })}
+          </div>
+        )}
+
+        {/* Grammar Concepts Section */}
+        {grammarConcepts && grammarConcepts.length > 0 && (
+          <div className="space-y-8 mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📝 Grammar Concepts
+            </h2>
+            {grammarConcepts.map((concept) => (
+              <div
+                key={concept.id}
+                className="bg-green-50 rounded-lg border border-green-200"
+              >
+                <button
+                  onClick={() => setGrammarExpanded(prev => ({ ...prev, [concept.id]: !prev[concept.id] }))}
+                  className="w-full flex items-center justify-between p-4 hover:bg-green-100 transition-colors rounded-t-lg"
+                >
+                  <h3 className="text-lg font-semibold text-sepia-900">
+                    📝 {formatConceptName(concept.name)}
+                  </h3>
+                  {grammarExpanded[concept.id] ? (
+                    <ChevronUp className="h-5 w-5 text-sepia-700" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-sepia-700" />
+                  )}
+                </button>
+                {grammarExpanded[concept.id] && (
+                  <div className="px-6 pb-6">
+                    {concept.description && (
+                      <p className="text-sm text-gray-600 mb-3">
+                        {concept.description}
+                      </p>
                     )}
+                    <div className="prose prose-sepia max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {concept.content || ''}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
-                    {exercise.type !== 'fill_blank' && (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>Exercise type "{exercise.type}" not yet supported in preview</p>
-                        <p className="text-sm">Prompt: {exercise.prompt}</p>
-                      </div>
+        {/* Exercises Section - Collapsible like in reference screen */}
+        {exercises && exercises.length > 0 && (
+          <div className="space-y-8 mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              ✏️ Exercises
+            </h2>
+            <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-serif text-sepia-900">
+                    Practice Exercises
+                  </h3>
+                  <button
+                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                  >
+                    {exercisesExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        <span>Collapse All</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        <span>Expand All</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                {previewMode && (
+                  <div className="px-4 py-2 bg-blue-100 border border-blue-200 rounded-lg">
+                    <p className="text-sm font-medium text-blue-900">
+                      🔍 Preview Mode - Progress Not Saved
+                    </p>
+                  </div>
+                )}
+              </div>
+              {exercisesExpanded && (
+                <div className="space-y-6">
+                  {exercises.map((exercise) => (
+                    <FillBlankExercise
+                      key={exercise.id}
+                      exerciseId={exercise.id}
+                      prompt={exercise.prompt}
+                      spanishText={exercise.spanish_text || undefined}
+                      englishText={exercise.english_text || undefined}
+                      previewMode={previewMode}
+                      onComplete={() => handlePreviewExerciseComplete(exercise.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Practice Resources Section - Now below exercises */}
+        {readings.length > 0 && (
+          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📚 Interactive Readings
+            </h2>
+            <div className="space-y-2">
+              {readings.map((reading) => (
+                <div
+                  key={reading.id}
+                  className="block p-3 bg-white rounded border border-blue-300 cursor-not-allowed opacity-75"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sepia-900">
+                      {reading.title}
+                    </p>
+                    {previewMode && (
+                      <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                        Preview Mode - Links Disabled
+                      </span>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                  <p className="text-sm text-sepia-600">
+                    {reading.word_count} words
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Preview Mode Footer */}

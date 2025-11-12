@@ -33,7 +33,7 @@ interface LessonPreviewData {
     overview?: string | null
     courses?: {
       title: string
-      level: string
+      difficulty_level: string
     } | null
   }
   contentBlocks: Array<{
@@ -192,10 +192,11 @@ export default function LessonPreviewModal({ lessonId, isOpen, onClose }: Lesson
           {lessonData && !loading && !error && (
             <LessonViewer
               lesson={lessonData.lesson}
-              contentBlocks={lessonData.contentBlocks}
+              contentBlocks={lessonData.lessonContent}
               exercises={lessonData.exercises}
               readings={lessonData.readings}
-              dialog={lessonData.dialogs[0] || null} // Use first dialog for now
+              dialogs={lessonData.dialogs || []} // Pass all dialogs
+              grammarConcepts={lessonData.grammarConcepts || []} // Pass grammar concepts
               courseId="preview" // Preview mode
               previewMode={true} // Add preview mode flag
             />

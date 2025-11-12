@@ -4,10 +4,10 @@ import { cookies } from 'next/headers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
-    const { lessonId } = params
+    const { lessonId } = await params
 
     if (!lessonId) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function GET(
         author_id,
         courses (
           title,
-          level
+          difficulty_level
         )
       `)
       .eq('id', lessonId)
@@ -79,20 +79,20 @@ export async function GET(
       )
     }
 
-    // Get content blocks
-    const { data: contentBlocks, error: contentError } = await supabase
-      .from('content_blocks')
+    // Get lesson content
+    const { data: lessonContent, error: contentError } = await supabase
+      .from('lesson_content')
       .select('*')
       .eq('lesson_id', lessonId)
-      .order('order_index')
+      .order('created_at')
 
     if (contentError) {
-      console.error('Content blocks fetch error:', contentError)
+      console.error('Lesson content fetch error:', contentError)
     }
 
     // Get readings
     const { data: readings, error: readingsError } = await supabase
-      .from('readings')
+      .from('lesson_readings')
       .select('*')
       .eq('lesson_id', lessonId)
       .order('created_at')
@@ -114,7 +114,7 @@ export async function GET(
 
     // Get dialogs
     const { data: dialogs, error: dialogsError } = await supabase
-      .from('dialogs')
+      .from('lesson_dialogs')
       .select(`
         id,
         context,
@@ -152,7 +152,7 @@ export async function GET(
           id,
           name,
           description,
-          explanation
+          content
         )
       `)
       .eq('lesson_id', lessonId)
@@ -169,7 +169,7 @@ export async function GET(
         overview: lesson.overview,
         courses: lesson.courses
       },
-      contentBlocks: contentBlocks || [],
+      lessonContent: lessonContent || [],
       readings: readings || [],
       exercises: exercises || [],
       dialogs: formattedDialogs,
