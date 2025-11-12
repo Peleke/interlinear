@@ -184,10 +184,10 @@ function validateContentCompleteness(
   const hasReadings = lesson.readings && lesson.readings.length > 0
   const hasExercises = lesson.exercises && lesson.exercises.length > 0
   const hasDialogs = lesson.dialogs && lesson.dialogs.length > 0
-  const hasGrammarContent = lesson.lessonContent &&
+  const hasGrammarContent = (lesson.lessonContent &&
     lesson.lessonContent.some(block =>
       block.content_type === 'grammar' && block.content && block.content.trim().length > 0
-    )
+    )) || (lesson.grammarConcepts && lesson.grammarConcepts.length > 0)
   const hasVocabularyContent = lesson.lessonContent &&
     lesson.lessonContent.some(block =>
       block.content_type === 'vocabulary' && block.content && block.content.trim().length > 0
@@ -266,7 +266,10 @@ function validateExercises(
 
     // Validate fill_blank exercises specifically
     if (exercise.type === 'fill_blank') {
-      if (!exercise.spanish_text || exercise.spanish_text.trim().length === 0) {
+      // For fill_blank exercises, Spanish text can be in either spanish_text field or prompt field
+      const spanishText = exercise.spanish_text || exercise.prompt
+
+      if (!spanishText || spanishText.trim().length === 0) {
         errors.push({
           field: exerciseField,
           message: `Exercise ${index + 1}: Fill-in-blank exercises require Spanish text`,
@@ -274,8 +277,8 @@ function validateExercises(
         })
       }
 
-      // Check if Spanish text has blank markers
-      if (exercise.spanish_text && !exercise.spanish_text.includes('___')) {
+      // Check if Spanish text has blank markers (only if there's text to check)
+      if (spanishText && !spanishText.includes('___')) {
         errors.push({
           field: exerciseField,
           message: `Exercise ${index + 1}: Fill-in-blank text must contain blank markers (___) `,
@@ -419,11 +422,15 @@ function validateReadings(
       })
     }
 
+    // Calculate actual word count from content if the stored word_count seems wrong
+    const actualWordCount = reading.content ? reading.content.trim().split(/\s+/).filter(word => word.length > 0).length : 0
+    const wordCount = reading.word_count && reading.word_count > 10 ? reading.word_count : actualWordCount
+
     // Validate word count (should be reasonable)
-    if (reading.word_count < 10) {
+    if (wordCount < 10) {
       warnings.push({
         field: readingField,
-        message: `Reading ${index + 1}: Very low word count (${reading.word_count} words)`,
+        message: `Reading ${index + 1}: Very low word count (${wordCount} words)`,
         severity: 'warning'
       })
     }

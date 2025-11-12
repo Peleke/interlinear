@@ -117,9 +117,21 @@ export async function POST(
 
       supabase
         .from('lesson_readings')
-        .select('*')
+        .select(`
+          id,
+          lesson_id,
+          reading_id,
+          display_order,
+          is_required,
+          library_readings!reading_id (
+            id,
+            title,
+            content,
+            word_count
+          )
+        `)
         .eq('lesson_id', lessonId)
-        .order('created_at'),
+        .order('display_order'),
 
       supabase
         .from('lesson_dialogs')

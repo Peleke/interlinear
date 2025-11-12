@@ -14,6 +14,7 @@ export interface UpdateLessonParams {
   title?: string
   overview?: string
   language?: 'es' | 'is'
+  course_id?: string | null
   xp_value?: number
   sequence_order?: number
 }

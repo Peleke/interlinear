@@ -64,6 +64,7 @@ export async function PATCH(
       title: body.title,
       overview: body.overview,
       language: body.language,
+      course_id: body.course_id,
       xp_value: body.xp_value,
       sequence_order: body.sequence_order,
     }

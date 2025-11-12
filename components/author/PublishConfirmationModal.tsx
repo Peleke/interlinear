@@ -28,6 +28,7 @@ export default function PublishConfirmationModal({
 
   // Validate lesson when modal opens
   const handleValidateLesson = async () => {
+    console.log('Starting validation for lesson:', lessonId)
     setIsValidating(true)
     setError(null)
 
@@ -36,6 +37,8 @@ export default function PublishConfirmationModal({
       const response = await fetch(`/api/lessons/${lessonId}/validate-for-publish`, {
         method: 'POST'
       })
+
+      console.log('Validation response status:', response.status)
 
       const data = await response.json()
 
