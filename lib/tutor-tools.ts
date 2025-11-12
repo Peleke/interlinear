@@ -616,18 +616,45 @@ Sé específico y didáctico.`
 
 const AnalyzeMessageSchema = z.object({
   userMessage: z.string().min(1).max(1000),
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 export const analyzeUserMessageTool = tool(
-  async ({ userMessage, level }) => {
+  async ({ userMessage, level, language = 'es' }) => {
     // Use .withStructuredOutput() for guaranteed JSON response
     const model = new ChatOpenAI({
       model: "gpt-4o-mini",  // Cost-effective for simple corrections
       temperature: 0.3
     }).withStructuredOutput(TurnCorrectionOutputSchema)
 
-    const systemPrompt = `Eres un profesor de español analizando el mensaje de un estudiante de nivel ${level}.
+    // Generate language-appropriate system prompt
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `You are a Latin teacher analyzing a level ${level} student's message.
+
+Student's message: "${userMessage}"
+
+Analyze this message for errors. Return:
+1. If it has any errors (true/false)
+2. The fully corrected version
+3. List of specific errors with explanations
+
+Categories:
+- grammar: verbal conjugation, agreement, tenses, cases, etc.
+- vocabulary: incorrect word choice, anachronisms
+- syntax: word order, missing words, extra words
+
+Be encouraging! If there are no errors, praise the student.
+
+IMPORTANT: If NO errors, return:
+{
+  "hasErrors": false,
+  "correctedText": "[original message unchanged]",
+  "errors": []
+}`
+      } else {
+        return `Eres un profesor de español analizando el mensaje de un estudiante de nivel ${level}.
 
 Mensaje del estudiante: "${userMessage}"
 
@@ -649,6 +676,10 @@ IMPORTANTE: Si NO hay errores, devuelve:
   "correctedText": "[mensaje original sin cambios]",
   "errors": []
 }`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     try {
       const result = await retryWithBackoff(async () => {
@@ -1037,7 +1068,8 @@ export const continueDialogRoleplayTool = tool(
     // Analyze user's message for errors
     const correction = await analyzeUserMessageTool.invoke({
       userMessage: userResponse,
-      level: session.level
+      level: session.level,
+      language
     })
 
     // Get conversation history
