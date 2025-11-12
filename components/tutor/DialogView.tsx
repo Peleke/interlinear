@@ -243,7 +243,7 @@ export function DialogView({
                 {language === 'la' ? 'Analyzing...' : 'Analizando...'}
               </>
             ) : (
-{language === 'la' ? 'End Dialog' : 'Terminar Diálogo'}
+              language === 'la' ? 'End Dialog' : 'Terminar Diálogo'
             )}
           </Button>
         </div>
