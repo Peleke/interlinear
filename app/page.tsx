@@ -331,6 +331,83 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Future Languages Teaser */}
+      <section className="py-16 bg-gradient-to-r from-sepia-900 to-ink">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <div className="mb-8">
+            <span className="inline-block px-4 py-2 bg-gold-100 text-gold-800 rounded-full text-sm font-semibold border border-gold-300 mb-4">
+              🚀 The Future of AI Language Learning
+            </span>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
+              Any Language. Any Script. Any Era.
+            </h2>
+            <p className="text-lg text-sepia-200 max-w-3xl mx-auto">
+              We're not stopping at Spanish and Latin. Our AI tutoring system is designed to master
+              <strong> any human language</strong>—from ancient scripts to modern media.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            {/* Viking/Old Norse */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-4xl mb-4">⚔️</div>
+              <h3 className="text-xl font-serif font-bold text-white mb-2">
+                Viking Sagas
+              </h3>
+              <p className="text-sepia-200 mb-3">
+                <strong>Old Norse</strong> with AI-powered runic script analysis
+              </p>
+              <div className="text-sm text-gold-200 bg-gold-900/30 px-3 py-1 rounded-full">
+                Coming Soon
+              </div>
+            </div>
+
+            {/* Japanese/Anime */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-4xl mb-4">🗾</div>
+              <h3 className="text-xl font-serif font-bold text-white mb-2">
+                Anime & Manga
+              </h3>
+              <p className="text-sepia-200 mb-3">
+                <strong>Japanese</strong> with cultural context and modern slang
+              </p>
+              <div className="text-sm text-gold-200 bg-gold-900/30 px-3 py-1 rounded-full">
+                Coming Soon
+              </div>
+            </div>
+
+            {/* More Languages */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="text-4xl mb-4">🌍</div>
+              <h3 className="text-xl font-serif font-bold text-white mb-2">
+                Your Request
+              </h3>
+              <p className="text-sepia-200 mb-3">
+                <strong>Any language</strong> our AI can learn, you can master
+              </p>
+              <div className="text-sm text-gold-200 bg-gold-900/30 px-3 py-1 rounded-full">
+                Vote for Next
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 max-w-4xl mx-auto">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <span className="text-gold-300 text-2xl">🧠</span>
+              <h4 className="text-lg font-semibold text-white">
+                Same AI Tutoring System. Unlimited Languages.
+              </h4>
+              <span className="text-gold-300 text-2xl">🧠</span>
+            </div>
+            <p className="text-sepia-200">
+              Real-time error correction, character roleplay, and professor-style feedback
+              will work for <strong>every language we add</strong>. The AI learns the language
+              structure, you learn to speak it fluently.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA Section */}
       <section className="py-24 bg-gradient-to-br from-crimson to-sepia-800">
         <div className="max-w-4xl mx-auto px-6 text-center">
