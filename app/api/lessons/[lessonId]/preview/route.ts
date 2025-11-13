@@ -54,6 +54,10 @@ export async function GET(
         id,
         title,
         overview,
+        readings_overview,
+        exercises_overview,
+        dialogs_overview,
+        grammar_overview,
         language,
         author_id,
         courses (
@@ -91,12 +95,12 @@ export async function GET(
       console.error('Lesson content fetch error:', contentError)
     }
 
-    // Get readings
-    const { data: readings, error: readingsError } = await supabase
+    // Get readings with proper library_readings join
+    const { data: readingsData, error: readingsError } = await supabase
       .from('lesson_readings')
-      .select('*')
+      .select('reading_id, library_readings(id, title, content, word_count)')
       .eq('lesson_id', lessonId)
-      .order('created_at')
+      .order('display_order', { ascending: true })
 
     if (readingsError) {
       console.error('Readings fetch error:', readingsError)
@@ -180,17 +184,27 @@ export async function GET(
     // Use appropriate exercise data based on structure
     const exercises = hasNewStructure ? (newExercises || []) : (oldExercises || [])
 
+    // Transform readings data - flatten library_readings arrays (same as published lesson page)
+    type ReadingData = { id: string; title: string; content: string; word_count: number }
+    const lessonReadings: ReadingData[] = (readingsData
+      ?.flatMap(r => Array.isArray(r.library_readings) ? r.library_readings : (r.library_readings ? [r.library_readings] : []))
+      .filter((r): r is ReadingData => r !== null && r !== undefined) || []) as ReadingData[]
+
     // Format the response for the preview modal
     const previewData = {
       lesson: {
         id: lesson.id,
         title: lesson.title,
         overview: lesson.overview,
+        readings_overview: lesson.readings_overview,
+        exercises_overview: lesson.exercises_overview,
+        dialogs_overview: lesson.dialogs_overview,
+        grammar_overview: lesson.grammar_overview,
         language: lesson.language,
         courses: lesson.courses
       },
       lessonContent: lessonContent || [],
-      readings: readings || [],
+      readings: lessonReadings,
       exercises: exercises,
       dialogs: formattedDialogs,
       grammarConcepts: (grammarConcepts || []).map((gc: any) => gc.grammar_concepts).filter(Boolean)

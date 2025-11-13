@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Eye } from 'lucide-react'
+import Link from 'next/link'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
 import MultipleChoiceExercise from '@/components/exercises/MultipleChoiceExercise'
 import TranslationExercise from '@/components/exercises/TranslationExercise'
@@ -36,6 +37,10 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
+    readings_overview?: string | null
+    exercises_overview?: string | null
+    dialogs_overview?: string | null
+    grammar_overview?: string | null
     language?: 'es' | 'la'
     courses?: {
       title: string
@@ -81,6 +86,8 @@ export function LessonViewer({
   const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
+  const [readingsExpanded, setReadingsExpanded] = useState<Record<string, boolean>>({})
+  const [selectedReading, setSelectedReading] = useState<{ title: string; word_count: number } | null>(null)
 
   // Preview mode simulated completion states
   const [previewCompletedExercises, setPreviewCompletedExercises] = useState<Set<string>>(new Set())
@@ -135,44 +142,223 @@ export function LessonViewer({
           )}
         </div>
 
-        {/* Dialogs Section - Collapsible like in reference screen */}
+        {/* Interactive Readings Section - MOVED TO TOP */}
+        {readings.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📚 Interactive Readings
+            </h2>
+            {lesson.readings_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.readings_overview}
+                </ReactMarkdown>
+              </div>
+            )}
+            <div className="space-y-4">
+              {readings.map((reading) => (
+                <div
+                  key={reading.id}
+                  className="bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <button
+                    onClick={() => setReadingsExpanded(prev => ({ ...prev, [reading.id]: !prev[reading.id] }))}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors rounded-t-lg"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold text-sepia-900">
+                        {reading.title}
+                      </h3>
+                      <p className="text-sm text-sepia-600">
+                        {reading.word_count} words
+                      </p>
+                    </div>
+                    {readingsExpanded[reading.id] ? (
+                      <ChevronUp className="h-5 w-5 text-sepia-700" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    )}
+                  </button>
+                  {readingsExpanded[reading.id] && (
+                    <div className="px-6 pb-6">
+                      <div className="bg-white rounded-lg border border-blue-300 p-4">
+                        <p className="text-sm text-sepia-600 mb-3">
+                          Open this reading in the interactive reader to practice vocabulary and comprehension.
+                        </p>
+                        {previewMode ? (
+                          <div className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg">
+                            <p className="text-sm text-gray-600">
+                              📖 <em>Preview Mode: Reader would open here in published lesson</em>
+                            </p>
+                          </div>
+                        ) : (
+                          <Link
+                            href={`/reader?readingId=${reading.id}&lessonId=${courseId}&courseId=${courseId}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Open Reader
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Practice Exercises Section - MOVED BELOW READINGS */}
+        {exercises && exercises.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              ✏️ Exercises
+            </h2>
+            {lesson.exercises_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.exercises_overview}
+                </ReactMarkdown>
+              </div>
+            )}
+            <div className="bg-white rounded-lg border-2 border-sepia-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
+                <h3 className="text-xl font-serif text-sepia-900">
+                  Practice Exercises
+                </h3>
+                <button
+                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                >
+                  {exercisesExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span>Collapse All</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span>Expand All</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              {exercisesExpanded && (
+                <div className="p-6 space-y-6">
+                  {exercises.map((exercise, index) => {
+                    // Determine exercise type - handle both old and new structure
+                    const exerciseType = exercise.type || exercise.exercise_type || 'fill_blank'
+
+                    // Render appropriate exercise component based on type
+                    switch (exerciseType) {
+                      case 'fill_blank':
+                        return (
+                          <FillBlankExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            previewMode={previewMode}
+                            onComplete={() => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      case 'multiple_choice':
+                        return (
+                          <MultipleChoiceExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            choices={exercise.choices || []}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            previewMode={previewMode}
+                            onComplete={() => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      case 'translation':
+                        return (
+                          <TranslationExercise
+                            key={exercise.id}
+                            exerciseId={exercise.id}
+                            prompt={exercise.prompt}
+                            correctAnswer={exercise.answer}
+                            spanishText={exercise.spanish_text || undefined}
+                            englishText={exercise.english_text || undefined}
+                            previewMode={previewMode}
+                            onComplete={() => handlePreviewExerciseComplete(exercise.id)}
+                          />
+                        )
+                      default:
+                        // Fallback for unknown exercise types
+                        return (
+                          <div key={exercise.id || index} className="border border-sepia-200 rounded-lg p-4">
+                            <h3 className="font-semibold text-sepia-900 mb-2">
+                              Exercise {index + 1} - Type: {exerciseType} (Unsupported)
+                            </h3>
+                            <p className="text-sm text-amber-600">
+                              This exercise type is not yet supported in preview mode.
+                            </p>
+                          </div>
+                        )
+                    }
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Dialogs Section - MOVED AFTER EXERCISES */}
         {dialogs && dialogs.length > 0 && (
-          <div className="space-y-8 mb-12">
+          <div className="mb-12">
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               💬 Dialogs
             </h2>
-            {dialogs.map((dialog, index) => (
-              <div
-                key={dialog.id}
-                className="bg-purple-50 rounded-lg border border-purple-200"
-              >
-                <button
-                  onClick={() => setDialogsExpanded(prev => ({ ...prev, [dialog.id]: !prev[dialog.id] }))}
-                  className="w-full flex items-center justify-between p-4 hover:bg-purple-100 transition-colors rounded-t-lg"
-                >
-                  <h3 className="text-lg font-semibold text-sepia-900 text-left">
-                    💬 Dialog {index + 1}: {dialog.context}
-                  </h3>
-                  {dialogsExpanded[dialog.id] ? (
-                    <ChevronUp className="h-5 w-5 text-sepia-700" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-sepia-700" />
-                  )}
-                </button>
-                {dialogsExpanded[dialog.id] && (
-                  <div className="p-4">
-                    <DialogViewer
-                      dialogId={dialog.id}
-                      context={dialog.context}
-                      setting={dialog.setting || undefined}
-                      exchanges={dialog.exchanges}
-                      previewMode={previewMode}
-                      language={lesson.language || 'es'}
-                    />
-                  </div>
-                )}
+            {lesson.dialogs_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.dialogs_overview}
+                </ReactMarkdown>
               </div>
-            ))}
+            )}
+            <div className="space-y-4">
+              {dialogs.map((dialog, index) => (
+                <div
+                  key={dialog.id}
+                  className="bg-purple-50 rounded-lg border border-purple-200"
+                >
+                  <button
+                    onClick={() => setDialogsExpanded(prev => ({ ...prev, [dialog.id]: !prev[dialog.id] }))}
+                    className="w-full flex items-center justify-between p-4 hover:bg-purple-100 transition-colors rounded-t-lg"
+                  >
+                    <h3 className="text-lg font-semibold text-sepia-900 text-left">
+                      💬 {dialog.context}
+                    </h3>
+                    {dialogsExpanded[dialog.id] ? (
+                      <ChevronUp className="h-5 w-5 text-sepia-700" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    )}
+                  </button>
+                  {dialogsExpanded[dialog.id] && (
+                    <div className="p-4">
+                      <DialogViewer
+                        dialogId={dialog.id}
+                        context={dialog.context}
+                        setting={dialog.setting || undefined}
+                        exchanges={dialog.exchanges}
+                        previewMode={previewMode}
+                        language={lesson.language || 'es'}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -262,6 +448,13 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               📝 Grammar Concepts
             </h2>
+            {lesson.grammar_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.grammar_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             {grammarConcepts.map((concept) => (
               <div
                 key={concept.id}
@@ -296,129 +489,6 @@ export function LessonViewer({
                 )}
               </div>
             ))}
-          </div>
-        )}
-
-        {/* Exercises Section - Collapsible like in reference screen */}
-        {exercises && exercises.length > 0 && (
-          <div className="space-y-8 mb-12">
-            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
-              ✏️ Exercises
-            </h2>
-            <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-serif text-sepia-900">
-                  Practice Exercises
-                </h3>
-                <button
-                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                >
-                  {exercisesExpanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      <span>Collapse All</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      <span>Expand All</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              {exercisesExpanded && (
-                <div className="space-y-6">
-                  {exercises.map((exercise, index) => {
-                    // Determine exercise type - handle both old and new structure
-                    const exerciseType = exercise.type || exercise.exercise_type || 'fill_blank'
-
-                    // Render appropriate exercise component based on type
-                    switch (exerciseType) {
-                      case 'fill_blank':
-                        return (
-                          <FillBlankExercise
-                            key={exercise.id}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt}
-                            correctAnswer={exercise.answer}
-                            spanishText={exercise.spanish_text || undefined}
-                            englishText={exercise.english_text || undefined}
-                            previewMode={previewMode}
-                            onComplete={() => handlePreviewExerciseComplete(exercise.id)}
-                          />
-                        )
-                      case 'multiple_choice':
-                        return (
-                          <MultipleChoiceExercise
-                            key={exercise.id}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt}
-                            choices={exercise.options?.choices || exercise.options || []}
-                            correctAnswer={exercise.answer}
-                            spanishText={exercise.spanish_text || undefined}
-                            englishText={exercise.english_text || undefined}
-                            previewMode={previewMode}
-                            onComplete={(isCorrect: boolean, xpEarned: number) => handlePreviewExerciseComplete(exercise.id)}
-                          />
-                        )
-                      case 'translation':
-                        return (
-                          <TranslationExercise
-                            key={exercise.id}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt}
-                            correctAnswer={exercise.answer}
-                            spanishText={exercise.spanish_text || undefined}
-                            englishText={exercise.english_text || undefined}
-                            direction={exercise.direction}
-                            previewMode={previewMode}
-                            onComplete={(isCorrect: boolean, xpEarned: number) => handlePreviewExerciseComplete(exercise.id)}
-                          />
-                        )
-                      default:
-                        // Fallback for unknown exercise types
-                        return (
-                          <div key={exercise.id || index} className="border border-sepia-200 rounded-lg p-4">
-                            <h3 className="font-semibold text-sepia-900 mb-2">
-                              Exercise {index + 1} - Type: {exerciseType} (Unsupported)
-                            </h3>
-                            <p className="text-sm text-amber-600">
-                              This exercise type is not yet supported in preview mode.
-                            </p>
-                          </div>
-                        )
-                    }
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Practice Resources Section - Now below exercises */}
-        {readings.length > 0 && (
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
-              📚 Interactive Readings
-            </h2>
-            <div className="space-y-2">
-              {readings.map((reading) => (
-                <div
-                  key={reading.id}
-                  className="block p-3 bg-white rounded border border-blue-300 cursor-not-allowed opacity-75"
-                >
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sepia-900">
-                      {reading.title}
-                    </p>
-                  </div>
-                  <p className="text-sm text-sepia-600">
-                    {reading.word_count} words
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 

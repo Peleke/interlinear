@@ -39,6 +39,10 @@ interface Lesson {
   status: LessonStatus
   language: 'es' | 'la'
   overview?: string
+  readings_overview?: string
+  exercises_overview?: string
+  dialogs_overview?: string
+  grammar_overview?: string
   course_id?: string | null
   xp_value: number
   sequence_order: number
@@ -102,6 +106,10 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
           title: updatedLesson.title,
           language: updatedLesson.language,
           overview: updatedLesson.overview,
+          readings_overview: updatedLesson.readings_overview,
+          exercises_overview: updatedLesson.exercises_overview,
+          dialogs_overview: updatedLesson.dialogs_overview,
+          grammar_overview: updatedLesson.grammar_overview,
           course_id: updatedLesson.course_id,
           xp_value: updatedLesson.xp_value,
           sequence_order: updatedLesson.sequence_order,
@@ -419,6 +427,10 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
                   title: lesson.title,
                   language: lesson.language,
                   overview: lesson.overview || '',
+                  readings_overview: lesson.readings_overview || '',
+                  exercises_overview: lesson.exercises_overview || '',
+                  dialogs_overview: lesson.dialogs_overview || '',
+                  grammar_overview: lesson.grammar_overview || '',
                   course_id: lesson.course_id || null,
                   xp_value: lesson.xp_value,
                   sequence_order: lesson.sequence_order,

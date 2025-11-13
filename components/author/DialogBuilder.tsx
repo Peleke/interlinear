@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog as UIDialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { PlusCircle, Trash2, GripVertical, Save, CheckCircle2, Sparkles, Loader2 } from 'lucide-react'
+import { PlusCircle, Trash2, GripVertical, Save, CheckCircle2, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { ReadingSelector } from './ReadingSelector'
 
 interface DialogExchange {
@@ -44,6 +44,8 @@ export function DialogBuilder({ lessonId, language }: Props) {
   const [turnsPerDialog, setTurnsPerDialog] = useState(6)
   const [complexity, setComplexity] = useState<'simple' | 'intermediate' | 'advanced'>('intermediate')
   const [savingDialogIndex, setSavingDialogIndex] = useState<number | null>(null)
+  const [exchangesExpanded, setExchangesExpanded] = useState<Record<string, boolean>>({})
+  const [dialogsCollapsed, setDialogsCollapsed] = useState<Record<string, boolean>>({})
 
   // Load existing dialogs
   useEffect(() => {
@@ -65,13 +67,16 @@ export function DialogBuilder({ lessonId, language }: Props) {
   }
 
   const addDialog = () => {
+    const newDialogId = `temp-${Date.now()}`
     const newDialog: Dialog = {
-      id: `temp-${Date.now()}`,
+      id: newDialogId,
       context: '',
       setting: null,
       exchanges: [],
     }
     setDialogs([...dialogs, newDialog])
+    // Ensure new dialog starts expanded
+    setDialogsCollapsed(prev => ({ ...prev, [newDialogId]: false }))
   }
 
   const deleteDialog = async (dialogId: string) => {
@@ -503,9 +508,29 @@ export function DialogBuilder({ lessonId, language }: Props) {
             <Card key={dialog.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-base">
-                    Dialog {dialogIdx + 1}
-                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setDialogsCollapsed(prev => ({
+                        ...prev,
+                        [dialog.id]: !prev[dialog.id]
+                      }))}
+                      className="flex items-center gap-1 hover:bg-muted rounded p-1 transition-colors"
+                    >
+                      {dialogsCollapsed[dialog.id] ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronUp className="h-4 w-4" />
+                      )}
+                    </button>
+                    <CardTitle className="text-base">
+                      Dialog {dialogIdx + 1}
+                      {dialog.context && (
+                        <span className="text-sm font-normal text-muted-foreground ml-2">
+                          - {dialog.context}
+                        </span>
+                      )}
+                    </CardTitle>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -515,7 +540,8 @@ export function DialogBuilder({ lessonId, language }: Props) {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              {!dialogsCollapsed[dialog.id] && (
+                <CardContent className="space-y-4">
                 {/* Dialog Context */}
                 <div className="space-y-2">
                   <Label>Context / Situation</Label>
@@ -530,7 +556,7 @@ export function DialogBuilder({ lessonId, language }: Props) {
 
                 {/* Dialog Setting */}
                 <div className="space-y-2">
-                  <Label>Setting (Optional)</Label>
+                  <Label>Overview (markdown supported)</Label>
                   <Input
                     placeholder="e.g., Evening, casual restaurant in Madrid"
                     value={dialog.setting || ''}
@@ -545,15 +571,35 @@ export function DialogBuilder({ lessonId, language }: Props) {
                 {/* Exchanges */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label>Conversation Exchanges</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addExchange(dialog.id)}
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Exchange
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Label>Conversation Exchanges</Label>
+                      <button
+                        onClick={() => setExchangesExpanded(prev => ({ ...prev, [dialog.id]: !prev[dialog.id] }))}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground rounded transition-colors"
+                      >
+                        {exchangesExpanded[dialog.id] ? (
+                          <>
+                            <ChevronUp className="h-3 w-3" />
+                            <span>Collapse</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-3 w-3" />
+                            <span>Expand ({dialog.exchanges.length})</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    {exchangesExpanded[dialog.id] && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addExchange(dialog.id)}
+                      >
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Exchange
+                      </Button>
+                    )}
                   </div>
 
                   {dialog.exchanges.length === 0 ? (
@@ -628,7 +674,8 @@ export function DialogBuilder({ lessonId, language }: Props) {
                     </div>
                   )}
                 </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>
