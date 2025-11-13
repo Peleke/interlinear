@@ -108,16 +108,6 @@ export function LessonViewer({
 
   return (
     <div className="min-h-screen bg-parchment">
-      {/* Preview Mode Indicator */}
-      {previewMode && (
-        <div className="sticky top-0 z-40 bg-blue-50 border-b border-blue-200 px-4 py-2">
-          <div className="flex items-center justify-center gap-2 text-sm text-blue-700">
-            <Eye className="h-4 w-4" />
-            <span className="font-medium">Preview Mode</span>
-            <span className="text-blue-600">- Exercise interactions work but don't save progress</span>
-          </div>
-        </div>
-      )}
 
       {/* Lesson content - matches LessonViewer exactly */}
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -317,34 +307,25 @@ export function LessonViewer({
             </h2>
             <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <h3 className="text-xl font-serif text-sepia-900">
-                    Practice Exercises
-                  </h3>
-                  <button
-                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                  >
-                    {exercisesExpanded ? (
-                      <>
-                        <ChevronUp className="h-4 w-4" />
-                        <span>Collapse All</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-4 w-4" />
-                        <span>Expand All</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                {previewMode && (
-                  <div className="px-4 py-2 bg-blue-100 border border-blue-200 rounded-lg">
-                    <p className="text-sm font-medium text-blue-900">
-                      🔍 Preview Mode - Progress Not Saved
-                    </p>
-                  </div>
-                )}
+                <h3 className="text-xl font-serif text-sepia-900">
+                  Practice Exercises
+                </h3>
+                <button
+                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                >
+                  {exercisesExpanded ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span>Collapse All</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span>Expand All</span>
+                    </>
+                  )}
+                </button>
               </div>
               {exercisesExpanded && (
                 <div className="space-y-6">
@@ -431,11 +412,6 @@ export function LessonViewer({
                     <p className="font-medium text-sepia-900">
                       {reading.title}
                     </p>
-                    {previewMode && (
-                      <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                        Preview Mode - Links Disabled
-                      </span>
-                    )}
                   </div>
                   <p className="text-sm text-sepia-600">
                     {reading.word_count} words
@@ -446,17 +422,6 @@ export function LessonViewer({
           </div>
         )}
 
-        {/* Preview Mode Footer */}
-        {previewMode && (
-          <div className="text-center py-8 text-gray-500 border-t">
-            <p className="text-sm">
-              🔍 This is a preview of how learners will see this lesson
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Exercise progress is simulated and will not be saved
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
