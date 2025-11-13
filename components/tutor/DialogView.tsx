@@ -209,7 +209,10 @@ export function DialogView({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe tu respuesta en español..."
+            placeholder={language === 'la'
+              ? "Scribe responsionem tuam Latine..."
+              : "Escribe tu respuesta en español..."
+            }
             className="min-h-[80px] resize-none"
             disabled={loading}
           />

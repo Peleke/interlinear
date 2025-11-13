@@ -58,7 +58,8 @@ const StartDialogSchema = z.object({
 
 const ContinueDialogSchema = z.object({
   sessionId: z.string().uuid(),
-  userResponse: z.string().min(1).max(1000)
+  userResponse: z.string().min(1).max(1000),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 const AnalyzeErrorsSchema = z.object({
@@ -329,7 +330,7 @@ Primera pregunta:`
 // ============================================================================
 
 export const continueDialogTool = tool(
-  async ({ sessionId, userResponse }) => {
+  async ({ sessionId, userResponse, language: userLanguage = 'es' }) => {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -346,8 +347,8 @@ export const continueDialogTool = tool(
     // Get text separately (no foreign key constraint after migration)
     const text = await LibraryService.getText(session.text_id)
 
-    // Get language from the text
-    const language = (text.language as 'es' | 'la') || 'es'
+    // Prioritize user-selected language over stored text language
+    const language = userLanguage || (text.language as 'es' | 'la') || 'es'
 
     // Get conversation history
     const { data: turns, error: turnsError } = await supabase
