@@ -43,7 +43,11 @@ export async function getOrCreateCourseDeck(
       const existingDeck = allDecks[0]
       console.log('[CourseDeck] Found existing deck:', existingDeck.id, 'for course:', courseId)
       if (allDecks.length > 1) {
-        console.warn('[CourseDeck] Multiple decks found for course:', courseId, 'count:', allDecks.length, 'using first one:', existingDeck.id)
+        console.error('🚨 [CourseDeck] DUPLICATE DECKS DETECTED for course:', courseId)
+        console.error('🚨 [CourseDeck] Deck count:', allDecks.length)
+        console.error('🚨 [CourseDeck] All decks:', allDecks.map(d => ({ id: d.id, name: d.name })))
+        console.error('🚨 [CourseDeck] Using first deck:', existingDeck.id, 'name:', existingDeck.name)
+        console.error('🚨 [CourseDeck] THIS NEEDS INVESTIGATION - WHY ARE THERE DUPLICATES?')
       }
       return existingDeck as CourseDeck
     }
