@@ -18,12 +18,12 @@ export default async function MyCoursesPage() {
     redirect('/login')
   }
 
-  // Fetch user's courses with lesson counts
+  // Fetch user's courses with lesson counts using direct foreign key
   const { data: courses, error } = await supabase
     .from('courses')
     .select(`
       *,
-      lesson_count:lesson_course_ordering(count)
+      lessons(count)
     `)
     .eq('created_by', user.id)
     .order('created_at', { ascending: false })
@@ -33,10 +33,10 @@ export default async function MyCoursesPage() {
     return <div>Error loading courses</div>
   }
 
-  // Transform lesson count
+  // Transform lesson count from direct foreign key relationship
   const coursesWithCount = (courses || []).map((course) => ({
     ...course,
-    lesson_count: course.lesson_count?.[0]?.count || 0,
+    lesson_count: course.lessons?.[0]?.count || 0,
   }))
 
   return <MyCoursesDashboard courses={coursesWithCount} userId={user.id} />
