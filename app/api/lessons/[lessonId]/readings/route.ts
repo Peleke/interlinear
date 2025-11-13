@@ -11,7 +11,7 @@ export async function GET(
 
     const { data: readings, error } = await supabase
       .from('lesson_readings')
-      .select('reading_id, library_readings(id, title, content, word_count)')
+      .select('reading_id, library_readings(id, title, content, reading_overview, word_count)')
       .eq('lesson_id', lessonId)
       .order('created_at', { ascending: true })
 
@@ -25,6 +25,7 @@ export async function GET(
       id: (item.library_readings as any)?.id,
       title: (item.library_readings as any)?.title,
       content: (item.library_readings as any)?.content,
+      reading_overview: (item.library_readings as any)?.reading_overview,
       word_count: (item.library_readings as any)?.word_count
     })).filter(r => r.id) || []
 

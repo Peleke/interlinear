@@ -20,6 +20,7 @@ export async function PATCH(
         title: body.title,
         author: body.author,
         content: body.content,
+        reading_overview: body.reading_overview,
         difficulty_level: body.difficulty_level,
         language: body.language,
         updated_at: new Date().toISOString(),
