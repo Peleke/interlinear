@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Edit, Trash2, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Trash2, GripVertical, Upload, Download } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
@@ -46,6 +46,9 @@ interface Course {
   language: string
   difficulty_level: string
   created_at: string
+  published_at: string | null
+  published_by: string | null
+  version: number
 }
 
 interface LessonOrderingEntry {
@@ -137,6 +140,8 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
   const [isLessonSelectorOpen, setIsLessonSelectorOpen] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [isUnpublishing, setIsUnpublishing] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -223,6 +228,50 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
     }
   }
 
+  const handlePublishCourse = async () => {
+    setIsPublishing(true)
+    try {
+      const response = await fetch(`/api/courses/${course.id}/publish`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to publish course')
+      }
+
+      toast.success('Course published successfully')
+      router.refresh()
+    } catch (error) {
+      console.error('Failed to publish course:', error)
+      toast.error('Failed to publish course')
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
+  const handleUnpublishCourse = async () => {
+    setIsUnpublishing(true)
+    try {
+      const response = await fetch(`/api/courses/${course.id}/publish`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to unpublish course')
+      }
+
+      toast.success('Course unpublished successfully')
+      router.refresh()
+    } catch (error) {
+      console.error('Failed to unpublish course:', error)
+      toast.error('Failed to unpublish course')
+    } finally {
+      setIsUnpublishing(false)
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Back Button */}
@@ -244,6 +293,27 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
             <p className="text-sepia-600">{course.description}</p>
           </div>
           <div className="flex gap-2">
+            {course.published_at ? (
+              <Button
+                variant="outline"
+                onClick={handleUnpublishCourse}
+                disabled={isUnpublishing}
+                className="border-orange-300 text-orange-700 hover:bg-orange-50"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {isUnpublishing ? 'Unpublishing...' : 'Unpublish'}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handlePublishCourse}
+                disabled={isPublishing}
+                className="border-green-300 text-green-700 hover:bg-green-50"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {isPublishing ? 'Publishing...' : 'Publish'}
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => setIsEditModalOpen(true)}
@@ -267,6 +337,11 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
           <Badge variant="outline">{course.difficulty_level}</Badge>
           <Badge variant="outline">{course.language.toUpperCase()}</Badge>
           <Badge variant="outline">{lessons.length} lessons</Badge>
+          {course.published_at && (
+            <Badge className="bg-green-100 text-green-800 border-green-300">
+              Published v{course.version}
+            </Badge>
+          )}
         </div>
       </div>
 
