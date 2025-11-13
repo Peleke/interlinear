@@ -266,21 +266,19 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Grammar Concepts</h3>
-          <p className="text-sm text-muted-foreground">
-            Link existing concepts or create new ones
-          </p>
-        </div>
-        <div className="flex gap-2">
+      <div>
+        <h3 className="text-lg font-semibold">Grammar Concepts</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Link existing concepts or create new ones
+        </p>
+        <div className="flex gap-2 mb-4">
           <Button onClick={() => setShowGenerateModal(true)} variant="outline">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate with AI
+            Generate
           </Button>
           <Button onClick={() => setShowCreateForm(!showCreateForm)} variant="outline">
             <Plus className="mr-2 h-4 w-4" />
-            {showCreateForm ? "Cancel" : "Create New"}
+            {showCreateForm ? "Cancel" : "Add"}
           </Button>
         </div>
       </div>

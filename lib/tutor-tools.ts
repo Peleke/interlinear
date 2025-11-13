@@ -1253,6 +1253,7 @@ export const continueDialogRoleplayTool = tool(
 
     // Get the correct language from lesson (dialog table has no language column!)
     let detectedLanguage = language
+    let dialogContext = null
 
     try {
       // Get the dialog first, then the lesson that contains it
@@ -1261,12 +1262,13 @@ export const continueDialogRoleplayTool = tool(
 
         const { data: dialog, error: dialogError } = await supabase
           .from('lesson_dialogs')
-          .select('lesson_id')
+          .select('lesson_id, context')
           .eq('id', session.dialog_id)
           .single()
 
         if (!dialogError && dialog?.lesson_id) {
           console.log(`[DEBUG] Found dialog, lesson_id: ${dialog.lesson_id}`)
+          dialogContext = dialog.context
 
           const { data: lesson, error: lessonError } = await supabase
             .from('lessons')
@@ -1316,7 +1318,7 @@ export const continueDialogRoleplayTool = tool(
 
     // Build conversation history
     const history = turns.map(turn => {
-      return `${session.selected_role === session.lesson_dialogs.context ? 'Tú' : turn.ai_message ? 'AI' : 'Tú'}: ${turn.ai_message || turn.user_response || ''}`
+      return `${session.selected_role === dialogContext ? 'Tú' : turn.ai_message ? 'AI' : 'Tú'}: ${turn.ai_message || turn.user_response || ''}`
     }).join('\n')
 
     const nextTurnNumber = turns.length + 1

@@ -375,13 +375,11 @@ export function VocabularyManager({ lessonId, language }: Props) {
       )}
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">Vocabulary Manager</h3>
-            <p className="text-sm text-muted-foreground">
-              Add vocabulary words for this lesson (auto-fetches from Merriam-Webster)
-            </p>
-          </div>
+        <div>
+          <h3 className="text-lg font-semibold">Vocabulary Manager</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add vocabulary words for this lesson (auto-fetches from Merriam-Webster)
+          </p>
           <div className="flex gap-3">
             <Button
               onClick={() => setShowGenerateModal(true)}
@@ -394,7 +392,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
             </Button>
             <Button onClick={addVocabItem} variant="outline" size="default" className="px-4 py-2">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Word
+              Add
             </Button>
             <Button onClick={saveVocabulary} disabled={isSaving} size="default" className="px-4 py-2">
               {isSaving ? (
@@ -402,7 +400,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isSaving ? 'Saving...' : 'Save All'}
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </div>

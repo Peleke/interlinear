@@ -601,16 +601,16 @@ export default function ExerciseBuilder({ lessonId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div>
         <h2 className="text-2xl font-bold">Exercises</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4">
           <Button variant="outline" onClick={() => setShowGenerateModal(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate with AI
+            Generate
           </Button>
           <Button onClick={() => setShowForm(!showForm)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Exercise
+            Add
           </Button>
         </div>
       </div>
@@ -745,6 +745,12 @@ export default function ExerciseBuilder({ lessonId }: Props) {
         {exerciseTypes.map((type) => {
           const Icon = type.icon;
           const count = exercises.filter(e => e.exercise_type === type.id).length;
+          // Mobile labels (shorter)
+          const mobileLabels = {
+            'fill_blank': 'Fill',
+            'multiple_choice': 'MC',
+            'translation': 'Translate'
+          };
           return (
             <button
               key={type.id}
@@ -757,7 +763,9 @@ export default function ExerciseBuilder({ lessonId }: Props) {
               )}
             >
               <Icon className="h-4 w-4" />
-              {type.label}
+              {/* Show short labels on mobile, full labels on desktop */}
+              <span className="hidden sm:inline">{type.label}</span>
+              <span className="sm:hidden">{mobileLabels[type.id as keyof typeof mobileLabels]}</span>
               <Badge variant="secondary" className="ml-1">{count}</Badge>
             </button>
           );

@@ -210,13 +210,11 @@ export default function ReadingLinker({ lessonId, language }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Library Readings</h3>
-          <p className="text-sm text-muted-foreground">
-            Link existing readings or create new ones
-          </p>
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold">Library Readings</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Link existing readings or create new ones
+        </p>
         <Button
           onClick={() => {
             if (showCreateForm || editingReadingId) {
@@ -228,7 +226,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
           variant="outline"
         >
           <Plus className="mr-2 h-4 w-4" />
-          {showCreateForm || editingReadingId ? "Cancel" : "Create New"}
+          {showCreateForm || editingReadingId ? "Cancel" : "Add"}
         </Button>
       </div>
 
@@ -392,7 +390,8 @@ export default function ReadingLinker({ lessonId, language }: Props) {
                 onClick={() => loadReadingForEdit(reading)}
               >
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
+                  {/* Desktop/tablet layout - single row */}
+                  <div className="hidden md:flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-blue-500" />
@@ -447,6 +446,70 @@ export default function ReadingLinker({ lessonId, language }: Props) {
                       >
                         <X className="h-4 w-4 text-red-500" />
                       </Button>
+                    </div>
+                  </div>
+
+                  {/* Mobile layout - two rows */}
+                  <div className="md:hidden space-y-3">
+                    {/* Row 1: Title and info */}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-blue-500" />
+                        <CardTitle className="text-base">{reading.title}</CardTitle>
+                      </div>
+                      {reading.author && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          by {reading.author}
+                        </p>
+                      )}
+                      <div className="flex gap-2 mt-2 text-xs text-gray-500">
+                        {reading.difficulty_level && (
+                          <Badge variant="outline" className="text-xs">
+                            {reading.difficulty_level}
+                          </Badge>
+                        )}
+                        {reading.word_count && (
+                          <span>{reading.word_count} words</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Row 2: Controls */}
+                    <div className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedReadingForGeneration(reading);
+                          setShowGenerateModal(true);
+                        }}
+                        title="Generate lesson content from this reading"
+                      >
+                        <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
+                        Generate
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs cursor-pointer">
+                            {reading.is_required ? "Required" : "Optional"}
+                          </Label>
+                          <Switch
+                            checked={reading.is_required}
+                            onCheckedChange={() =>
+                              toggleRequired(reading.id, reading.is_required!)
+                            }
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => unlinkReading(reading.id)}
+                          title="Unlink from lesson"
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

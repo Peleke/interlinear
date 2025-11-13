@@ -324,25 +324,23 @@ export function DialogBuilder({ lessonId, language }: Props) {
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Dialog Builder</h3>
-          <p className="text-sm text-muted-foreground">
-            Create conversation exchanges for this lesson
-          </p>
-        </div>
+      <div>
+        <h3 className="text-lg font-semibold">Dialog Builder</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Create conversation exchanges for this lesson
+        </p>
         <div className="flex gap-2">
           <Button onClick={() => setShowGenerateModal(true)} variant="outline">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate with AI
+            Generate
           </Button>
           <Button onClick={addDialog} variant="outline">
             <PlusCircle className="mr-2 h-4 w-4" />
-            Add Dialog
+            Add
           </Button>
           <Button onClick={saveDialogs} disabled={isSaving}>
             <Save className="mr-2 h-4 w-4" />
-            {isSaving ? 'Saving...' : 'Save All'}
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
