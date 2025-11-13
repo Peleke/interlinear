@@ -48,12 +48,20 @@ export default async function CoursePage({
   }
 
   // Get user's enrollment for this course
-  const { data: enrollment } = await supabase
+  const { data: enrollment, error: enrollmentError } = await supabase
     .from('user_courses')
     .select('id')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
     .single()
+
+  console.log('[Course Page] Enrollment check:', {
+    userId: user.id,
+    courseId,
+    enrollment,
+    enrollmentError,
+    isEnrolled: !!enrollment
+  })
 
   const isEnrolled = !!enrollment
 

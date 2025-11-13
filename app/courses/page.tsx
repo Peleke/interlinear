@@ -41,10 +41,17 @@ export default async function CoursesPage() {
   }
 
   // Get user's enrollments
-  const { data: enrollments } = await supabase
+  const { data: enrollments, error: enrollmentsError } = await supabase
     .from('user_courses')
     .select('course_id')
     .eq('user_id', user.id)
+
+  console.log('[Courses List] Enrollment check:', {
+    userId: user.id,
+    enrollments,
+    enrollmentsError,
+    enrollmentCount: enrollments?.length || 0
+  })
 
   const enrolledCourseIds = new Set(
     enrollments?.map((e) => e.course_id) || []
