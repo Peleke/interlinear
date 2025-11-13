@@ -274,14 +274,6 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Back Button */}
-      <Link
-        href="/author/courses"
-        className="inline-flex items-center text-sepia-600 hover:text-sepia-900 mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Courses
-      </Link>
 
       {/* Course Header */}
       <div className="bg-white rounded-lg p-6 border border-sepia-200 shadow-sm mb-6">
