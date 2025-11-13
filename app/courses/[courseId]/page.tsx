@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LessonCard from '@/components/courses/LessonCard'
+import EnrollmentButton from '@/components/courses/EnrollmentButton'
 import { BookOpen, Target, Clock, ChevronLeft } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import ReactMarkdown from 'react-markdown'
@@ -46,6 +47,16 @@ export default async function CoursePage({
     console.error('Failed to fetch lessons:', lessonsError)
   }
 
+  // Get user's enrollment for this course
+  const { data: enrollment } = await supabase
+    .from('user_courses')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+    .single()
+
+  const isEnrolled = !!enrollment
+
   // Get lesson completions
   const { data: completions } = await supabase
     .from('lesson_completions')
@@ -88,14 +99,21 @@ export default async function CoursePage({
             <span className="inline-block px-3 py-1 text-sm font-medium bg-white text-sepia-700 rounded border border-sepia-200">
               {course.difficulty_level}
             </span>
-            <span className="inline-block px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded border border-green-200">
-              Enrolled
-            </span>
+            {isEnrolled && (
+              <span className="inline-block px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded border border-green-200">
+                Enrolled
+              </span>
+            )}
           </div>
 
           <h1 className="text-4xl font-serif text-sepia-900 mb-4">
             {course.title}
           </h1>
+
+          {/* Enrollment Button */}
+          <div className="mb-6">
+            <EnrollmentButton courseId={course.id} isEnrolled={isEnrolled} />
+          </div>
 
           <div className="text-lg text-sepia-700 mb-8 leading-relaxed prose prose-lg prose-sepia max-w-none">
             <ReactMarkdown>
