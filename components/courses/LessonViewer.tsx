@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ArrowLeft, CheckCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Loader2, ChevronDown, ChevronUp, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/Navigation'
@@ -100,6 +100,7 @@ export default function LessonViewer({
   const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
+  const [readingsExpanded, setReadingsExpanded] = useState<Record<string, boolean>>({})
   const [courseDeck, setCourseDeck] = useState<CourseDeck | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
 
@@ -258,17 +259,40 @@ export default function LessonViewer({
                   key={reading.id}
                   className="bg-blue-50 border border-blue-200 rounded-lg"
                 >
-                  <Link
-                    href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-100 transition-colors rounded-lg block"
+                  <button
+                    onClick={() => setReadingsExpanded(prev => ({ ...prev, [reading.id]: !prev[reading.id] }))}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors rounded-t-lg"
                   >
                     <div>
                       <h3 className="text-lg font-semibold text-sepia-900">
-                        {reading.title} • {reading.word_count} words
+                        {reading.title}
                       </h3>
+                      <p className="text-sm text-sepia-600">
+                        {reading.word_count} words
+                      </p>
                     </div>
-                    <ChevronDown className="h-5 w-5 text-sepia-700" />
-                  </Link>
+                    {readingsExpanded[reading.id] ? (
+                      <ChevronUp className="h-5 w-5 text-sepia-700" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    )}
+                  </button>
+                  {readingsExpanded[reading.id] && (
+                    <div className="px-6 pb-6">
+                      <div className="bg-white rounded-lg border border-blue-300 p-4">
+                        <p className="text-sm text-sepia-600 mb-3">
+                          Open this reading in the interactive reader to practice vocabulary and comprehension.
+                        </p>
+                        <Link
+                          href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Open Reader
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -283,8 +307,8 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 ✏️ Exercises
               </h2>
-              <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-white rounded-lg border-2 border-sepia-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
                     Practice Exercises
                   </h3>
@@ -306,7 +330,7 @@ export default function LessonViewer({
                   </button>
                 </div>
                 {exercisesExpanded && (
-                  <div className="space-y-6">
+                  <div className="p-6 space-y-6">
                     {newExercises.map((exercise, index) => {
                       // Render appropriate exercise component based on type
                       switch (exercise.exercise_type) {
@@ -377,37 +401,39 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 ✏️ Exercises
               </h2>
-              <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-white rounded-lg border-2 border-sepia-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
                     Practice Exercises
                   </h3>
-                  <button
-                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                  >
-                    {exercisesExpanded ? (
-                      <>
-                        <ChevronUp className="h-4 w-4" />
-                        <span>Collapse All</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-4 w-4" />
-                        <span>Expand All</span>
-                      </>
+                  <div className="flex items-center gap-4">
+                    {totalXpEarned > 0 && (
+                      <div className="px-3 py-1 bg-green-100 border border-green-200 rounded-lg">
+                        <p className="text-sm font-medium text-green-900">
+                          +{totalXpEarned} XP earned
+                        </p>
+                      </div>
                     )}
-                  </button>
-                </div>
-                {totalXpEarned > 0 && (
-                  <div className="px-4 py-2 bg-green-100 border border-green-200 rounded-lg mb-4">
-                    <p className="text-sm font-medium text-green-900">
-                      +{totalXpEarned} XP earned
-                    </p>
+                    <button
+                      onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                    >
+                      {exercisesExpanded ? (
+                        <>
+                          <ChevronUp className="h-4 w-4" />
+                          <span>Collapse All</span>
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="h-4 w-4" />
+                          <span>Expand All</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                )}
+                </div>
                 {exercisesExpanded && (
-                  <div className="space-y-6">
+                  <div className="p-6 space-y-6">
                     {exercises.map((exercise) => {
                       const ExerciseComponent = exercise.exercise_type === 'multiple_choice'
                         ? MultipleChoiceExercise
@@ -621,29 +647,39 @@ export default function LessonViewer({
 
 
 
-        {/* Complete/Incomplete toggle button - Always visible for debugging */}
-        {contentBlocks && contentBlocks.length > 0 && (
-          <div className="mt-12 flex justify-center">
-            <button
-              onClick={handleToggleComplete}
-              disabled={isCompleting}
-              className={`px-8 py-3 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 ${
-                isCompleted
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                  : 'bg-sepia-700 hover:bg-sepia-800 text-white'
-              }`}
-            >
-              {isCompleting ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>{isCompleted ? 'Unmarking...' : 'Completing...'}</span>
-                </>
-              ) : (
-                <span>{isCompleted ? 'Mark as Incomplete (Debug)' : 'Mark as Complete'}</span>
-              )}
-            </button>
-          </div>
-        )}
+        {/* Complete Lesson button - Always visible at end of lesson */}
+        <div className="mt-16 pb-12 flex justify-center">
+          <button
+            onClick={handleToggleComplete}
+            disabled={isCompleting}
+            className={`px-8 py-4 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 text-lg ${
+              isCompleted
+                ? 'bg-green-600 hover:bg-green-700 text-white border-2 border-green-500'
+                : 'bg-gradient-to-r from-sepia-700 to-sepia-800 hover:from-sepia-800 hover:to-sepia-900 text-white border-2 border-sepia-600 shadow-lg'
+            }`}
+          >
+            {isCompleting ? (
+              <>
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span>{isCompleted ? 'Updating...' : 'Completing Lesson...'}</span>
+              </>
+            ) : (
+              <>
+                {isCompleted ? (
+                  <>
+                    <CheckCircle className="h-6 w-6" />
+                    <span>Lesson Complete!</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-6 w-6" />
+                    <span>Complete Lesson</span>
+                  </>
+                )}
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -81,6 +81,7 @@ export function LessonViewer({
   const [grammarExpanded, setGrammarExpanded] = useState<Record<string, boolean>>({})
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
+  const [readingsExpanded, setReadingsExpanded] = useState<Record<string, boolean>>({})
 
   // Preview mode simulated completion states
   const [previewCompletedExercises, setPreviewCompletedExercises] = useState<Set<string>>(new Set())
@@ -148,21 +149,46 @@ export function LessonViewer({
                   className="bg-blue-50 border border-blue-200 rounded-lg"
                 >
                   <button
-                    onClick={() => {
-                      if (previewMode) {
-                        // In preview mode, show modal with reading info
-                        alert(`Reading: ${reading.title}\n${reading.word_count} words\n\nIn preview mode - click would open reader in published view`)
-                      }
-                    }}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors rounded-lg"
+                    onClick={() => setReadingsExpanded(prev => ({ ...prev, [reading.id]: !prev[reading.id] }))}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-blue-100 transition-colors rounded-t-lg"
                   >
                     <div>
                       <h3 className="text-lg font-semibold text-sepia-900">
-                        {reading.title} • {reading.word_count} words
+                        {reading.title}
                       </h3>
+                      <p className="text-sm text-sepia-600">
+                        {reading.word_count} words
+                      </p>
                     </div>
-                    <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    {readingsExpanded[reading.id] ? (
+                      <ChevronUp className="h-5 w-5 text-sepia-700" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    )}
                   </button>
+                  {readingsExpanded[reading.id] && (
+                    <div className="px-6 pb-6">
+                      <div className="bg-white rounded-lg border border-blue-300 p-4">
+                        <p className="text-sm text-sepia-600 mb-3">
+                          {previewMode
+                            ? "In preview mode - this would open the interactive reader in published view"
+                            : "Click below to open this reading in the interactive reader"
+                          }
+                        </p>
+                        {!previewMode && (
+                          <a
+                            href={`/reader?readingId=${reading.id}&lessonId=${courseId}&courseId=${courseId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Open Reader
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -175,8 +201,8 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               ✏️ Exercises
             </h2>
-            <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-white rounded-lg border-2 border-sepia-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                 <h3 className="text-xl font-serif text-sepia-900">
                   Practice Exercises
                 </h3>
@@ -198,7 +224,7 @@ export function LessonViewer({
                 </button>
               </div>
               {exercisesExpanded && (
-                <div className="space-y-6">
+                <div className="p-6 space-y-6">
                   {exercises.map((exercise, index) => {
                     // Determine exercise type - handle both old and new structure
                     const exerciseType = exercise.type || exercise.exercise_type || 'fill_blank'
