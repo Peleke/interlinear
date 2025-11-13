@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, CheckCircle, AlertCircle, BookmarkPlus } from '
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { FlashcardSaveModal } from '@/components/shared/FlashcardSaveModal'
 
 interface ErrorDetail {
   errorText: string
@@ -95,6 +96,7 @@ function ErrorDetailComponent({ error }: { error: ErrorDetail }) {
   const [saving, setSaving] = useState(false)
   const [decks, setDecks] = useState<Array<{ id: string; name: string }>>([])
   const [selectedDeckId, setSelectedDeckId] = useState<string>('')
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     loadDecks()
@@ -189,34 +191,69 @@ function ErrorDetailComponent({ error }: { error: ErrorDetail }) {
             {error.explanation}
           </p>
 
-          {/* Save to Flashcard */}
+          {/* Save to Flashcard - Responsive */}
           {decks.length > 0 && (
-            <div className="flex items-center gap-2 pt-1">
-              <select
-                value={selectedDeckId}
-                onChange={(e) => setSelectedDeckId(e.target.value)}
-                className="text-xs border rounded px-2 py-1 bg-white"
-              >
-                {decks.map(deck => (
-                  <option key={deck.id} value={deck.id}>
-                    {deck.name}
-                  </option>
-                ))}
-              </select>
-              <Button
-                onClick={saveAsFlashcard}
-                disabled={saving}
-                size="sm"
-                variant="outline"
-                className="h-6 text-xs"
-              >
-                <BookmarkPlus className="h-3 w-3 mr-1" />
-                {saving ? 'Saving...' : 'Save as Card'}
-              </Button>
-            </div>
+            <>
+              {/* Desktop/Tablet: Show full UI (md and up) */}
+              <div className="hidden md:flex items-center gap-2 pt-1">
+                <select
+                  value={selectedDeckId}
+                  onChange={(e) => setSelectedDeckId(e.target.value)}
+                  className="text-xs border rounded px-2 py-1 bg-white"
+                >
+                  {decks.map(deck => (
+                    <option key={deck.id} value={deck.id}>
+                      {deck.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  onClick={saveAsFlashcard}
+                  disabled={saving}
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-xs"
+                >
+                  <BookmarkPlus className="h-3 w-3 mr-1" />
+                  {saving ? 'Saving...' : 'Save as Card'}
+                </Button>
+              </div>
+
+              {/* Mobile: Show icon only (below md) */}
+              <div className="md:hidden pt-1">
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="p-1 text-sepia-700 hover:bg-sepia-100 rounded-full transition-colors"
+                  title="Save to flashcard"
+                >
+                  <BookmarkPlus className="h-4 w-4" />
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
+
+      {/* Mobile Flashcard Save Modal */}
+      <FlashcardSaveModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={() => {
+          // Modal handles the save, just close it
+          setShowModal(false)
+        }}
+        saveData={{
+          front: error.errorText,
+          back: error.correction,
+          notes: `${error.category}: ${error.explanation}`,
+          source: 'tutor_session',
+          deckId: selectedDeckId
+        }}
+        errorText={error.errorText}
+        correction={error.correction}
+        explanation={error.explanation}
+        category={error.category}
+      />
     </div>
   )
 }

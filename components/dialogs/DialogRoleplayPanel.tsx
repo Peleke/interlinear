@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Loader2, Theater, X, Send, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Volume2, BookmarkPlus, Play } from 'lucide-react'
 import { RoleSelector } from './RoleSelector'
 import { LevelSelector } from '@/components/tutor/LevelSelector'
+import { FlashcardSaveModal } from '@/components/shared/FlashcardSaveModal'
 import type { CEFRLevel, TurnCorrection } from '@/types/tutor'
 
 interface DialogExchange {
@@ -688,6 +689,14 @@ function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorr
   const [isExpanded, setIsExpanded] = useState(false)
   const [savedErrors, setSavedErrors] = useState<Set<number>>(new Set())
   const [savingError, setSavingError] = useState<number | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedError, setSelectedError] = useState<{
+    errorText: string
+    correction: string
+    explanation: string
+    category: string
+    idx: number
+  } | null>(null)
 
   const saveToFlashcard = async (errorText: string, correction: string, idx: number) => {
     if (!courseDeckId) {
@@ -724,6 +733,26 @@ function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorr
     }
   }
 
+  const handleMobileSave = (err: any, idx: number) => {
+    setSelectedError({
+      errorText: err.errorText,
+      correction: err.correction,
+      explanation: err.explanation,
+      category: err.category,
+      idx
+    })
+    setShowModal(true)
+  }
+
+  const handleModalSave = () => {
+    if (selectedError) {
+      // Mark as saved
+      setSavedErrors(prev => new Set(prev).add(selectedError.idx))
+    }
+    setShowModal(false)
+    setSelectedError(null)
+  }
+
   if (!correction.hasErrors) {
     return (
       <div className="mt-2 flex items-center gap-1 text-xs text-green-700">
@@ -758,25 +787,65 @@ function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorr
                   </span>
                 </div>
                 {courseDeckId && (
-                  <button
-                    onClick={() => saveToFlashcard(err.errorText, err.correction, idx)}
-                    disabled={savedErrors.has(idx) || savingError === idx}
-                    className="p-1 text-sepia-700 hover:bg-sepia-100 rounded transition-colors disabled:opacity-50"
-                    title={savedErrors.has(idx) ? 'Saved to deck' : 'Save to flashcard deck'}
-                  >
-                    {savingError === idx ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : savedErrors.has(idx) ? (
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <BookmarkPlus className="h-3 w-3" />
-                    )}
-                  </button>
+                  <>
+                    {/* Desktop/Tablet: Show full button (md and up) */}
+                    <button
+                      onClick={() => saveToFlashcard(err.errorText, err.correction, idx)}
+                      disabled={savedErrors.has(idx) || savingError === idx}
+                      className="hidden md:block p-1 text-sepia-700 hover:bg-sepia-100 rounded transition-colors disabled:opacity-50"
+                      title={savedErrors.has(idx) ? 'Saved to deck' : 'Save to flashcard deck'}
+                    >
+                      {savingError === idx ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : savedErrors.has(idx) ? (
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <BookmarkPlus className="h-3 w-3" />
+                      )}
+                    </button>
+
+                    {/* Mobile: Show icon only (below md) */}
+                    <button
+                      onClick={() => handleMobileSave(err, idx)}
+                      disabled={savedErrors.has(idx)}
+                      className="md:hidden p-1 text-sepia-700 hover:bg-sepia-100 rounded-full transition-colors disabled:opacity-50"
+                      title={savedErrors.has(idx) ? 'Saved to deck' : 'Save to flashcard'}
+                    >
+                      {savedErrors.has(idx) ? (
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                      ) : (
+                        <BookmarkPlus className="h-3 w-3" />
+                      )}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Mobile Flashcard Save Modal */}
+      {selectedError && (
+        <FlashcardSaveModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false)
+            setSelectedError(null)
+          }}
+          onSave={handleModalSave}
+          saveData={{
+            front: selectedError.errorText,
+            back: selectedError.correction,
+            source: 'dialog_roleplay',
+            sourceId: `error_${selectedError.idx}`,
+            deckId: courseDeckId
+          }}
+          errorText={selectedError.errorText}
+          correction={selectedError.correction}
+          explanation={selectedError.explanation}
+          category={selectedError.category as 'grammar' | 'vocabulary' | 'syntax'}
+        />
       )}
     </div>
   )
