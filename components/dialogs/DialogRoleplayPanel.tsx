@@ -47,6 +47,8 @@ export function DialogRoleplayPanel({
   language = 'es',
   onClose
 }: DialogRoleplayPanelProps) {
+  // DEBUG: Log courseDeckId prop
+  console.log('[DialogRoleplayPanel] courseDeckId prop:', courseDeckId, 'language:', language)
   const [stage, setStage] = useState<RoleplayStage>('selection')
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [selectedLevel, setSelectedLevel] = useState<CEFRLevel | null>(null)

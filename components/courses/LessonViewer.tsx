@@ -113,12 +113,14 @@ export default function LessonViewer({
     const initCourseDeck = async () => {
       if (!lesson.courses?.title) return
 
-      console.log('[LessonViewer] Getting course deck for courseId:', courseId)
+      console.log('[LessonViewer] Getting course deck for courseId:', courseId, 'title:', lesson.courses?.title)
       const deck = await getOrCreateCourseDeck(courseId, lesson.courses.title)
       console.log('[LessonViewer] Got deck:', deck)
       if (deck) {
         setCourseDeck(deck)
         console.log('[LessonViewer] Set courseDeck.id:', deck.id)
+      } else {
+        console.error('[LessonViewer] Failed to get course deck!')
       }
     }
 
