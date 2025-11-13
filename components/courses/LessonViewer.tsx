@@ -246,49 +246,245 @@ export default function LessonViewer({
           )}
         </div>
 
-        {/* Dialog Section - Handle both old and new structures */}
+        {/* Interactive Readings Section - MOVED TO TOP */}
+        {readings.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📚 Interactive Readings
+            </h2>
+            <div className="space-y-4">
+              {readings.map((reading) => (
+                <div
+                  key={reading.id}
+                  className="bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <Link
+                    href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-blue-100 transition-colors rounded-lg block"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold text-sepia-900">
+                        {reading.title} • {reading.word_count} words
+                      </h3>
+                    </div>
+                    <ChevronDown className="h-5 w-5 text-sepia-700" />
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Practice Exercises Section - MOVED BELOW READINGS */}
+        {isNewStructure ? (
+          // NEW STRUCTURE: Different exercise format
+          newExercises && newExercises.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+                ✏️ Exercises
+              </h2>
+              <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-serif text-sepia-900">
+                    Practice Exercises
+                  </h3>
+                  <button
+                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                  >
+                    {exercisesExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        <span>Collapse All</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        <span>Expand All</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                {exercisesExpanded && (
+                  <div className="space-y-6">
+                    {newExercises.map((exercise, index) => {
+                      // Render appropriate exercise component based on type
+                      switch (exercise.exercise_type) {
+                        case 'fill_blank':
+                          return (
+                            <FillBlankExercise
+                              key={exercise.id || index}
+                              exerciseId={exercise.id}
+                              prompt={exercise.prompt || exercise.question}
+                              correctAnswer={exercise.correct_answer}
+                              spanishText={exercise.spanish_text}
+                              englishText={exercise.english_text}
+                              courseDeckId={courseDeck?.id}
+                              onComplete={handleExerciseComplete}
+                            />
+                          )
+                        case 'multiple_choice':
+                          return (
+                            <MultipleChoiceExercise
+                              key={exercise.id || index}
+                              exerciseId={exercise.id}
+                              prompt={exercise.prompt || exercise.question}
+                              choices={exercise.options?.choices || exercise.options || []}
+                              correctAnswer={exercise.correct_answer}
+                              spanishText={exercise.spanish_text}
+                              englishText={exercise.english_text}
+                              courseDeckId={courseDeck?.id}
+                              onComplete={handleExerciseComplete}
+                            />
+                          )
+                        case 'translation':
+                          return (
+                            <TranslationExercise
+                              key={exercise.id || index}
+                              exerciseId={exercise.id}
+                              prompt={exercise.prompt || exercise.question}
+                              correctAnswer={exercise.correct_answer}
+                              spanishText={exercise.spanish_text}
+                              englishText={exercise.english_text}
+                              direction={exercise.direction}
+                              courseDeckId={courseDeck?.id}
+                              onComplete={handleExerciseComplete}
+                            />
+                          )
+                        default:
+                          // Fallback for unknown exercise types
+                          return (
+                            <div key={exercise.id || index} className="border border-sepia-200 rounded-lg p-4">
+                              <h3 className="font-semibold text-sepia-900 mb-2">
+                                Exercise {index + 1} - Type: {exercise.exercise_type} (Unsupported)
+                              </h3>
+                              <p className="text-sm text-amber-600">
+                                This exercise type is not yet supported. Please contact support.
+                              </p>
+                            </div>
+                          )
+                      }
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        ) : (
+          // OLD STRUCTURE: Original exercise format
+          exercises && exercises.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+                ✏️ Exercises
+              </h2>
+              <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-serif text-sepia-900">
+                    Practice Exercises
+                  </h3>
+                  <button
+                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                  >
+                    {exercisesExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        <span>Collapse All</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        <span>Expand All</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                {totalXpEarned > 0 && (
+                  <div className="px-4 py-2 bg-green-100 border border-green-200 rounded-lg mb-4">
+                    <p className="text-sm font-medium text-green-900">
+                      +{totalXpEarned} XP earned
+                    </p>
+                  </div>
+                )}
+                {exercisesExpanded && (
+                  <div className="space-y-6">
+                    {exercises.map((exercise) => {
+                      const ExerciseComponent = exercise.exercise_type === 'multiple_choice'
+                        ? MultipleChoiceExercise
+                        : FillBlankExercise;
+
+                      return (
+                        <ExerciseComponent
+                          key={exercise.id}
+                          exerciseId={exercise.id}
+                          prompt={exercise.prompt}
+                          spanishText={exercise.spanish_text || undefined}
+                          englishText={exercise.english_text || undefined}
+                          courseDeckId={courseDeck?.id}
+                          onComplete={(isCorrect, xpEarned) =>
+                            handleExerciseComplete(exercise.id, isCorrect, xpEarned)
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        )}
+
+        {/* Dialogs Section - MOVED AFTER EXERCISES */}
         {isNewStructure ? (
           // NEW STRUCTURE: Multiple dialogs - collapsible
           allDialogs && allDialogs.length > 0 && (
-            <div className="space-y-8 mb-12">
-              {allDialogs.map((dialogItem, index) => (
-                <div key={dialogItem.id} className="bg-blue-50 border border-blue-200 rounded-lg">
-                  <button
-                    onClick={() => setDialogsExpanded(prev => ({
-                      ...prev,
-                      [dialogItem.id]: !prev[dialogItem.id]
-                    }))}
-                    className="w-full px-6 py-4 flex items-center justify-between text-left"
-                  >
-                    <h3 className="text-lg font-semibold text-sepia-900">
-                      💬 {dialogItem.context}
-                    </h3>
-                    {dialogsExpanded[dialogItem.id] ? (
-                      <ChevronUp className="h-5 w-5 text-sepia-700" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+            <div className="mb-12">
+              <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+                💬 Dialogs
+              </h2>
+              <div className="space-y-4">
+                {allDialogs.map((dialogItem, index) => (
+                  <div key={dialogItem.id} className="bg-blue-50 border border-blue-200 rounded-lg">
+                    <button
+                      onClick={() => setDialogsExpanded(prev => ({
+                        ...prev,
+                        [dialogItem.id]: !prev[dialogItem.id]
+                      }))}
+                      className="w-full px-6 py-4 flex items-center justify-between text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-sepia-900">
+                        💬 {dialogItem.context}
+                      </h3>
+                      {dialogsExpanded[dialogItem.id] ? (
+                        <ChevronUp className="h-5 w-5 text-sepia-700" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-sepia-700" />
+                      )}
+                    </button>
+                    {dialogsExpanded[dialogItem.id] && (
+                      <div className="px-6 pb-6">
+                        <DialogViewer
+                          dialogId={dialogItem.id}
+                          context={dialogItem.context}
+                          setting={dialogItem.setting || undefined}
+                          exchanges={dialogItem.exchanges}
+                          courseDeckId={courseDeck?.id}
+                          language={lesson.language || 'es'}
+                        />
+                      </div>
                     )}
-                  </button>
-                  {dialogsExpanded[dialogItem.id] && (
-                    <div className="px-6 pb-6">
-                      <DialogViewer
-                        dialogId={dialogItem.id}
-                        context={dialogItem.context}
-                        setting={dialogItem.setting || undefined}
-                        exchanges={dialogItem.exchanges}
-                        courseDeckId={courseDeck?.id}
-                        language={lesson.language || 'es'}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
           )
         ) : (
           // OLD STRUCTURE: Single dialog
           dialog && (
             <div className="mb-12">
+              <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+                💬 Dialogs
+              </h2>
               <DialogViewer
                 dialogId={dialog.id}
                 context={dialog.context}
@@ -301,40 +497,45 @@ export default function LessonViewer({
           )
         )}
 
-        {/* NEW STRUCTURE: Grammar Concepts */}
+        {/* Grammar Concepts Section - KEEP IN FINAL POSITION */}
         {isNewStructure && grammarConcepts && grammarConcepts.length > 0 && (
-          <div className="space-y-6 mb-12">
-            {grammarConcepts.map((concept, index) => (
-              <div key={concept.id || index} className="bg-amber-50 border border-amber-200 rounded-lg">
-                <button
-                  onClick={() => setGrammarExpanded(prev => ({
-                    ...prev,
-                    [concept.id || index]: !prev[concept.id || index]
-                  }))}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left"
-                >
-                  <h3 className="text-lg font-semibold text-sepia-900">
-                    ✏️ {(concept.name || concept.display_name || 'Grammar Note')
-                      .replace(/_/g, ' ')
-                      .replace(/\b\w/g, l => l.toUpperCase())}
-                  </h3>
-                  {grammarExpanded[concept.id || index] ? (
-                    <ChevronUp className="h-5 w-5 text-sepia-700" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-sepia-700" />
-                  )}
-                </button>
-                {grammarExpanded[concept.id || index] && (
-                  <div className="px-6 pb-6">
-                    <div className="prose prose-sepia max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {concept.content || concept.description || 'No content available'}
-                      </ReactMarkdown>
+          <div className="mb-12">
+            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+              📝 Grammar Concepts
+            </h2>
+            <div className="space-y-4">
+              {grammarConcepts.map((concept, index) => (
+                <div key={concept.id || index} className="bg-amber-50 border border-amber-200 rounded-lg">
+                  <button
+                    onClick={() => setGrammarExpanded(prev => ({
+                      ...prev,
+                      [concept.id || index]: !prev[concept.id || index]
+                    }))}
+                    className="w-full px-6 py-4 flex items-center justify-between text-left"
+                  >
+                    <h3 className="text-lg font-semibold text-sepia-900">
+                      ✏️ {(concept.name || concept.display_name || 'Grammar Note')
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase())}
+                    </h3>
+                    {grammarExpanded[concept.id || index] ? (
+                      <ChevronUp className="h-5 w-5 text-sepia-700" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-sepia-700" />
+                    )}
+                  </button>
+                  {grammarExpanded[concept.id || index] && (
+                    <div className="px-6 pb-6">
+                      <div className="prose prose-sepia max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {concept.content || concept.description || 'No content available'}
+                        </ReactMarkdown>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -418,181 +619,7 @@ export default function LessonViewer({
           </div>
         )}
 
-        {/* Exercises Section - Handle both old and new structures */}
-        {isNewStructure ? (
-          // NEW STRUCTURE: Different exercise format
-          newExercises && newExercises.length > 0 && (
-            <div className="mt-12 bg-white rounded-lg border-2 border-sepia-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-serif text-sepia-900">
-                  ✏️ Practice Exercises
-                </h2>
-                <button
-                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                >
-                  {exercisesExpanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      <span>Collapse All</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      <span>Expand All</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              {exercisesExpanded && (
-                <div className="space-y-6">
-                  {newExercises.map((exercise, index) => {
-                    // Render appropriate exercise component based on type
-                    switch (exercise.exercise_type) {
-                      case 'fill_blank':
-                        return (
-                          <FillBlankExercise
-                            key={exercise.id || index}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt || exercise.question}
-                            correctAnswer={exercise.correct_answer}
-                            spanishText={exercise.spanish_text}
-                            englishText={exercise.english_text}
-                            courseDeckId={courseDeck?.id}
-                            onComplete={handleExerciseComplete}
-                          />
-                        )
-                      case 'multiple_choice':
-                        return (
-                          <MultipleChoiceExercise
-                            key={exercise.id || index}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt || exercise.question}
-                            choices={exercise.options?.choices || exercise.options || []}
-                            correctAnswer={exercise.correct_answer}
-                            spanishText={exercise.spanish_text}
-                            englishText={exercise.english_text}
-                            courseDeckId={courseDeck?.id}
-                            onComplete={handleExerciseComplete}
-                          />
-                        )
-                      case 'translation':
-                        return (
-                          <TranslationExercise
-                            key={exercise.id || index}
-                            exerciseId={exercise.id}
-                            prompt={exercise.prompt || exercise.question}
-                            correctAnswer={exercise.correct_answer}
-                            spanishText={exercise.spanish_text}
-                            englishText={exercise.english_text}
-                            direction={exercise.direction}
-                            courseDeckId={courseDeck?.id}
-                            onComplete={handleExerciseComplete}
-                          />
-                        )
-                      default:
-                        // Fallback for unknown exercise types
-                        return (
-                          <div key={exercise.id || index} className="border border-sepia-200 rounded-lg p-4">
-                            <h3 className="font-semibold text-sepia-900 mb-2">
-                              Exercise {index + 1} - Type: {exercise.exercise_type} (Unsupported)
-                            </h3>
-                            <p className="text-sm text-amber-600">
-                              This exercise type is not yet supported. Please contact support.
-                            </p>
-                          </div>
-                        )
-                    }
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        ) : (
-          // OLD STRUCTURE: Original exercise format
-          exercises && exercises.length > 0 && (
-          <div className="mt-12 bg-white rounded-lg border-2 border-sepia-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-serif text-sepia-900">
-                  ✏️ Practice Exercises
-                </h2>
-                <button
-                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                >
-                  {exercisesExpanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      <span>Collapse All</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      <span>Expand All</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              {totalXpEarned > 0 && (
-                <div className="px-4 py-2 bg-green-100 border border-green-200 rounded-lg">
-                  <p className="text-sm font-medium text-green-900">
-                    +{totalXpEarned} XP earned
-                  </p>
-                </div>
-              )}
-            </div>
-            {exercisesExpanded && (
-              <div className="space-y-6">
-                {exercises.map((exercise) => {
-                  const ExerciseComponent = exercise.exercise_type === 'multiple_choice'
-                    ? MultipleChoiceExercise
-                    : FillBlankExercise;
 
-                  return (
-                    <ExerciseComponent
-                      key={exercise.id}
-                      exerciseId={exercise.id}
-                      prompt={exercise.prompt}
-                      spanishText={exercise.spanish_text || undefined}
-                      englishText={exercise.english_text || undefined}
-                      courseDeckId={courseDeck?.id}
-                      onComplete={(isCorrect, xpEarned) =>
-                        handleExerciseComplete(exercise.id, isCorrect, xpEarned)
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          )
-        )}
-
-        {/* Practice Resources Section - Now below exercises */}
-        {readings.length > 0 && (
-          <div className="mt-12 bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
-              📚 Interactive Readings
-            </h2>
-            <div className="space-y-2">
-              {readings.map((reading) => (
-                <Link
-                  key={reading.id}
-                  href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
-                  className="block p-3 bg-white rounded border border-blue-300 hover:border-blue-500 hover:shadow-sm transition-all"
-                >
-                  <p className="font-medium text-sepia-900">
-                    {reading.title}
-                  </p>
-                  <p className="text-sm text-sepia-600">
-                    {reading.word_count} words
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Complete/Incomplete toggle button - Always visible for debugging */}
         {contentBlocks && contentBlocks.length > 0 && (
