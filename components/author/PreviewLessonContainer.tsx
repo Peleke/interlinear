@@ -150,7 +150,7 @@ export function LessonViewer({
                   onClick={() => setDialogsExpanded(prev => ({ ...prev, [dialog.id]: !prev[dialog.id] }))}
                   className="w-full flex items-center justify-between p-4 hover:bg-purple-100 transition-colors rounded-t-lg"
                 >
-                  <h3 className="text-lg font-semibold text-sepia-900">
+                  <h3 className="text-lg font-semibold text-sepia-900 text-left">
                     💬 Dialog {index + 1}: {dialog.context}
                   </h3>
                   {dialogsExpanded[dialog.id] ? (
