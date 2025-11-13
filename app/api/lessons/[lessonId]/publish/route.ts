@@ -181,7 +181,7 @@ export async function POST(
       author_id: lesson.author_id,
       lessonContent: lessonContent || [],
       exercises: exercises || [],
-      readings: readings || [],
+      readings: (readings || []).map((r: any) => r.library_readings).filter(Boolean),
       dialogs: formattedDialogs,
       grammarConcepts: (grammarConcepts || []).map((gc: any) => gc.grammar_concepts)
     }

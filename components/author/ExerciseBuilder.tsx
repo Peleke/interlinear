@@ -732,7 +732,7 @@ export default function ExerciseBuilder({ lessonId }: Props) {
               <Button variant="outline" onClick={cancelDeleteExercise}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDeleteExercise}>
+              <Button variant="outline" onClick={confirmDeleteExercise} className="border-red-500 text-red-700 hover:bg-red-50">
                 Delete Exercise
               </Button>
             </div>

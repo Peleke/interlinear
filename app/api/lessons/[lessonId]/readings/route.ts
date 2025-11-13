@@ -22,10 +22,10 @@ export async function GET(
 
     // Transform joined data to flat reading objects
     const transformedReadings = readings?.map(item => ({
-      id: item.library_readings?.id,
-      title: item.library_readings?.title,
-      content: item.library_readings?.content,
-      word_count: item.library_readings?.word_count
+      id: (item.library_readings as any)?.id,
+      title: (item.library_readings as any)?.title,
+      content: (item.library_readings as any)?.content,
+      word_count: (item.library_readings as any)?.word_count
     })).filter(r => r.id) || []
 
     return NextResponse.json({ readings: transformedReadings })

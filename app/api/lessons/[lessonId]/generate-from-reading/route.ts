@@ -294,7 +294,7 @@ export async function POST(
         .eq('lesson_id', lessonId)
 
       const existingConcepts = existingLinks?.map(link =>
-        `${link.grammar_concepts.name}: ${link.grammar_concepts.description}`
+        `${(link.grammar_concepts as any).name}: ${(link.grammar_concepts as any).description}`
       ).join(', ') || ''
 
       console.log(`[Grammar] Found ${existingLinks?.length || 0} existing concepts for deduplication`)

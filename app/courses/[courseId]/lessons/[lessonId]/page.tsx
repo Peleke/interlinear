@@ -141,7 +141,7 @@ export default async function LessonPage({
       allDialogs={allDialogs}
       newExercises={newExercises || []}
       grammarConcepts={grammarConceptsFlat}
-      isNewStructure={hasNewStructure}
+      isNewStructure={hasNewStructure ?? undefined}
       courseId={courseId}
       lessonId={lessonId}
       isCompleted={isCompleted}
