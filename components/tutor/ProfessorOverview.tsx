@@ -103,44 +103,50 @@ export function ProfessorOverview({ textId, language }: ProfessorOverviewProps) 
           {/* Summary */}
           <div>
             <h3 className="font-semibold text-sepia-900 mb-2">{language === 'la' ? 'Summary' : 'Resumen'}</h3>
-            <p className="text-sepia-700 leading-relaxed">{overview.summary}</p>
+            <p className="text-sepia-700 leading-relaxed">{overview.summary || 'No summary available'}</p>
           </div>
 
           {/* Grammar Concepts */}
-          <div>
-            <h3 className="font-semibold text-sepia-900 mb-2">
-              {language === 'la' ? 'Grammar Concepts' : 'Conceptos Gramaticales'}
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-sepia-700">
-              {overview.grammarConcepts.map((concept, idx) => (
-                <li key={idx}>{concept}</li>
-              ))}
-            </ul>
-          </div>
+          {overview.grammarConcepts && overview.grammarConcepts.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-sepia-900 mb-2">
+                {language === 'la' ? 'Grammar Concepts' : 'Conceptos Gramaticales'}
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-sepia-700">
+                {overview.grammarConcepts.map((concept, idx) => (
+                  <li key={idx}>{concept}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Vocabulary Themes */}
-          <div>
-            <h3 className="font-semibold text-sepia-900 mb-2">
-              {language === 'la' ? 'Vocabulary Themes' : 'Temas de Vocabulario'}
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-sepia-700">
-              {overview.vocabThemes.map((theme, idx) => (
-                <li key={idx}>{theme}</li>
-              ))}
-            </ul>
-          </div>
+          {overview.vocabThemes && overview.vocabThemes.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-sepia-900 mb-2">
+                {language === 'la' ? 'Vocabulary Themes' : 'Temas de Vocabulario'}
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-sepia-700">
+                {overview.vocabThemes.map((theme, idx) => (
+                  <li key={idx}>{theme}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Syntax Patterns */}
-          <div>
-            <h3 className="font-semibold text-sepia-900 mb-2">
-              {language === 'la' ? 'Syntax Patterns' : 'Patrones de Sintaxis'}
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-sepia-700">
-              {overview.syntaxPatterns.map((pattern, idx) => (
-                <li key={idx}>{pattern}</li>
-              ))}
-            </ul>
-          </div>
+          {overview.syntaxPatterns && overview.syntaxPatterns.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-sepia-900 mb-2">
+                {language === 'la' ? 'Syntax Patterns' : 'Patrones de Sintaxis'}
+              </h3>
+              <ul className="list-disc list-inside space-y-1 text-sepia-700">
+                {overview.syntaxPatterns.map((pattern, idx) => (
+                  <li key={idx}>{pattern}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>

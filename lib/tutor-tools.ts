@@ -497,35 +497,102 @@ export const analyzeErrorsTool = tool(
 
     if (turnsError) throw turnsError
 
+    // Determine language from session data (check if it's a dialog session with Latin content)
+    const language = session.dialog_id ? 'la' : 'es' // Simple heuristic for now
+
+    // Build language-appropriate transcript
+    const getTranscriptLabels = () => {
+      if (language === 'la') {
+        return { turnLabel: 'Turn', studentLabel: 'Student' }
+      } else {
+        return { turnLabel: 'Turno', studentLabel: 'Estudiante' }
+      }
+    }
+
+    const { turnLabel, studentLabel } = getTranscriptLabels()
+
     // Build transcript
     const transcript = turns.map((turn) => {
-      return `Turno ${turn.turn_number}:\nEstudiante: ${turn.user_response}`
+      return `${turnLabel} ${turn.turn_number}:\n${studentLabel}: ${turn.user_response}`
     }).join('\n\n')
 
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o",
       temperature: 0
-    }).withStructuredOutput(ErrorAnalysisOutputSchema)
+    })
 
-    const systemPrompt = `Analiza esta conversación de un estudiante de español nivel ${session.level}:
+    const getSystemPrompt = () => {
+      if (language === 'la') {
+        return `Analyze this Latin conversation from a level ${session.level} student:
 
 ${transcript}
 
-Identifica todos los errores gramaticales, de vocabulario y sintaxis.
-Para cada error, proporciona:
+Identify all grammar, vocabulary, and syntax errors. For each error, provide:
+1. The turn number where it occurred
+2. The exact incorrect phrase from the student
+3. The appropriate correction
+4. A clear, educational explanation of the error
+
+Respond with ONLY valid JSON (no markdown, no code blocks):
+
+{
+  "errors": [
+    {
+      "turnNumber": 1,
+      "errorText": "incorrect phrase",
+      "correction": "correct version",
+      "explanation": "explanation of the error",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+If there are no errors, return: {"errors": []}. MUST return ONLY valid JSON - no markdown, no code blocks.`
+      } else {
+        return `Analiza esta conversación de un estudiante de español nivel ${session.level}:
+
+${transcript}
+
+Identifica todos los errores gramaticales, de vocabulario y sintaxis. Para cada error, proporciona:
 1. El número de turno donde ocurrió
 2. La frase incorrecta exacta del estudiante
 3. La corrección apropiada
 4. Una explicación clara y didáctica del error
 
-Si no hay errores, devuelve un array vacío.`
+Responde con SOLO JSON válido (sin markdown, sin bloques de código):
+
+{
+  "errors": [
+    {
+      "turnNumber": 1,
+      "errorText": "frase incorrecta",
+      "correction": "versión correcta",
+      "explanation": "explicación del error",
+      "category": "grammar/vocabulary/syntax"
+    }
+  ]
+}
+
+Si no hay errores, devuelve: {"errors": []}. DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código.`
+      }
+    }
+
+    const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
-      return await invokeWithTimeout(
+      const response = await invokeWithTimeout(
         model.invoke([{ role: "system", content: systemPrompt }]),
         30000
       )
+      
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+      
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+      
+      return JSON.parse(content)
     }) as { errors: ErrorAnalysis[] }
 
     // Mark session as completed
@@ -556,11 +623,11 @@ export const generateOverviewTool = tool(
     // Get text
     const text = await LibraryService.getText(textId)
 
-    // Use .withStructuredOutput() for guaranteed JSON response
+    // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o",
       temperature: 0
-    }).withStructuredOutput(ProfessorOverviewOutputSchema)
+    })
 
     const getSystemPrompt = () => {
       if (language === 'la') {
@@ -568,37 +635,72 @@ export const generateOverviewTool = tool(
 
 ${text.content}
 
-Provide a structured analysis in English:
+Provide a structured analysis in English. Respond with ONLY valid JSON (no markdown, no code blocks):
 
-1. SUMMARY (2-3 sentences): Main topic and key points
-2. GRAMMAR CONCEPTS: List of important grammatical structures (cases, verb forms, constructions, etc.)
-3. VOCABULARY THEMES: List of semantic fields present (e.g., "military", "politics", "nature")
-4. SYNTAX PATTERNS: List of notable syntactic constructions (e.g., "ablative absolute", "indirect statement")
+{
+  "summary": "2-3 sentence summary of main topic and key points",
+  "grammarConcepts": ["concept 1", "concept 2", "concept 3"],
+  "vocabularyThemes": ["theme 1", "theme 2", "theme 3"], 
+  "syntaxPatterns": ["pattern 1", "pattern 2", "pattern 3"]
+}
 
-Be specific and educational.`
+Be specific and educational. Include important grammatical structures (cases, verb forms, constructions), semantic fields (e.g., "military", "politics", "nature"), and notable syntactic constructions (e.g., "ablative absolute", "indirect statement"). MUST return ONLY valid JSON - no markdown, no code blocks, no explanations.`
       } else {
         return `Analiza este texto en español como un profesor experimentado:
 
 ${text.content}
 
-Proporciona un análisis estructurado:
+Proporciona un análisis estructurado. Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
-1. RESUMEN (2-3 oraciones): El tema principal y puntos clave
-2. CONCEPTOS GRAMATICALES: Lista de estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.)
-3. TEMAS DE VOCABULARIO: Lista de campos semánticos presentes (ej: "familia", "negocios", "naturaleza")
-4. PATRONES DE SINTAXIS: Lista de construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva")
+{
+  "summary": "resumen de 2-3 oraciones del tema principal y puntos clave",
+  "grammarConcepts": ["concepto 1", "concepto 2", "concepto 3"],
+  "vocabularyThemes": ["tema 1", "tema 2", "tema 3"],
+  "syntaxPatterns": ["patrón 1", "patrón 2", "patrón 3"]
+}
 
-Sé específico y didáctico.`
+Sé específico y didáctico. Incluye estructuras gramaticales importantes (subjuntivo, tiempos verbales, etc.), campos semánticos (ej: "familia", "negocios", "naturaleza"), y construcciones sintácticas notables (ej: "oraciones condicionales", "voz pasiva"). DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código, sin explicaciones.`
       }
     }
 
     const systemPrompt = getSystemPrompt()
 
     const result = await retryWithBackoff(async () => {
-      return await invokeWithTimeout(
+      const response = await invokeWithTimeout(
         model.invoke([{ role: "system", content: systemPrompt }]),
         30000
       )
+
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+
+      let parsed: any
+      try {
+        parsed = JSON.parse(content)
+      } catch (parseError) {
+        console.error('Overview JSON parse error:', parseError)
+        console.error('Raw content:', content)
+        throw new Error('Invalid JSON response from AI')
+      }
+
+      // Validate and provide defaults for missing fields
+      const overview: ProfessorOverview = {
+        summary: parsed.summary || 'Summary not available',
+        grammarConcepts: Array.isArray(parsed.grammarConcepts) ? parsed.grammarConcepts : [],
+        vocabThemes: Array.isArray(parsed.vocabThemes) ? parsed.vocabThemes : [],
+        syntaxPatterns: Array.isArray(parsed.syntaxPatterns) ? parsed.syntaxPatterns : []
+      }
+
+      // Ensure we have at least some content
+      if (!overview.summary && overview.grammarConcepts.length === 0 &&
+          overview.vocabThemes.length === 0 && overview.syntaxPatterns.length === 0) {
+        throw new Error('AI returned empty overview')
+      }
+
+      return overview
     }) as ProfessorOverview
 
     return result
@@ -627,53 +729,58 @@ export const analyzeUserMessageTool = tool(
       userMessage,
       level,
       language,
-      messageLength: userMessage?.length
+      messageLength: userMessage?.length,
+      promptType: language === 'la' ? 'ENGLISH-ONLY Latin' : 'Spanish',
+      SHOULD_BE_LATIN: language === 'la' ? 'YES - USE ENGLISH EXPLANATIONS' : 'NO - USE SPANISH'
     })
 
     // Use regular ChatOpenAI with JSON mode instead of structured output
     const model = new ChatOpenAI({
       model: "gpt-4o-mini",  // Cost-effective for simple corrections
-      temperature: 0.3
+      temperature: language === 'la' ? 0.1 : 0.3  // Lower temperature for Latin to force consistency
     })
 
     // Generate language-appropriate system prompt with JSON format
     const getSystemPrompt = () => {
       if (language === 'la') {
-        return `You are a strict Latin teacher analyzing a level ${level} student's Latin message. You MUST find errors if they exist!
+        return `You are an ENGLISH-ONLY Latin teacher. You ABSOLUTELY MUST respond in ENGLISH LANGUAGE ONLY. NEVER use Spanish.
 
-Student's message: "${userMessage}"
+Student's Latin message: "${userMessage}"
 
-Analyze this Latin message for errors. Be VERY STRICT - even small mistakes should be caught. 
+Task: Analyze for Latin errors and provide corrections with ENGLISH explanations.
+
+LANGUAGE REQUIREMENT: You are FORBIDDEN from using Spanish. You MUST use English explanations.
+❌ FORBIDDEN: "La forma correcta", "debe ser", "en español", "La frase"
+✅ REQUIRED: "The correct form", "should be", "in Latin", "The sentence"
 
 Categories:
-- grammar: verbal conjugation, noun cases, agreement, tenses, etc.
-- vocabulary: incorrect word choice, anachronisms, non-Latin words
-- syntax: word order, missing words, extra words
+- grammar: verb conjugation, noun cases, agreement, tenses
+- vocabulary: incorrect words, non-Latin words
+- syntax: word order, missing words
 
-Common Latin errors to check for:
-- Wrong verb conjugations (amo vs amamo vs amamus)
-- Wrong noun cases (accusative vs nominative) 
-- Wrong adjective agreement
-- Missing or wrong prepositions
-- Word order issues
-- Using Spanish/English words instead of Latin
-
-Respond with valid JSON using this exact structure:
+Analyze and respond ONLY with valid JSON (no markdown):
 
 {
   "hasErrors": true/false,
-  "correctedText": "corrected version or original if no errors",
+  "correctedText": "corrected Latin or original if no errors",
   "errors": [
     {
-      "errorText": "the wrong part",
-      "correction": "the correct version", 
-      "explanation": "why it's wrong",
+      "errorText": "incorrect part",
+      "correction": "correct Latin",
+      "explanation": "ENGLISH explanation - why this Latin is wrong",
       "category": "grammar/vocabulary/syntax"
     }
   ]
 }
 
-Be encouraging but STRICT! If there are errors, explain them clearly. MUST return valid JSON only.`
+CRITICAL EXAMPLES:
+❌ WRONG: "La palabra debe concordar en género"
+✅ CORRECT: "The word must agree in gender"
+
+❌ WRONG: "La forma correcta es 'Gentes'"
+✅ CORRECT: "The correct form is 'Gentes'"
+
+ABSOLUTE REQUIREMENT: Write ALL explanations in ENGLISH LANGUAGE. NO SPANISH WORDS OR PHRASES ALLOWED.`
       } else {
         return `Eres un profesor de español analizando el mensaje de un estudiante de nivel ${level}.
 
@@ -686,7 +793,7 @@ Categorías:
 - vocabulary: elección incorrecta de palabras, cognados falsos
 - syntax: orden de palabras, palabras faltantes, palabras extra
 
-Responde con JSON válido usando esta estructura exacta:
+Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "hasErrors": true/false,
@@ -701,7 +808,7 @@ Responde con JSON válido usando esta estructura exacta:
   ]
 }
 
-¡Sé alentador! Si no hay errores, elogia al estudiante. DEBE devolver solo JSON válido.`
+¡Sé alentador! Si no hay errores, elogia al estudiante. DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código.`
       }
     }
 
@@ -717,8 +824,12 @@ Responde con JSON válido usando esta estructura exacta:
           30000
         )
         
-        // Parse JSON response manually
-        const content = response.content as string
+        // Parse JSON response manually, stripping any markdown
+        let content = response.content as string
+        
+        // Strip markdown code blocks if present
+        content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+        
         return JSON.parse(content)
       }) as {
         hasErrors: boolean
@@ -731,11 +842,39 @@ Responde con JSON válido usando esta estructura exacta:
         }>
       }
 
+      // VALIDATION: For Latin mode, reject any response with Spanish phrases
+      if (language === 'la' && result.errors) {
+        const spanishPhrases = ['La forma correcta', 'debe ser', 'La palabra', 'La frase', 'en español', 'debe concordar', 'Falta el signo']
+        const hasSpanishText = result.errors.some((error: any) =>
+          spanishPhrases.some(phrase => error.explanation?.includes(phrase))
+        )
+
+        if (hasSpanishText) {
+          console.warn('[VALIDATION] Spanish detected in Latin error corrections, forcing English replacements')
+          result.errors = result.errors.map((error: any) => ({
+            ...error,
+            explanation: error.explanation
+              ?.replace(/La forma correcta/g, 'The correct form')
+              ?.replace(/debe ser/g, 'should be')
+              ?.replace(/La palabra/g, 'The word')
+              ?.replace(/La frase/g, 'The sentence')
+              ?.replace(/debe concordar/g, 'must agree')
+              ?.replace(/en español/g, 'in Latin')
+              ?.replace(/Falta el signo de interrogación al inicio de la pregunta en español/g, 'Missing question mark at the beginning of the Latin question') || error.explanation
+          }))
+        }
+      }
+
       // DEBUG: Log the result
       console.log(`[DEBUG] Analysis result for ${language}:`, {
         hasErrors: result.hasErrors,
         errorCount: result.errors?.length || 0,
-        errors: result.errors
+        errors: result.errors,
+        hadSpanishText: language === 'la' && result.errors?.some((e: any) =>
+          ['La forma correcta', 'debe ser', 'La palabra'].some(phrase =>
+            e.explanation?.includes(phrase)
+          )
+        )
       })
 
       return result
@@ -835,7 +974,7 @@ BREAKDOWN:
 - Vocabulary: ${errorBreakdown.vocabulary}
 - Syntax: ${errorBreakdown.syntax}
 
-Provide a POSITIVE AND ENCOURAGING evaluation in English. Respond with valid JSON using this exact structure:
+Provide a POSITIVE AND ENCOURAGING evaluation in English. Respond with ONLY valid JSON (no markdown, no code blocks):
 
 {
   "rating": "one of: ${ratingOptions}",
@@ -860,7 +999,7 @@ IMPORTANT:
 - Focus on growth, not errors
 - Make the student feel good about their progress
 - Provide feedback in clear, warm English
-- MUST return valid JSON only`
+- MUST return ONLY valid JSON - no markdown, no code blocks`
       } else {
         return `Eres un profesor de español experimentado y ALENTADOR evaluando a un estudiante de nivel ${level}.
 
@@ -875,7 +1014,7 @@ DESGLOSE:
 - Vocabulario: ${errorBreakdown.vocabulary}
 - Sintaxis: ${errorBreakdown.syntax}
 
-Proporciona una evaluación POSITIVA Y ALENTADORA. Responde con JSON válido usando esta estructura exacta:
+Proporciona una evaluación POSITIVA Y ALENTADORA. Responde con SOLO JSON válido (sin markdown, sin bloques de código):
 
 {
   "rating": "uno de: ${ratingOptions}",
@@ -899,7 +1038,7 @@ IMPORTANTE:
 - SIEMPRE sé positivo y alentador
 - Enfócate en el crecimiento, no en los errores
 - Haz que el estudiante se sienta bien con su progreso
-- DEBE devolver solo JSON válido`
+- DEBE devolver SOLO JSON válido - sin markdown, sin bloques de código`
       }
     }
 
@@ -911,8 +1050,12 @@ IMPORTANTE:
         30000
       )
       
-      // Parse JSON response manually
-      const content = response.content as string
+      // Parse JSON response manually, stripping any markdown
+      let content = response.content as string
+      
+      // Strip markdown code blocks if present
+      content = content.replace(/```json\n?/, '').replace(/```\n?$/, '').trim()
+      
       return JSON.parse(content)
     }) as ProfessorReview
 
@@ -1093,23 +1236,73 @@ export const continueDialogRoleplayTool = tool(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    // DEBUG: Log what language parameter was passed to this function
+    console.log(`[DEBUG] continueDialogRoleplayTool called with language parameter: '${language}'`)
+
     // Language is now passed as parameter from API
 
     // Get session with dialog
     const { data: session, error: sessionError } = await supabase
       .from('tutor_sessions')
-      .select('*, lesson_dialogs(*)')
+      .select('*')
       .eq('id', sessionId)
       .single()
 
     if (sessionError || !session) throw new Error('Session not found')
     if (!session.dialog_id) throw new Error('Not a roleplay session')
 
+    // Get the correct language from lesson (dialog table has no language column!)
+    let detectedLanguage = language
+
+    try {
+      // Get the dialog first, then the lesson that contains it
+      if (session.dialog_id) {
+        console.log(`[DEBUG] Getting dialog with ID: ${session.dialog_id}`)
+
+        const { data: dialog, error: dialogError } = await supabase
+          .from('lesson_dialogs')
+          .select('lesson_id')
+          .eq('id', session.dialog_id)
+          .single()
+
+        if (!dialogError && dialog?.lesson_id) {
+          console.log(`[DEBUG] Found dialog, lesson_id: ${dialog.lesson_id}`)
+
+          const { data: lesson, error: lessonError } = await supabase
+            .from('lessons')
+            .select('language')
+            .eq('id', dialog.lesson_id)
+            .single()
+
+          if (!lessonError && lesson?.language) {
+            detectedLanguage = lesson.language as 'es' | 'la'
+            console.log(`[DEBUG] FOUND LANGUAGE FROM LESSON: ${detectedLanguage}`)
+          } else {
+            console.warn('[DEBUG] Could not get lesson language:', lessonError)
+            console.warn('[DEBUG] Lesson data received:', lesson)
+          }
+        } else {
+          console.warn('[DEBUG] Could not get dialog:', dialogError)
+        }
+      } else if (session.text_id) {
+        // Fallback for text-based sessions
+        const text = await LibraryService.getText(session.text_id)
+        detectedLanguage = (text.language as 'es' | 'la') || 'es'
+        console.log(`[DEBUG] Got language from text: ${detectedLanguage}`)
+      } else {
+        console.warn('[DEBUG] No dialog_id or text_id found in session')
+      }
+    } catch (error) {
+      console.warn('[DEBUG] Language detection failed:', error)
+    }
+
+    console.log(`[DEBUG LANGUAGE FIX] Session dialog_id: ${session.dialog_id}, detected language: ${detectedLanguage}, parameter: ${language}`)
+
     // Analyze user's message for errors
     const correction = await analyzeUserMessageTool.invoke({
       userMessage: userResponse,
       level: session.level,
-      language
+      language: detectedLanguage
     })
 
     // Get conversation history
@@ -1146,7 +1339,7 @@ export const continueDialogRoleplayTool = tool(
 
     // Generate language-appropriate system prompt
     const getSystemPrompt = () => {
-      if (language === 'la') {
+      if (detectedLanguage === 'la') {
         return `You are ${oppositeCharacter} in this Latin dialogue.
 
 Conversation so far:
@@ -1192,7 +1385,7 @@ Responde SOLO en español como ${oppositeCharacter}:`
 
     // Validate target language
     const detectedLang = detectLanguage(aiMessage)
-    const expectedLang = language || 'es'
+    const expectedLang = detectedLanguage || 'es'
     if (detectedLang === 'en' && expectedLang !== 'en') {
       throw new Error(`AI responded in English, enforcing ${expectedLang}-only`)
     }

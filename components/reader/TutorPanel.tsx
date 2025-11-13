@@ -140,7 +140,7 @@ export function TutorPanel({ textId, language }: TutorPanelProps) {
       // Show success toast
       const errorCount = collectedErrors.length
       if (errorCount === 0) {
-        toast.success('¡Perfecto! No errors detected')
+        toast.success(language === 'la' ? 'Perfect! No errors detected' : '¡Perfecto! No errors detected')
       } else {
         toast.success(
           `Analysis complete! Found ${errorCount} ${errorCount === 1 ? 'area' : 'areas'} for improvement`
@@ -242,6 +242,7 @@ export function TutorPanel({ textId, language }: TutorPanelProps) {
             <ProfessorReview
               review={professorReview}
               errors={errors}
+              language={language}
             />
           )}
 
