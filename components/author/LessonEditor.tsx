@@ -229,6 +229,23 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
               </span>
             )}
 
+            {/* Mobile buttons - icon only */}
+            <div className="flex sm:hidden items-center gap-1">
+              <Button variant="outline" size="icon" onClick={handlePreview} title="Preview">
+                <Eye className="h-4 w-4" />
+              </Button>
+              {isPublished ? (
+                <Button variant="destructive" size="icon" onClick={handleUnpublish} title="Unpublish">
+                  <EyeOff className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button size="icon" onClick={handlePublish} title="Publish">
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Desktop buttons - with labels */}
             <div className="hidden sm:flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 <Eye className="mr-2 h-4 w-4" />
@@ -260,12 +277,15 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
         {/* Sidebar Navigation */}
         <aside
           className={cn(
-            'border-r bg-card transition-all duration-300',
+            'border-r bg-card transition-all duration-300 overflow-hidden',
             sidebarOpen ? 'w-64' : 'w-0 lg:w-16',
             'absolute lg:relative h-full z-10 lg:z-auto'
           )}
         >
-          <nav className="p-2 space-y-1">
+          <nav className={cn(
+            'p-2 space-y-1',
+            !sidebarOpen && 'hidden lg:block'
+          )}>
             {tabs.map((tab) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
