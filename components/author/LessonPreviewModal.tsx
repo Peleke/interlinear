@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ExternalLink, Loader2 } from 'lucide-react'
+import { X, ExternalLink, Loader2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LessonViewer } from './PreviewLessonContainer'
 
@@ -140,24 +140,27 @@ export default function LessonPreviewModal({ lessonId, isOpen, onClose }: Lesson
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Hide "Open in New Tab" on mobile */}
             <Button
               variant="outline"
               size="sm"
               onClick={openInNewTab}
-              className="gap-2"
+              className="hidden md:flex gap-2"
             >
               <ExternalLink className="h-4 w-4" />
               Open in New Tab
             </Button>
 
+            {/* Show back arrow on mobile, X and text on desktop */}
             <Button
               variant="outline"
               size="sm"
               onClick={onClose}
               className="gap-2"
             >
-              <X className="h-4 w-4" />
-              Exit Preview
+              <ArrowLeft className="h-4 w-4 md:hidden" />
+              <X className="hidden md:block h-4 w-4" />
+              <span className="hidden md:inline">Exit Preview</span>
             </Button>
           </div>
         </div>
