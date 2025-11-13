@@ -24,6 +24,9 @@ interface DialogViewerProps {
 }
 
 export default function DialogViewer({ dialogId, context, setting, exchanges, courseDeckId, dialog, previewMode = false, language = 'es' }: DialogViewerProps) {
+  // DEBUG: Log language prop
+  console.log('[DialogViewer] language prop:', language, 'dialogId:', dialogId)
+
   const [showAllTranslations, setShowAllTranslations] = useState(false)
   const [revealedExchanges, setRevealedExchanges] = useState<Set<string>>(new Set())
   const [loadingAudio, setLoadingAudio] = useState<Set<string>>(new Set())

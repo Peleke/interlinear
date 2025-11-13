@@ -18,7 +18,19 @@ export function getCachedOverview(textId: string): ProfessorOverview | null {
     return null
   }
 
-  return entry.overview
+  // Validate cached overview structure
+  const overview = entry.overview
+  if (!overview ||
+      typeof overview.summary !== 'string' ||
+      !Array.isArray(overview.grammarConcepts) ||
+      !Array.isArray(overview.vocabThemes) ||
+      !Array.isArray(overview.syntaxPatterns)) {
+    console.warn('Invalid cached overview structure, removing from cache:', textId)
+    cache.delete(textId)
+    return null
+  }
+
+  return overview
 }
 
 export function setCachedOverview(textId: string, overview: ProfessorOverview): void {

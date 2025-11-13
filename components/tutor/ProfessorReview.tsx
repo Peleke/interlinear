@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 interface ProfessorReviewData {
-  rating: 'Excelente' | 'Muy Bien' | 'Bien' | 'Necesita Práctica'
+  rating: 'Excelente' | 'Muy Bien' | 'Bien' | 'Necesita Práctica' | 'Excellent' | 'Very Good' | 'Good' | 'Needs Practice'
   summary: string
   strengths: string[]
   improvements: string[]
@@ -28,54 +28,92 @@ interface ErrorAnalysis {
 interface ProfessorReviewProps {
   review: ProfessorReviewData
   errors: ErrorAnalysis[]
+  language?: 'es' | 'la'
 }
 
-export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
+export function ProfessorReview({ review, errors, language = 'es' }: ProfessorReviewProps) {
   const [expanded, setExpanded] = useState(true)
+
+  // Get text based on language
+  const getText = () => {
+    if (language === 'la') {
+      return {
+        title: "Professor's Review",
+        overallRating: "Overall Rating",
+        strengths: "Strengths",
+        improvements: "Areas for Improvement",
+        errorBreakdown: "Error Breakdown",
+        specificErrors: "Specific Errors",
+        turn: "Turn",
+        grammar: "Grammar",
+        vocabulary: "Vocabulary",
+        syntax: "Syntax"
+      }
+    } else {
+      return {
+        title: "Evaluación del Profesor",
+        overallRating: "Calificación General",
+        strengths: "Fortalezas",
+        improvements: "Áreas de Mejora",
+        errorBreakdown: "Desglose de Errores",
+        specificErrors: "Errores Específicos",
+        turn: "Turno",
+        grammar: "Gramática",
+        vocabulary: "Vocabulario",
+        syntax: "Sintaxis"
+      }
+    }
+  }
+
+  const text = getText()
 
   // Get rating colors and icon
   const getRatingStyles = (rating: string) => {
-    switch (rating) {
-      case 'Excelente':
-        return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          text: 'text-green-700',
-          badgeBg: 'bg-green-500',
-          badgeText: 'text-white'
-        }
-      case 'Muy Bien':
-        return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-700',
-          badgeBg: 'bg-blue-500',
-          badgeText: 'text-white'
-        }
-      case 'Bien':
-        return {
-          bg: 'bg-amber-50',
-          border: 'border-amber-200',
-          text: 'text-amber-700',
-          badgeBg: 'bg-amber-500',
-          badgeText: 'text-white'
-        }
-      case 'Necesita Práctica':
-        return {
-          bg: 'bg-orange-50',
-          border: 'border-orange-200',
-          text: 'text-orange-700',
-          badgeBg: 'bg-orange-500',
-          badgeText: 'text-white'
-        }
-      default:
-        return {
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
-          text: 'text-gray-700',
-          badgeBg: 'bg-gray-500',
-          badgeText: 'text-white'
-        }
+    const isHigh = rating === 'Excelente' || rating === 'Excellent'
+    const isGood = rating === 'Muy Bien' || rating === 'Very Good'
+    const isFair = rating === 'Bien' || rating === 'Good'
+    const isLow = rating === 'Necesita Práctica' || rating === 'Needs Practice'
+
+    if (isHigh) {
+      return {
+        bg: 'bg-green-50',
+        border: 'border-green-200',
+        text: 'text-green-700',
+        badgeBg: 'bg-green-500',
+        badgeText: 'text-white'
+      }
+    } else if (isGood) {
+      return {
+        bg: 'bg-blue-50',
+        border: 'border-blue-200',
+        text: 'text-blue-700',
+        badgeBg: 'bg-blue-500',
+        badgeText: 'text-white'
+      }
+    } else if (isFair) {
+      return {
+        bg: 'bg-amber-50',
+        border: 'border-amber-200',
+        text: 'text-amber-700',
+        badgeBg: 'bg-amber-500',
+        badgeText: 'text-white'
+      }
+    } else if (isLow) {
+      return {
+        bg: 'bg-orange-50',
+        border: 'border-orange-200',
+        text: 'text-orange-700',
+        badgeBg: 'bg-orange-500',
+        badgeText: 'text-white'
+      }
+    } else {
+      return {
+        bg: 'bg-gray-50',
+        border: 'border-gray-200',
+        text: 'text-gray-700',
+        badgeBg: 'bg-gray-500',
+        badgeText: 'text-white'
+      }
     }
   }
 
@@ -87,7 +125,7 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-sepia-900">
             <Award className="h-6 w-6" />
-            Evaluación del Profesor
+            {text.title}
           </CardTitle>
           <Button
             variant="ghost"
@@ -111,7 +149,7 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
               {review.rating}
             </div>
             <div className={`flex-1 text-sm ${styles.text}`}>
-              Calificación General
+              {text.overallRating}
             </div>
           </div>
 
@@ -127,7 +165,7 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
             <div>
               <h3 className="font-semibold text-sepia-900 mb-3 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
-                Fortalezas
+                {text.strengths}
               </h3>
               <ul className="space-y-2">
                 {review.strengths.map((strength, idx) => (
@@ -145,7 +183,7 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
             <div>
               <h3 className="font-semibold text-sepia-900 mb-3 flex items-center gap-2">
                 <Target className="h-5 w-5 text-amber-600" />
-                Áreas de Mejora
+                {text.improvements}
               </h3>
               <ul className="space-y-2">
                 {review.improvements.map((improvement, idx) => (
@@ -163,26 +201,26 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
             <div>
               <h3 className="font-semibold text-sepia-900 mb-3 flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-blue-600" />
-                Desglose de Errores ({errors.length} total)
+                {text.errorBreakdown} ({errors.length} total)
               </h3>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg p-3 border border-sepia-200 text-center">
                   <div className="text-2xl font-bold text-purple-600">
                     {review.errorBreakdown.grammar}
                   </div>
-                  <div className="text-sm text-sepia-600">Gramática</div>
+                  <div className="text-sm text-sepia-600">{text.grammar}</div>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-sepia-200 text-center">
                   <div className="text-2xl font-bold text-blue-600">
                     {review.errorBreakdown.vocabulary}
                   </div>
-                  <div className="text-sm text-sepia-600">Vocabulario</div>
+                  <div className="text-sm text-sepia-600">{text.vocabulary}</div>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-sepia-200 text-center">
                   <div className="text-2xl font-bold text-amber-600">
                     {review.errorBreakdown.syntax}
                   </div>
-                  <div className="text-sm text-sepia-600">Sintaxis</div>
+                  <div className="text-sm text-sepia-600">{text.syntax}</div>
                 </div>
               </div>
             </div>
@@ -192,7 +230,7 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
           {errors.length > 0 && (
             <div>
               <h3 className="font-semibold text-sepia-900 mb-3">
-                Errores Específicos
+                {text.specificErrors}
               </h3>
               <div className="max-h-64 overflow-y-auto space-y-3 bg-white rounded-lg p-4 border border-sepia-200">
                 {errors.map((error, idx) => (
@@ -202,16 +240,16 @@ export function ProfessorReview({ review, errors }: ProfessorReviewProps) {
                   >
                     <div className="flex items-start gap-2 mb-1">
                       <span className="text-xs font-medium text-sepia-500">
-                        Turno {error.turn}
+                        {text.turn} {error.turn}
                       </span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded ${
                         error.category === 'grammar' ? 'bg-purple-100 text-purple-700' :
                         error.category === 'vocabulary' ? 'bg-blue-100 text-blue-700' :
                         'bg-amber-100 text-amber-700'
                       }`}>
-                        {error.category === 'grammar' ? 'Gramática' :
-                         error.category === 'vocabulary' ? 'Vocabulario' :
-                         'Sintaxis'}
+                        {error.category === 'grammar' ? text.grammar :
+                         error.category === 'vocabulary' ? text.vocabulary :
+                         text.syntax}
                       </span>
                     </div>
                     <div className="text-sm">

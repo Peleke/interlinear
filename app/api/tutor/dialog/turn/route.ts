@@ -33,6 +33,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log(`[DEBUG API ROUTE] /api/tutor/dialog/turn called with:`, {
+      sessionId: parsed.data.sessionId,
+      language: parsed.data.language,
+      userResponse: parsed.data.userResponse.substring(0, 50)
+    })
+
     // Invoke tool
     const result = await continueDialogRoleplayTool.invoke(parsed.data)
 

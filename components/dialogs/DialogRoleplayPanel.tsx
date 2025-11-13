@@ -60,10 +60,11 @@ export function DialogRoleplayPanel({
   const [isGeneratingReview, setIsGeneratingReview] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // DEBUG: Log courseDeckId on mount and changes
+  // DEBUG: Log courseDeckId and language on mount and changes
   useEffect(() => {
     console.log('[DialogRoleplayPanel] courseDeckId prop:', courseDeckId, 'type:', typeof courseDeckId)
-  }, [courseDeckId])
+    console.log('[DialogRoleplayPanel] language prop:', language)
+  }, [courseDeckId, language])
 
   // Extract unique speakers from exchanges
   const speakers = Array.from(new Set(exchanges.map(e => e.speaker)))

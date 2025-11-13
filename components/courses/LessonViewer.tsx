@@ -35,6 +35,7 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
+    language?: 'es' | 'la'
     courses?: {
       title: string
       difficulty_level: string
@@ -85,6 +86,10 @@ export default function LessonViewer({
   isCompleted: initialIsCompleted
 }: LessonViewerProps) {
   const router = useRouter()
+
+  // DEBUG: Log lesson language to verify it's being passed correctly
+  console.log('[LessonViewer] lesson.language:', lesson.language, 'lesson.title:', lesson.title)
+
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted)
   const [isCompleting, setIsCompleting] = useState(false)
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(
@@ -272,6 +277,7 @@ export default function LessonViewer({
                         setting={dialogItem.setting || undefined}
                         exchanges={dialogItem.exchanges}
                         courseDeckId={courseDeck?.id}
+                        language={lesson.language || 'es'}
                       />
                     </div>
                   )}
@@ -289,6 +295,7 @@ export default function LessonViewer({
                 setting={dialog.setting || undefined}
                 exchanges={dialog.exchanges}
                 courseDeckId={courseDeck?.id}
+                language={lesson.language || 'es'}
               />
             </div>
           )

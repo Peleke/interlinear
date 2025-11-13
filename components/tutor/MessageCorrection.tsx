@@ -21,9 +21,10 @@ interface TurnCorrection {
 
 interface MessageCorrectionProps {
   correction: TurnCorrection
+  language?: 'es' | 'la'
 }
 
-export function MessageCorrection({ correction }: MessageCorrectionProps) {
+export function MessageCorrection({ correction, language = 'es' }: MessageCorrectionProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const { hasErrors, correctedText, errors } = correction
@@ -33,7 +34,7 @@ export function MessageCorrection({ correction }: MessageCorrectionProps) {
     return (
       <div className="flex items-center gap-2 mt-1 text-sm text-green-600">
         <CheckCircle className="h-4 w-4" />
-        <span>¡Perfecto!</span>
+        <span>{language === 'la' ? 'Perfect!' : '¡Perfecto!'}</span>
       </div>
     )
   }

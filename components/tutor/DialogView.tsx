@@ -82,7 +82,8 @@ export function DialogView({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          userResponse: userMessage.content
+          userResponse: userMessage.content,
+          language
         })
       })
 
@@ -180,7 +181,7 @@ export function DialogView({
               {/* Show correction feedback for user messages */}
               {message.role === 'user' && message.correction && (
                 <div className="max-w-[80%] w-full">
-                  <MessageCorrection correction={message.correction} />
+                  <MessageCorrection correction={message.correction} language={language} />
                 </div>
               )}
             </div>
@@ -191,7 +192,7 @@ export function DialogView({
               <div className="bg-sepia-100 rounded-lg p-4 flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-sepia-600" />
                 <span className="text-sepia-600 text-sm">
-                  El tutor está pensando...
+                  {language === 'la' ? 'The tutor is thinking...' : 'El tutor está pensando...'}
                 </span>
               </div>
             </div>

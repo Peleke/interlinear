@@ -6,7 +6,8 @@ import { z } from 'zod'
 
 const TurnRequestSchema = z.object({
   sessionId: z.string().uuid(),
-  userResponse: z.string().min(1).max(1000)
+  userResponse: z.string().min(1).max(1000),
+  language: z.enum(['es', 'la']).default('es')
 })
 
 export async function POST(request: NextRequest) {
@@ -49,7 +50,8 @@ export async function POST(request: NextRequest) {
       continueDialogTool.invoke(parsed.data),
       analyzeUserMessageTool.invoke({
         userMessage: parsed.data.userResponse,
-        level: session.level
+        level: session.level,
+        language: parsed.data.language
       })
     ])
 
