@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import LessonCard from '@/components/courses/LessonCard'
 import { BookOpen, Target, Clock } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
+import ReactMarkdown from 'react-markdown'
 
 export default async function CoursePage({
   params
@@ -84,9 +85,11 @@ export default async function CoursePage({
             {course.title}
           </h1>
 
-          <p className="text-lg text-sepia-700 mb-8 leading-relaxed">
-            {course.description}
-          </p>
+          <div className="text-lg text-sepia-700 mb-8 leading-relaxed prose prose-lg prose-sepia max-w-none">
+            <ReactMarkdown>
+              {course.description}
+            </ReactMarkdown>
+          </div>
 
           {/* Course meta */}
           <div className="flex flex-wrap items-center gap-6 text-sepia-600 mb-8">
