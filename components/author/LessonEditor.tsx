@@ -84,7 +84,7 @@ const statusConfig: Record<
 export function LessonEditor({ lesson: initialLesson, userId }: Props) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabId>('metadata')
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [lesson, setLesson] = useState(initialLesson)
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
@@ -181,7 +181,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
       {/* Top Bar */}
       <header className="border-b bg-card">
         <div className="flex items-center justify-between px-4 h-16">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Button variant="ghost" size="icon" onClick={handleBack}>
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -206,31 +206,62 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Badge variant={statusConfig[lesson.status].variant}>
+            {/* Mobile status indicator - just a colored dot */}
+            <div className="md:hidden">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  lesson.status === 'published' ? 'bg-green-500' :
+                  lesson.status === 'draft' ? 'bg-orange-500' : 'bg-gray-500'
+                }`}
+                title={statusConfig[lesson.status].label}
+              />
+            </div>
+
+            {/* Desktop status badge */}
+            <Badge
+              variant={statusConfig[lesson.status].variant}
+              className="hidden md:inline-flex"
+            >
               {statusConfig[lesson.status].label}
             </Badge>
 
-            {saveStatus === 'saving' && (
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Save className="h-3 w-3 animate-pulse" />
-                Saving...
-              </span>
-            )}
-            {saveStatus === 'saved' && (
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Save className="h-3 w-3" />
-                Saved
-              </span>
-            )}
-            {saveStatus === 'unsaved' && (
-              <span className="text-sm text-amber-600 flex items-center gap-1">
-                <Save className="h-3 w-3" />
-                Unsaved changes
-              </span>
-            )}
+            {/* Mobile save status - just icon */}
+            <div className="md:hidden">
+              {saveStatus === 'saving' && (
+                <Save className="h-3 w-3 animate-pulse text-muted-foreground" title="Saving..." />
+              )}
+              {saveStatus === 'saved' && (
+                <Save className="h-3 w-3 text-green-600" title="Saved" />
+              )}
+              {saveStatus === 'unsaved' && (
+                <Save className="h-3 w-3 text-amber-600" title="Unsaved changes" />
+              )}
+            </div>
 
-            {/* Desktop buttons only - mobile buttons moved to sidebar */}
-            <div className="hidden sm:flex items-center gap-2">
+            {/* Desktop save status - with text */}
+            <div className="hidden md:flex">
+              {saveStatus === 'saving' && (
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Save className="h-3 w-3 animate-pulse" />
+                  Saving...
+                </span>
+              )}
+              {saveStatus === 'saved' && (
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Save className="h-3 w-3" />
+                  Saved
+                </span>
+              )}
+              {saveStatus === 'unsaved' && (
+                <span className="text-sm text-amber-600 flex items-center gap-1">
+                  <Save className="h-3 w-3" />
+                  Unsaved changes
+                </span>
+              )}
+            </div>
+
+            {/* Desktop buttons only - hidden on mobile, visible on tablet+ */}
+            <div className="hidden md:flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 <Eye className="mr-2 h-4 w-4" />
                 Preview
