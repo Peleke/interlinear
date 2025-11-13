@@ -76,8 +76,20 @@ export async function POST(
 
     console.log(`[API] Approving ${vocabulary.length} vocabulary items for lesson ${lessonId}`)
 
+    // Deduplicate vocabulary items by word+translation+language to avoid constraint conflicts
+    const uniqueVocabulary = vocabulary.reduce((acc, item) => {
+      const key = `${item.word}|${item.english_translation}|${language}`
+      if (!acc.has(key)) {
+        acc.set(key, item)
+      }
+      return acc
+    }, new Map()).values()
+
+    const deduplicatedVocabulary = Array.from(uniqueVocabulary)
+    console.log(`[API] After deduplication: ${deduplicatedVocabulary.length} unique items`)
+
     // STEP 1: Insert/upsert into normalized lesson_vocabulary_items table
-    const vocabularyItemRecords = vocabulary.map((item) => ({
+    const vocabularyItemRecords = deduplicatedVocabulary.map((item) => ({
       spanish: item.word,
       english: item.english_translation,
       part_of_speech: item.part_of_speech,
@@ -156,6 +168,8 @@ export async function POST(
     return NextResponse.json({
       success: true,
       count: insertedVocabItems.length,
+      originalCount: vocabulary.length,
+      deduplicatedCount: deduplicatedVocabulary.length,
       vocabulary: insertedVocabItems,
     })
   } catch (error) {

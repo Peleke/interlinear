@@ -189,8 +189,20 @@ export async function POST(
 
             console.log(`[DEBUG] Mapped items:`, JSON.stringify(vocabularyItems[0], null, 2))
 
+            // Deduplicate vocabulary items by word+translation+language to avoid constraint conflicts
+            const uniqueVocabulary = vocabularyItems.reduce((acc, item) => {
+              const key = `${item.word}|${item.english_translation}|${language}`
+              if (!acc.has(key)) {
+                acc.set(key, item)
+              }
+              return acc
+            }, new Map()).values()
+
+            const deduplicatedVocabulary = Array.from(uniqueVocabulary)
+            console.log(`[Orchestration] After deduplication: ${vocabularyItems.length} → ${deduplicatedVocabulary.length} unique items`)
+
             // Save vocabulary directly to database (avoiding fetch 401 issue)
-            const vocabularyItemRecords = vocabularyItems.map((item) => ({
+            const vocabularyItemRecords = deduplicatedVocabulary.map((item) => ({
               spanish: item.word, // FIXED: Use the mapped word field (item.word || item.lemma)
               english: item.english_translation,
               part_of_speech: item.part_of_speech,
@@ -251,7 +263,7 @@ export async function POST(
                 console.error('[Orchestration] Failed to create lesson associations:', junctionError)
                 results.vocabulary.autoSaveError = 'Failed to link vocabulary to lesson'
               } else {
-                console.log(`[Orchestration] Successfully auto-saved ${insertedVocabItems.length} vocabulary items`)
+                console.log(`[Orchestration] Successfully auto-saved ${insertedVocabItems.length} vocabulary items (${vocabularyItems.length} original → ${deduplicatedVocabulary.length} unique → ${insertedVocabItems.length} saved)`)
                 results.vocabulary.autoSaved = true
                 results.vocabulary.savedCount = insertedVocabItems.length
               }
@@ -282,7 +294,7 @@ export async function POST(
         .eq('lesson_id', lessonId)
 
       const existingConcepts = existingLinks?.map(link =>
-        `${link.grammar_concepts.name}: ${link.grammar_concepts.description}`
+        `${(link.grammar_concepts as any).name}: ${(link.grammar_concepts as any).description}`
       ).join(', ') || ''
 
       console.log(`[Grammar] Found ${existingLinks?.length || 0} existing concepts for deduplication`)

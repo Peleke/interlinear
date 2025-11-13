@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         })
 
         // Use same save approach as generate-from-reading endpoint
-        const vocabularyItemsForSave = result.vocabulary.map((item: any) => {
+        const rawVocabularyItems = result.vocabulary.map((item: any) => {
           const word = typeof item === 'string' ? item : (item.word || item.lemma)
           const definition = typeof item === 'string' ? `Definition for ${item}` : item.definition
 
@@ -94,6 +94,18 @@ export async function POST(request: NextRequest) {
             is_new: true,
           }
         })
+
+        // Deduplicate vocabulary items by word+translation to avoid constraint conflicts
+        const uniqueVocabulary = rawVocabularyItems.reduce((acc, item) => {
+          const key = `${item.spanish}|${item.english}|${input.language}`
+          if (!acc.has(key)) {
+            acc.set(key, item)
+          }
+          return acc
+        }, new Map()).values()
+
+        const vocabularyItemsForSave = Array.from(uniqueVocabulary)
+        console.log(`[Workflow] After deduplication: ${rawVocabularyItems.length} → ${vocabularyItemsForSave.length} unique items`)
 
         // Save vocabulary directly using supabase client (avoid auth issues with internal fetch)
         // Delete all existing vocabulary links first
@@ -147,7 +159,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        console.log(`[Workflow] Successfully saved ${vocabularyItemsForSave.length} vocabulary items`)
+        console.log(`[Workflow] Successfully saved ${vocabularyItemsForSave.length} vocabulary items (${rawVocabularyItems.length} original → ${vocabularyItemsForSave.length} unique → ${vocabularyItemsForSave.length} saved)`)
       } catch (saveError) {
         console.error('[Workflow] Auto-save failed:', saveError)
       }

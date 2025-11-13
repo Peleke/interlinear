@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status') as 'draft' | 'published' | 'archived' | null
     const authorParam = searchParams.get('author_id')
-    const language = searchParams.get('language') as 'es' | 'is' | null
+    const language = searchParams.get('language') as 'es' | 'la' | null
     const sortBy = searchParams.get('sort_by') as 'updated_at' | 'title' | 'sequence_order' | null
     const sortOrder = searchParams.get('sort_order') as 'asc' | 'desc' | null
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 10

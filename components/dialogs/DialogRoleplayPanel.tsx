@@ -377,10 +377,24 @@ export function DialogRoleplayPanel({
                 <Button
                   type="button"
                   onClick={() => handleEndSession()}
-                  variant="outline"
-                  className="border-red-500 bg-white text-red-700 hover:bg-red-50"
+                  variant={isGeneratingReview ? "default" : "outline"}
+                  disabled={isGeneratingReview}
+                  className={`transition-all duration-200 ${
+                    isGeneratingReview
+                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg scale-105 border-red-600'
+                      : 'border-red-500 bg-white text-red-700 hover:bg-red-50'
+                  }`}
                 >
-                  {language === 'la' ? 'End Dialog' : 'Terminar Diálogo'}
+                  {isGeneratingReview ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <span className="font-medium">
+                        {language === 'la' ? 'Processing...' : 'Procesando...'}
+                      </span>
+                    </>
+                  ) : (
+                    language === 'la' ? 'End Dialog' : 'Terminar Diálogo'
+                  )}
                 </Button>
               </div>
             </form>

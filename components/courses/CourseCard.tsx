@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BookOpen, Clock, Target } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 interface CourseCardProps {
   id: number
@@ -46,9 +47,11 @@ export default function CourseCard({
         </div>
 
         {/* Description */}
-        <p className="text-sepia-700 mb-6 flex-1 leading-relaxed">
-          {description}
-        </p>
+        <div className="text-sepia-700 mb-6 flex-1 leading-relaxed prose prose-sm prose-sepia max-w-none">
+          <ReactMarkdown>
+            {description}
+          </ReactMarkdown>
+        </div>
 
         {/* Progress bar (if enrolled) */}
         {isEnrolled && typeof progress === 'number' && (

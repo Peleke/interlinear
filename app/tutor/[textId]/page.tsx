@@ -227,6 +227,7 @@ export default function TutorPage({ params }: TutorPageProps) {
           initialMessages={messages}
           onMessagesUpdate={setMessages}
           onEnd={handleEndDialog}
+          language={text?.language as 'es' | 'la' || 'es'}
         />
       )}
 
