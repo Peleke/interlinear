@@ -698,6 +698,9 @@ function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorr
     idx: number
   } | null>(null)
 
+  // DEBUG: Log when corrections are displayed
+  console.log('[CorrectionFeedback] hasErrors:', correction.hasErrors, 'courseDeckId:', courseDeckId, 'errorsCount:', correction.errors?.length)
+
   const saveToFlashcard = async (errorText: string, correction: string, idx: number) => {
     if (!courseDeckId) {
       alert('Course deck not available')
@@ -758,6 +761,10 @@ function CorrectionFeedback({ correction, courseDeckId }: { correction: TurnCorr
       <div className="mt-2 flex items-center gap-1 text-xs text-green-700">
         <CheckCircle className="h-3 w-3" />
         <span>No errors detected</span>
+        {/* DEBUG: Show courseDeckId status */}
+        <span className="text-gray-500 text-[10px] ml-2">
+          (Deck: {courseDeckId ? 'Available' : 'Missing'})
+        </span>
       </div>
     )
   }
