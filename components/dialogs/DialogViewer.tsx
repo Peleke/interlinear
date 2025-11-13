@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import { MessageCircle, Eye, EyeOff, Volume2, Play, Loader2, BookmarkPlus, CheckCircle, Theater } from 'lucide-react'
 import { DialogRoleplayPanel } from './DialogRoleplayPanel'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface DialogExchange {
   id: string
@@ -241,15 +243,15 @@ export default function DialogViewer({ dialogId, context, setting, exchanges, co
           </div>
         </div>
 
-        {/* Context */}
+        {/* Dialog Context & Setting */}
         <div className="p-3 bg-sepia-50 rounded border border-sepia-200">
-          <p className="text-sm font-medium text-sepia-700 mb-1">Context:</p>
-          <p className="text-sm text-sepia-900">{context}</p>
+          <p className="text-sm text-sepia-900 mb-2">{context}</p>
           {setting && (
-            <>
-              <p className="text-sm font-medium text-sepia-700 mt-2 mb-1">Setting:</p>
-              <p className="text-sm text-sepia-900">{setting}</p>
-            </>
+            <div className="text-sm text-sepia-700 prose prose-sepia max-w-none prose-sm">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {setting}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
       </div>

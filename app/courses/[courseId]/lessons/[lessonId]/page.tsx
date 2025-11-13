@@ -66,7 +66,7 @@ export default async function LessonPage({
   // Get readings for this lesson
   const { data: readings } = await supabase
     .from('lesson_readings')
-    .select('reading_id, library_readings(id, title, content, word_count)')
+    .select('reading_id, library_readings(id, title, content, word_count, description)')
     .eq('lesson_id', lessonId)
     .order('display_order', { ascending: true })
 

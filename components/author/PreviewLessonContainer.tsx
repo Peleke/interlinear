@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Eye } from 'lucide-react'
+import Link from 'next/link'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
 import MultipleChoiceExercise from '@/components/exercises/MultipleChoiceExercise'
 import TranslationExercise from '@/components/exercises/TranslationExercise'
@@ -82,6 +83,7 @@ export function LessonViewer({
   const [vocabularyExpanded, setVocabularyExpanded] = useState<Record<string, boolean>>({})
   const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
   const [readingsExpanded, setReadingsExpanded] = useState<Record<string, boolean>>({})
+  const [selectedReading, setSelectedReading] = useState<{ title: string; word_count: number } | null>(null)
 
   // Preview mode simulated completion states
   const [previewCompletedExercises, setPreviewCompletedExercises] = useState<Set<string>>(new Set())
@@ -170,21 +172,22 @@ export function LessonViewer({
                     <div className="px-6 pb-6">
                       <div className="bg-white rounded-lg border border-blue-300 p-4">
                         <p className="text-sm text-sepia-600 mb-3">
-                          {previewMode
-                            ? "In preview mode - this would open the interactive reader in published view"
-                            : "Click below to open this reading in the interactive reader"
-                          }
+                          {reading.description || "Open this reading in the interactive reader to practice vocabulary and comprehension."}
                         </p>
-                        {!previewMode && (
-                          <a
+                        {previewMode ? (
+                          <div className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg">
+                            <p className="text-sm text-gray-600">
+                              📖 <em>Preview Mode: Reader would open here in published lesson</em>
+                            </p>
+                          </div>
+                        ) : (
+                          <Link
                             href={`/reader?readingId=${reading.id}&lessonId=${courseId}&courseId=${courseId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                           >
                             <Eye className="h-4 w-4" />
                             Open Reader
-                          </a>
+                          </Link>
                         )}
                       </div>
                     </div>
