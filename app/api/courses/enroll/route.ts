@@ -138,18 +138,46 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Delete enrollment
-    const { error: unenrollError } = await supabase
+    // First check what enrollment records exist before deletion
+    const { data: existingEnrollments, error: checkError } = await supabase
+      .from('user_courses')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+
+    console.log('[Unenroll] Pre-delete check:', {
+      userId: user.id,
+      courseId,
+      courseIdType: typeof courseId,
+      existingEnrollments,
+      checkError
+    })
+
+    // Delete enrollment with debugging
+    console.log('[Unenroll] Deleting enrollment for user:', user.id, 'course:', courseId)
+
+    const { data: deletedEnrollment, error: unenrollError } = await supabase
       .from('user_courses')
       .delete()
       .eq('user_id', user.id)
       .eq('course_id', courseId)
+      .select()
+
+    console.log('[Unenroll] Delete result:', { deletedEnrollment, unenrollError })
 
     if (unenrollError) {
       console.error('Unenrollment error:', unenrollError)
       return NextResponse.json(
         { error: 'Failed to unenroll from course' },
         { status: 500 }
+      )
+    }
+
+    if (!deletedEnrollment || deletedEnrollment.length === 0) {
+      console.warn('[Unenroll] No enrollment record was deleted - user may not have been enrolled')
+      return NextResponse.json(
+        { error: 'No enrollment found to delete' },
+        { status: 404 }
       )
     }
 
