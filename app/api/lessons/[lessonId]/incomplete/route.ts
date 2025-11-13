@@ -35,6 +35,28 @@ export async function POST(
       .eq('id', lessonId)
       .single()
 
+    if (!lesson) {
+      return NextResponse.json(
+        { error: 'Lesson not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user is enrolled in the course
+    const { data: enrollment } = await supabase
+      .from('user_courses')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('course_id', lesson.course_id)
+      .single()
+
+    if (!enrollment) {
+      return NextResponse.json(
+        { error: 'You must be enrolled in the course to modify lesson completion' },
+        { status: 403 }
+      )
+    }
+
     // Delete the completion record (for debugging purposes)
     console.log('[Incomplete] Attempting DELETE for user:', user.id, 'lesson:', lessonId)
 
