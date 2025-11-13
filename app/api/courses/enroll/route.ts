@@ -100,6 +100,26 @@ export async function DELETE(request: Request) {
       )
     }
 
+    // Delete lesson completions for this course first
+    const { error: completionsError } = await supabase
+      .from('lesson_completions')
+      .delete()
+      .eq('user_id', user.id)
+      .in('lesson_id',
+        supabase
+          .from('lessons')
+          .select('id')
+          .eq('course_id', courseId)
+      )
+
+    if (completionsError) {
+      console.error('Error deleting lesson completions:', completionsError)
+      return NextResponse.json(
+        { error: 'Failed to clean up lesson progress' },
+        { status: 500 }
+      )
+    }
+
     // Delete enrollment
     const { error: unenrollError } = await supabase
       .from('user_courses')
