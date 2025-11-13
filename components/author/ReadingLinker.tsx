@@ -310,7 +310,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
 
       {/* Search existing */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <Label className="text-sm font-medium mb-2 block">
             Search Existing Readings
           </Label>

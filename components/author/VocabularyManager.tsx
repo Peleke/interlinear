@@ -407,7 +407,7 @@ export function VocabularyManager({ lessonId, language }: Props) {
 
         {/* Autocomplete search */}
         <Card className="bg-blue-50/50">
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <Label className="text-sm font-medium mb-2 block">
               Search & Reuse Existing Vocabulary
             </Label>
