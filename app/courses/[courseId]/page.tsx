@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import LessonCard from '@/components/courses/LessonCard'
-import { BookOpen, Target, Clock } from 'lucide-react'
+import { BookOpen, Target, Clock, ChevronLeft } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import ReactMarkdown from 'react-markdown'
+import Link from 'next/link'
 
 export default async function CoursePage({
   params
@@ -72,6 +73,17 @@ export default async function CoursePage({
       {/* Hero section */}
       <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
         <div className="max-w-4xl mx-auto px-6 py-12">
+          {/* Breadcrumb */}
+          <div className="mb-6">
+            <Link
+              href="/courses"
+              className="inline-flex items-center gap-2 text-sepia-600 hover:text-sepia-900 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span>Back to Courses</span>
+            </Link>
+          </div>
+
           <div className="flex items-center gap-2 mb-4">
             <span className="inline-block px-3 py-1 text-sm font-medium bg-white text-sepia-700 rounded border border-sepia-200">
               {course.difficulty_level}

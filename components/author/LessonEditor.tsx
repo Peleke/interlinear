@@ -229,23 +229,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
               </span>
             )}
 
-            {/* Mobile buttons - icon only */}
-            <div className="flex sm:hidden items-center gap-1">
-              <Button variant="outline" size="icon" onClick={handlePreview} title="Preview">
-                <Eye className="h-4 w-4" />
-              </Button>
-              {isPublished ? (
-                <Button variant="destructive" size="icon" onClick={handleUnpublish} title="Unpublish">
-                  <EyeOff className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button size="icon" onClick={handlePublish} title="Publish">
-                  <Send className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            {/* Desktop buttons - with labels */}
+            {/* Desktop buttons only - mobile buttons moved to sidebar */}
             <div className="hidden sm:flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 <Eye className="mr-2 h-4 w-4" />
@@ -310,6 +294,43 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
                 </button>
               )
             })}
+
+            {/* Mobile action buttons in sidebar */}
+            <div className="lg:hidden border-t border-border mt-4 pt-4 space-y-1">
+              <button
+                onClick={() => {
+                  handlePreview()
+                  setSidebarOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-accent"
+              >
+                <Eye className="h-5 w-5" />
+                <span>Preview</span>
+              </button>
+              {isPublished ? (
+                <button
+                  onClick={() => {
+                    handleUnpublish()
+                    setSidebarOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-accent text-destructive"
+                >
+                  <EyeOff className="h-5 w-5" />
+                  <span>Unpublish</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    handlePublish()
+                    setSidebarOpen(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-accent"
+                >
+                  <Send className="h-5 w-5" />
+                  <span>Publish</span>
+                </button>
+              )}
+            </div>
           </nav>
         </aside>
 
