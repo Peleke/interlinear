@@ -314,7 +314,7 @@ export default function LessonViewer({
                   className="w-full px-6 py-4 flex items-center justify-between text-left"
                 >
                   <h3 className="text-lg font-semibold text-sepia-900">
-                    ✏️ Grammar Note
+                    ✏️ {(concept.name || concept.display_name || 'Grammar Note').replace(/_/g, ' ')}
                   </h3>
                   {grammarExpanded[concept.id || index] ? (
                     <ChevronUp className="h-5 w-5 text-sepia-700" />
