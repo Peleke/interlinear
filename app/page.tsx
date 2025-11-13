@@ -304,13 +304,13 @@ export default function LandingPage() {
               </h3>
               <div className="bg-parchment p-6 rounded-xl border border-sepia-200 mb-4">
                 <p className="text-lg font-serif text-ink leading-relaxed">
-                  <span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="whole, all (nominative)">Gallia</span>
-                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="all, whole">omnis</span>
+                  <span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="Gaul (nominative)">Gallia</span>
+                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="is, exists">est</span>
+                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="all, whole (nominative)">omnis</span>
+                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="divided (perfect passive participle)">divisa</span>
                   {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="into (+ acc.)">in</span>
-                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="three (accusative)">tres</span>
                   {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="parts (accusative)">partes</span>
-                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="is divided (3rd sing. passive)">divisa</span>
-                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="is, exists">est</span>.
+                  {" "}<span className="hover:bg-gold-100 cursor-pointer border-b border-dashed border-gold-600" title="three (accusative)">tres</span>...
                 </p>
                 <p className="text-sm text-sepia-600 mt-3 italic">
                   — Caesar, De Bello Gallico I.1
