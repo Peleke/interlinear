@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BookOpen, Clock, Target } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import EnrollmentButton from './EnrollmentButton'
 
 interface CourseCardProps {
   id: number
@@ -24,8 +25,9 @@ export default function CourseCard({
   isEnrolled
 }: CourseCardProps) {
   return (
-    <Link href={`/courses/${id}`}>
-      <div className="group bg-white rounded-lg border border-sepia-200 hover:border-sepia-400 hover:shadow-lg transition-all p-6 h-full flex flex-col">
+    <div className="bg-white rounded-lg border border-sepia-200 hover:border-sepia-400 hover:shadow-lg transition-all p-6 h-full flex flex-col">
+      {/* Clickable course content */}
+      <Link href={`/courses/${id}`} className="flex-1 flex flex-col group">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
@@ -87,7 +89,17 @@ export default function CourseCard({
         <div className="mt-4 text-sepia-600 group-hover:text-sepia-900 text-sm font-medium">
           {isEnrolled ? 'Continue Learning →' : 'View Course →'}
         </div>
+      </Link>
+
+      {/* Enrollment actions outside the link */}
+      <div className="pt-4 border-t border-sepia-100 mt-4 flex items-center justify-between">
+        <EnrollmentButton
+          courseId={id}
+          isEnrolled={isEnrolled}
+          variant="outline"
+          size="sm"
+        />
       </div>
-    </Link>
+    </div>
   )
 }

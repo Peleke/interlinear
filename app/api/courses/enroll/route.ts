@@ -73,3 +73,56 @@ export async function POST(request: Request) {
     )
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { courseId } = await request.json()
+
+    if (!courseId) {
+      return NextResponse.json(
+        { error: 'Course ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = await createClient()
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Delete enrollment
+    const { error: unenrollError } = await supabase
+      .from('user_courses')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+
+    if (unenrollError) {
+      console.error('Unenrollment error:', unenrollError)
+      return NextResponse.json(
+        { error: 'Failed to unenroll from course' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      message: 'Unenrolled successfully'
+    })
+  } catch (error) {
+    console.error('Unenroll API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
