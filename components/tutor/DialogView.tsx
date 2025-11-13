@@ -234,13 +234,20 @@ export function DialogView({
           </Button>
           <Button
             onClick={handleEndDialog}
-            variant="outline"
+            variant={analyzing ? "default" : "outline"}
             disabled={loading || analyzing}
+            className={`transition-all duration-200 ${
+              analyzing
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg scale-105'
+                : ''
+            }`}
           >
             {analyzing ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {language === 'la' ? 'Analyzing...' : 'Analizando...'}
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <span className="font-medium">
+                  {language === 'la' ? 'Analyzing...' : 'Analizando...'}
+                </span>
               </>
             ) : (
               language === 'la' ? 'End Dialog' : 'Terminar Diálogo'
