@@ -35,6 +35,10 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
+    readings_overview?: string | null
+    exercises_overview?: string | null
+    dialogs_overview?: string | null
+    grammar_overview?: string | null
     language?: 'es' | 'la'
     courses?: {
       title: string
@@ -191,7 +195,7 @@ export default function LessonViewer({
       <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
 
       {/* Navigation */}
-      <div className="max-w-4xl mx-auto px-6 pt-6">
+      <div className="max-w-6xl mx-auto px-6 pt-6">
         <Navigation />
       </div>
 
@@ -253,6 +257,13 @@ export default function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               📚 Interactive Readings
             </h2>
+            {lesson.readings_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.readings_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             <div className="space-y-4">
               {readings.map((reading) => (
                 <div
@@ -307,6 +318,13 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 ✏️ Exercises
               </h2>
+              {lesson.exercises_overview && (
+                <div className="mb-6 prose prose-sepia max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lesson.exercises_overview}
+                  </ReactMarkdown>
+                </div>
+              )}
               <div className="bg-white rounded-lg border-2 border-sepia-200">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
@@ -401,6 +419,13 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 ✏️ Exercises
               </h2>
+              {lesson.exercises_overview && (
+                <div className="mb-6 prose prose-sepia max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lesson.exercises_overview}
+                  </ReactMarkdown>
+                </div>
+              )}
               <div className="bg-white rounded-lg border-2 border-sepia-200">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
@@ -468,6 +493,13 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 💬 Dialogs
               </h2>
+              {lesson.dialogs_overview && (
+                <div className="mb-6 prose prose-sepia max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lesson.dialogs_overview}
+                  </ReactMarkdown>
+                </div>
+              )}
               <div className="space-y-4">
                 {allDialogs.map((dialogItem, index) => (
                   <div key={dialogItem.id} className="bg-blue-50 border border-blue-200 rounded-lg">
@@ -511,6 +543,13 @@ export default function LessonViewer({
               <h2 className="text-2xl font-serif text-sepia-900 mb-4">
                 💬 Dialogs
               </h2>
+              {lesson.dialogs_overview && (
+                <div className="mb-6 prose prose-sepia max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lesson.dialogs_overview}
+                  </ReactMarkdown>
+                </div>
+              )}
               <DialogViewer
                 dialogId={dialog.id}
                 context={dialog.context}
@@ -529,6 +568,13 @@ export default function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               📝 Grammar Concepts
             </h2>
+            {lesson.grammar_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.grammar_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             <div className="space-y-4">
               {grammarConcepts.map((concept, index) => (
                 <div key={concept.id || index} className="bg-amber-50 border border-amber-200 rounded-lg">

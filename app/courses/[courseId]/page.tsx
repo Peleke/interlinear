@@ -66,7 +66,7 @@ export default async function CoursePage({
   return (
     <div className="min-h-screen bg-parchment">
       {/* Navigation */}
-      <div className="max-w-4xl mx-auto px-6 pt-6">
+      <div className="max-w-6xl mx-auto px-6 pt-6">
         <Navigation />
       </div>
 

@@ -54,6 +54,10 @@ export async function GET(
         id,
         title,
         overview,
+        readings_overview,
+        exercises_overview,
+        dialogs_overview,
+        grammar_overview,
         language,
         author_id,
         courses (
@@ -192,6 +196,10 @@ export async function GET(
         id: lesson.id,
         title: lesson.title,
         overview: lesson.overview,
+        readings_overview: lesson.readings_overview,
+        exercises_overview: lesson.exercises_overview,
+        dialogs_overview: lesson.dialogs_overview,
+        grammar_overview: lesson.grammar_overview,
         language: lesson.language,
         courses: lesson.courses
       },

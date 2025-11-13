@@ -63,6 +63,10 @@ export async function PATCH(
     const updateParams = {
       title: body.title,
       overview: body.overview,
+      readings_overview: body.readings_overview,
+      exercises_overview: body.exercises_overview,
+      dialogs_overview: body.dialogs_overview,
+      grammar_overview: body.grammar_overview,
       language: body.language,
       course_id: body.course_id,
       xp_value: body.xp_value,

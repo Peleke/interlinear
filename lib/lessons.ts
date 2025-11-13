@@ -13,6 +13,10 @@ export interface CreateLessonParams {
 export interface UpdateLessonParams {
   title?: string
   overview?: string
+  readings_overview?: string
+  exercises_overview?: string
+  dialogs_overview?: string
+  grammar_overview?: string
   language?: 'es' | 'la'
   course_id?: string | null
   xp_value?: number

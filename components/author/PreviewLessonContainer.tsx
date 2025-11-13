@@ -37,6 +37,10 @@ interface LessonViewerProps {
     id: string
     title: string
     overview?: string | null
+    readings_overview?: string | null
+    exercises_overview?: string | null
+    dialogs_overview?: string | null
+    grammar_overview?: string | null
     language?: 'es' | 'la'
     courses?: {
       title: string
@@ -144,6 +148,13 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               📚 Interactive Readings
             </h2>
+            {lesson.readings_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.readings_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             <div className="space-y-4">
               {readings.map((reading) => (
                 <div
@@ -204,6 +215,13 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               ✏️ Exercises
             </h2>
+            {lesson.exercises_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.exercises_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             <div className="bg-white rounded-lg border-2 border-sepia-200">
               <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                 <h3 className="text-xl font-serif text-sepia-900">
@@ -300,6 +318,13 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               💬 Dialogs
             </h2>
+            {lesson.dialogs_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.dialogs_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             <div className="space-y-4">
               {dialogs.map((dialog, index) => (
                 <div
@@ -423,6 +448,13 @@ export function LessonViewer({
             <h2 className="text-2xl font-serif text-sepia-900 mb-4">
               📝 Grammar Concepts
             </h2>
+            {lesson.grammar_overview && (
+              <div className="mb-6 prose prose-sepia max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {lesson.grammar_overview}
+                </ReactMarkdown>
+              </div>
+            )}
             {grammarConcepts.map((concept) => (
               <div
                 key={concept.id}

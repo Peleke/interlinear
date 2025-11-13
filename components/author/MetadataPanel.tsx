@@ -21,6 +21,10 @@ interface MetadataValues {
   title: string
   language: 'es' | 'la'
   overview: string
+  readings_overview: string
+  exercises_overview: string
+  dialogs_overview: string
+  grammar_overview: string
   course_id: string | null
   xp_value: number
   sequence_order: number
@@ -88,27 +92,6 @@ export function MetadataPanel({ values, onChange }: Props) {
           </Select>
         </div>
 
-        {/* Overview */}
-        <div className="space-y-2">
-          <Label htmlFor="overview">
-            Overview
-            <span className="text-sm text-muted-foreground ml-2">
-              (Supports Markdown)
-            </span>
-          </Label>
-          <Textarea
-            id="overview"
-            value={values.overview}
-            onChange={(e) => onChange({ overview: e.target.value })}
-            placeholder="Describe what students will learn in this lesson..."
-            rows={6}
-            className="font-mono text-sm"
-          />
-          <p className="text-xs text-muted-foreground">
-            Tip: Use **bold**, *italic*, and `code` for formatting
-          </p>
-        </div>
-
         {/* Course */}
         <div className="space-y-2">
           <Label htmlFor="course">Course (Optional)</Label>
@@ -137,24 +120,6 @@ export function MetadataPanel({ values, onChange }: Props) {
           </Select>
         </div>
 
-        {/* XP Value */}
-        <div className="space-y-2">
-          <Label htmlFor="xp_value">XP Value</Label>
-          <Input
-            id="xp_value"
-            type="number"
-            min={0}
-            step={5}
-            value={values.xp_value}
-            onChange={(e) =>
-              onChange({ xp_value: parseInt(e.target.value) || 0 })
-            }
-          />
-          <p className="text-xs text-muted-foreground">
-            XP awarded to learners who complete this lesson
-          </p>
-        </div>
-
         {/* Sequence Order */}
         <div className="space-y-2">
           <Label htmlFor="sequence_order">Sequence Order</Label>
@@ -170,6 +135,137 @@ export function MetadataPanel({ values, onChange }: Props) {
           <p className="text-xs text-muted-foreground">
             Display order within the course (0 = first)
           </p>
+        </div>
+
+        {/* Section Overviews */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Lesson & Section Overviews</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Add descriptions for the lesson and individual sections (all support Markdown)
+            </p>
+          </div>
+
+          {/* General Lesson Overview */}
+          <div className="space-y-2">
+            <Label htmlFor="overview">
+              📖 General Lesson Overview
+              <span className="text-sm text-muted-foreground ml-2">
+                (Markdown supported)
+              </span>
+            </Label>
+            <Textarea
+              id="overview"
+              value={values.overview}
+              onChange={(e) => onChange({ overview: e.target.value })}
+              placeholder="Describe what students will learn in this lesson..."
+              rows={4}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              This overview appears at the top of the lesson. Use **bold**, *italic*, and `code` for formatting
+            </p>
+          </div>
+
+          {/* Readings Overview */}
+          <div className="space-y-2">
+            <Label htmlFor="readings_overview">
+              📚 Interactive Readings Overview
+              <span className="text-sm text-muted-foreground ml-2">
+                (Optional, Markdown supported)
+              </span>
+            </Label>
+            <Textarea
+              id="readings_overview"
+              value={values.readings_overview}
+              onChange={(e) => onChange({ readings_overview: e.target.value })}
+              placeholder="e.g., Practice reading comprehension with these interactive texts..."
+              rows={3}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          {/* Exercises Overview */}
+          <div className="space-y-2">
+            <Label htmlFor="exercises_overview">
+              ✏️ Exercises Overview
+              <span className="text-sm text-muted-foreground ml-2">
+                (Optional, Markdown supported)
+              </span>
+            </Label>
+            <Textarea
+              id="exercises_overview"
+              value={values.exercises_overview}
+              onChange={(e) => onChange({ exercises_overview: e.target.value })}
+              placeholder="e.g., Test your understanding with these practice exercises..."
+              rows={3}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          {/* Dialogs Overview */}
+          <div className="space-y-2">
+            <Label htmlFor="dialogs_overview">
+              💬 Dialogs Overview
+              <span className="text-sm text-muted-foreground ml-2">
+                (Optional, Markdown supported)
+              </span>
+            </Label>
+            <Textarea
+              id="dialogs_overview"
+              value={values.dialogs_overview}
+              onChange={(e) => onChange({ dialogs_overview: e.target.value })}
+              placeholder="e.g., Practice real-world conversations with these interactive dialogs..."
+              rows={3}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          {/* Grammar Overview */}
+          <div className="space-y-2">
+            <Label htmlFor="grammar_overview">
+              📝 Grammar Concepts Overview
+              <span className="text-sm text-muted-foreground ml-2">
+                (Optional, Markdown supported)
+              </span>
+            </Label>
+            <Textarea
+              id="grammar_overview"
+              value={values.grammar_overview}
+              onChange={(e) => onChange({ grammar_overview: e.target.value })}
+              placeholder="e.g., Learn essential grammar patterns with detailed explanations and examples..."
+              rows={3}
+              className="font-mono text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Game HQ */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Game HQ</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Gaming and reward settings for this lesson
+            </p>
+          </div>
+
+          {/* XP Value */}
+          <div className="space-y-2">
+            <Label htmlFor="xp_value">XP Value</Label>
+            <Input
+              id="xp_value"
+              type="number"
+              min={0}
+              step={5}
+              value={values.xp_value}
+              onChange={(e) =>
+                onChange({ xp_value: parseInt(e.target.value) || 0 })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              XP awarded to learners who complete this lesson
+            </p>
+          </div>
         </div>
       </div>
     </div>
