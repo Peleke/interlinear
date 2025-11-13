@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(request: Request) {
   try {
@@ -61,6 +62,10 @@ export async function POST(request: Request) {
       )
     }
 
+    // Revalidate course and course list pages
+    revalidatePath('/courses', 'page')
+    revalidatePath(`/courses/${courseId}`, 'page')
+
     return NextResponse.json({
       message: 'Enrolled successfully',
       enrollment
@@ -100,24 +105,37 @@ export async function DELETE(request: Request) {
       )
     }
 
-    // Delete lesson completions for this course first
-    const { error: completionsError } = await supabase
-      .from('lesson_completions')
-      .delete()
-      .eq('user_id', user.id)
-      .in('lesson_id',
-        supabase
-          .from('lessons')
-          .select('id')
-          .eq('course_id', courseId)
-      )
+    // First, get all lesson IDs for this course
+    const { data: courseLessons, error: lessonsError } = await supabase
+      .from('lessons')
+      .select('id')
+      .eq('course_id', courseId)
 
-    if (completionsError) {
-      console.error('Error deleting lesson completions:', completionsError)
+    if (lessonsError) {
+      console.error('Error fetching course lessons:', lessonsError)
       return NextResponse.json(
-        { error: 'Failed to clean up lesson progress' },
+        { error: 'Failed to fetch course lessons' },
         { status: 500 }
       )
+    }
+
+    // Delete lesson completions for this course if any lessons exist
+    if (courseLessons && courseLessons.length > 0) {
+      const lessonIds = courseLessons.map(lesson => lesson.id)
+
+      const { error: completionsError } = await supabase
+        .from('lesson_completions')
+        .delete()
+        .eq('user_id', user.id)
+        .in('lesson_id', lessonIds)
+
+      if (completionsError) {
+        console.error('Error deleting lesson completions:', completionsError)
+        return NextResponse.json(
+          { error: 'Failed to clean up lesson progress' },
+          { status: 500 }
+        )
+      }
     }
 
     // Delete enrollment
@@ -134,6 +152,10 @@ export async function DELETE(request: Request) {
         { status: 500 }
       )
     }
+
+    // Revalidate course and course list pages
+    revalidatePath('/courses', 'page')
+    revalidatePath(`/courses/${courseId}`, 'page')
 
     return NextResponse.json({
       message: 'Unenrolled successfully'
