@@ -46,27 +46,24 @@ export default async function CourseDetailPage({
     notFound()
   }
 
-  // Fetch ordered lessons for this course
-  const { data: orderings, error: orderError } = await supabase
-    .from('lesson_course_ordering')
-    .select(`
-      lesson_id,
-      display_order,
-      lesson:lessons!inner(id, title, status, overview)
-    `)
+  // Fetch lessons for this course using direct course_id foreign key
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('lessons')
+    .select('id, title, status, overview, sequence_order')
     .eq('course_id', id)
-    .order('display_order', { ascending: true })
+    .eq('author_id', user.id)
+    .order('sequence_order', { ascending: true })
 
-  if (orderError) {
-    console.error('Failed to fetch course lessons:', orderError)
+  if (lessonsError) {
+    console.error('Failed to fetch course lessons:', lessonsError)
     return <div>Error loading course lessons</div>
   }
 
-  // Transform: Supabase returns lesson as array, we need single object
-  const lessons = (orderings || []).map((item: any) => ({
-    lesson_id: item.lesson_id,
-    display_order: item.display_order,
-    lesson: Array.isArray(item.lesson) ? item.lesson[0] : item.lesson,
+  // Transform to match expected format
+  const transformedLessons = (lessons || []).map((lesson) => ({
+    lesson_id: lesson.id,
+    display_order: lesson.sequence_order,
+    lesson: lesson,
   }))
 
   // Fetch all available lessons for this user (not in this course)
@@ -74,18 +71,14 @@ export default async function CourseDetailPage({
     .from('lessons')
     .select('id, title, status')
     .eq('author_id', user.id)
+    .is('course_id', null) // Only lessons not assigned to any course
     .order('title', { ascending: true })
-
-  const courseLessonIds = new Set(lessons.map((o) => o.lesson_id))
-  const availableLessons = (allLessons || []).filter(
-    (lesson) => !courseLessonIds.has(lesson.id)
-  )
 
   return (
     <CourseDetailView
       course={course}
-      lessons={lessons}
-      availableLessons={availableLessons}
+      lessons={transformedLessons}
+      availableLessons={allLessons || []}
     />
   )
 }
