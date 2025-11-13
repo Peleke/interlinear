@@ -13,10 +13,10 @@ import {
   Save,
   Eye,
   Send,
-  ChevronLeft,
   Menu,
   EyeOff,
 } from 'lucide-react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -132,9 +132,6 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
     [lesson, debouncedSave]
   )
 
-  const handleBack = () => {
-    router.push('/author/lessons')
-  }
 
   const handlePreview = () => {
     setPreviewModalOpen(true)
@@ -178,13 +175,31 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
 
   return (
     <div className="h-screen flex flex-col bg-background">
+      {/* Author Navigation */}
+      <div className="border-b bg-card px-4 py-2">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/author/lessons"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-sepia-700 hover:text-sepia-900 hover:bg-sepia-50 rounded-md transition-colors"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Lessons</span>
+          </Link>
+          <span className="text-sepia-300">•</span>
+          <Link
+            href="/author/courses"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-sepia-700 hover:text-sepia-900 hover:bg-sepia-50 rounded-md transition-colors"
+          >
+            <GraduationCap className="h-4 w-4" />
+            <span>Courses</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Top Bar */}
       <header className="border-b bg-card">
         <div className="flex items-center justify-between px-4 h-16">
           <div className="flex items-center gap-2 md:gap-4">
-            <Button variant="ghost" size="icon" onClick={handleBack}>
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
             <Button
               variant="ghost"
               size="icon"

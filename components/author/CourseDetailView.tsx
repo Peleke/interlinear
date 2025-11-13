@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, Edit, Trash2, GripVertical, Upload, Download } from 'lucide-react'
+import { ArrowLeft, Plus, Edit, Trash2, GripVertical, Upload, Download, BookOpen, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
@@ -274,17 +274,55 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Author Navigation */}
+      <div className="mb-6 border border-sepia-200 rounded-lg bg-background px-4 py-3">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/author/lessons"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-sepia-700 hover:text-sepia-900 hover:bg-sepia-50 rounded-md transition-colors"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Lessons</span>
+          </Link>
+          <span className="text-sepia-300">•</span>
+          <Link
+            href="/author/courses"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-sepia-700 hover:text-sepia-900 hover:bg-sepia-50 rounded-md transition-colors"
+          >
+            <GraduationCap className="h-4 w-4" />
+            <span>Courses</span>
+          </Link>
+        </div>
+      </div>
 
       {/* Course Header */}
-      <div className="bg-white rounded-lg p-6 border border-sepia-200 shadow-sm mb-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
+      <div className="bg-white rounded-lg p-6 border border-sepia-200 shadow-sm mb-6 relative">
+        <div className="mb-4">
+          <div className="mb-4">
             <h1 className="text-3xl font-serif font-bold text-sepia-900 mb-2">
               {course.title}
             </h1>
-            <p className="text-sepia-600">{course.description}</p>
+            <div className="text-sepia-600 prose prose-sepia max-w-none mb-4">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {course.description}
+              </ReactMarkdown>
+            </div>
+
+            {/* Badges below description */}
+            <div className="flex gap-2 mb-4 md:mb-0">
+              <Badge variant="outline">{course.difficulty_level}</Badge>
+              <Badge variant="outline">{course.language.toUpperCase()}</Badge>
+              <Badge variant="outline">{lessons.length} lessons</Badge>
+              {course.published_at && (
+                <Badge className="bg-green-100 text-green-800 border-green-300">
+                  Published v{course.version}
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          {/* Desktop: buttons on the right, Mobile: buttons below badges */}
+          <div className="flex gap-2 md:absolute md:top-6 md:right-6">
             {course.published_at ? (
               <Button
                 variant="outline"
@@ -323,17 +361,6 @@ export function CourseDetailView({ course, lessons: initialLessons, availableLes
               Delete
             </Button>
           </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Badge variant="outline">{course.difficulty_level}</Badge>
-          <Badge variant="outline">{course.language.toUpperCase()}</Badge>
-          <Badge variant="outline">{lessons.length} lessons</Badge>
-          {course.published_at && (
-            <Badge className="bg-green-100 text-green-800 border-green-300">
-              Published v{course.version}
-            </Badge>
-          )}
         </div>
       </div>
 
