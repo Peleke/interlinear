@@ -243,17 +243,16 @@ export default function DialogViewer({ dialogId, context, setting, exchanges, co
           </div>
         </div>
 
-        {/* Dialog Context & Setting */}
-        <div className="p-3 bg-sepia-50 rounded border border-sepia-200">
-          <p className="text-sm text-sepia-900 mb-2">{context}</p>
-          {setting && (
+        {/* Dialog Setting */}
+        {setting && (
+          <div className="p-3 bg-sepia-50 rounded border border-sepia-200">
             <div className="text-sm text-sepia-700 prose prose-sepia max-w-none prose-sm">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {setting}
               </ReactMarkdown>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Dialog exchanges */}

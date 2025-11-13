@@ -94,7 +94,7 @@ export async function GET(
     // Get readings with proper library_readings join
     const { data: readingsData, error: readingsError } = await supabase
       .from('lesson_readings')
-      .select('reading_id, library_readings(id, title, content, word_count, description)')
+      .select('reading_id, library_readings(id, title, content, word_count)')
       .eq('lesson_id', lessonId)
       .order('display_order', { ascending: true })
 
@@ -181,7 +181,7 @@ export async function GET(
     const exercises = hasNewStructure ? (newExercises || []) : (oldExercises || [])
 
     // Transform readings data - flatten library_readings arrays (same as published lesson page)
-    type ReadingData = { id: string; title: string; content: string; word_count: number; description?: string }
+    type ReadingData = { id: string; title: string; content: string; word_count: number }
     const lessonReadings: ReadingData[] = (readingsData
       ?.flatMap(r => Array.isArray(r.library_readings) ? r.library_readings : (r.library_readings ? [r.library_readings] : []))
       .filter((r): r is ReadingData => r !== null && r !== undefined) || []) as ReadingData[]
