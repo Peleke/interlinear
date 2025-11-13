@@ -291,9 +291,17 @@ export default function LessonViewer({
                   {readingsExpanded[reading.id] && (
                     <div className="px-6 pb-6">
                       <div className="bg-white rounded-lg border border-blue-300 p-4">
-                        <p className="text-sm text-sepia-600 mb-3">
-                          Open this reading in the interactive reader to practice vocabulary and comprehension.
-                        </p>
+                        {reading.reading_overview ? (
+                          <div className="text-sm text-sepia-600 mb-3 prose prose-sepia prose-sm max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {reading.reading_overview}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-sepia-600 mb-3">
+                            Open this reading in the interactive reader to practice vocabulary and comprehension.
+                          </p>
+                        )}
                         <Link
                           href={`/reader?readingId=${reading.id}&lessonId=${lessonId}&courseId=${courseId}`}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"

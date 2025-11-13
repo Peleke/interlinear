@@ -16,6 +16,7 @@ interface LibraryReading {
   title: string;
   author: string | null;
   content?: string | null;
+  reading_overview?: string | null;
   difficulty_level: string | null;
   word_count: number | null;
   language: string;
@@ -44,6 +45,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
     title: "",
     author: "",
     content: "",
+    reading_overview: "",
     difficulty_level: "",
     language: "es",
   });
@@ -135,6 +137,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
       title: reading.title,
       author: reading.author || "",
       content: reading.content || "",
+      reading_overview: reading.reading_overview || "",
       difficulty_level: reading.difficulty_level || "",
       language: reading.language,
     });
@@ -158,7 +161,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
       await loadLinkedReadings();
 
       // Reset form
-      setNewReading({ title: "", author: "", content: "", difficulty_level: "", language: "es" });
+      setNewReading({ title: "", author: "", content: "", reading_overview: "", difficulty_level: "", language: "es" });
       setEditingReadingId(null);
       setShowCreateForm(false);
     } catch (error) {
@@ -183,7 +186,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
       await linkReading(reading.id);
 
       // Reset form
-      setNewReading({ title: "", author: "", content: "", difficulty_level: "", language: "es" });
+      setNewReading({ title: "", author: "", content: "", reading_overview: "", difficulty_level: "", language: "es" });
       setShowCreateForm(false);
     } catch (error) {
       console.error("Failed to create reading:", error);
@@ -199,7 +202,7 @@ export default function ReadingLinker({ lessonId, language }: Props) {
   };
 
   const handleCancelEdit = () => {
-    setNewReading({ title: "", author: "", content: "", difficulty_level: "", language: "es" });
+    setNewReading({ title: "", author: "", content: "", reading_overview: "", difficulty_level: "", language: "es" });
     setEditingReadingId(null);
     setShowCreateForm(false);
   };
@@ -285,6 +288,17 @@ export default function ReadingLinker({ lessonId, language }: Props) {
                   <option value="la">Latin (la)</option>
                 </select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Reading Overview</Label>
+              <Textarea
+                value={newReading.reading_overview}
+                onChange={(e) =>
+                  setNewReading({ ...newReading, reading_overview: e.target.value })
+                }
+                placeholder="Optional markdown description that will replace the generic text in lesson views..."
+                rows={3}
+              />
             </div>
             <div className="space-y-2">
               <Label>Content *</Label>
