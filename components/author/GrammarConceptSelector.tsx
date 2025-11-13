@@ -274,7 +274,7 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
         <div className="flex gap-2 mb-4">
           <Button onClick={() => setShowGenerateModal(true)} variant="outline">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate
+            Extract
           </Button>
           <Button onClick={() => setShowCreateForm(!showCreateForm)} variant="outline">
             <Plus className="mr-2 h-4 w-4" />
@@ -430,7 +430,7 @@ export default function GrammarConceptSelector({ lessonId }: Props) {
 
       {/* Search existing */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <Label className="text-sm font-medium mb-2 block">
             Search Existing Concepts
           </Label>
