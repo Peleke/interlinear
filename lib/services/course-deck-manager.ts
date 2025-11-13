@@ -27,20 +27,24 @@ export async function getOrCreateCourseDeck(
 
   try {
     // Check if course deck already exists
-    const { data: existingDeck, error: fetchError } = await supabase
+    // First check for duplicates, then get the first one
+    const { data: allDecks, error: countError } = await supabase
       .from('flashcard_decks')
       .select('id, name, description, course_id')
       .eq('course_id', courseId)
-      .maybeSingle()
 
-    if (fetchError) {
-      console.error('Error fetching course deck:', fetchError)
+    if (countError) {
+      console.error('Error fetching course deck:', countError)
       return null
     }
 
-    // Return existing deck if found
-    if (existingDeck) {
+    // Return existing deck if found (handle duplicates)
+    if (allDecks && allDecks.length > 0) {
+      const existingDeck = allDecks[0]
       console.log('[CourseDeck] Found existing deck:', existingDeck.id, 'for course:', courseId)
+      if (allDecks.length > 1) {
+        console.warn('[CourseDeck] Multiple decks found for course:', courseId, 'count:', allDecks.length, 'using first one:', existingDeck.id)
+      }
       return existingDeck as CourseDeck
     }
 
