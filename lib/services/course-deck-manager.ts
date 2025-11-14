@@ -26,33 +26,7 @@ export async function getOrCreateCourseDeck(
   const supabase = createClient()
 
   try {
-    // Check if course deck already exists
-    // First check for duplicates, then get the first one
-    const { data: allDecks, error: countError } = await supabase
-      .from('flashcard_decks')
-      .select('id, name, description, course_id')
-      .eq('course_id', courseId)
-
-    if (countError) {
-      console.error('Error fetching course deck:', countError)
-      return null
-    }
-
-    // Return existing deck if found (handle duplicates)
-    if (allDecks && allDecks.length > 0) {
-      const existingDeck = allDecks[0]
-      console.log('[CourseDeck] Found existing deck:', existingDeck.id, 'for course:', courseId)
-      if (allDecks.length > 1) {
-        console.error('🚨 [CourseDeck] DUPLICATE DECKS DETECTED for course:', courseId)
-        console.error('🚨 [CourseDeck] Deck count:', allDecks.length)
-        console.error('🚨 [CourseDeck] All decks:', allDecks.map(d => ({ id: d.id, name: d.name })))
-        console.error('🚨 [CourseDeck] Using first deck:', existingDeck.id, 'name:', existingDeck.name)
-        console.error('🚨 [CourseDeck] THIS NEEDS INVESTIGATION - WHY ARE THERE DUPLICATES?')
-      }
-      return existingDeck as CourseDeck
-    }
-
-    // Create new course deck
+    // Get authenticated user first
     const { data: user } = await supabase.auth.getUser()
     if (!user.user) {
       console.error('No authenticated user')
@@ -62,9 +36,11 @@ export async function getOrCreateCourseDeck(
     const deckName = `${courseTitle} - Flashcards`
     const deckDescription = `Auto-generated flashcard deck for ${courseTitle} course lessons`
 
-    console.log('[CourseDeck] Creating new deck for course:', courseId, 'user:', user.user.id)
+    console.log('[CourseDeck] Getting or creating deck for course:', courseId)
 
-    const { data: newDeck, error: createError } = await supabase
+    // Use INSERT with ON CONFLICT to handle race conditions gracefully
+    // The unique constraint ensures only one deck per user+course combination
+    const { error: insertError } = await supabase
       .from('flashcard_decks')
       .insert({
         user_id: user.user.id,
@@ -72,16 +48,29 @@ export async function getOrCreateCourseDeck(
         description: deckDescription,
         course_id: courseId
       })
-      .select('id, name, description, course_id')
-      .single()
+      // Handle conflict gracefully - do nothing if duplicate exists
+      .onConflict('user_id, course_id')
 
-    if (createError) {
-      console.error('[CourseDeck] Error creating course deck:', createError)
+    if (insertError && insertError.code !== '23505') { // 23505 is unique violation
+      console.error('[CourseDeck] Error creating course deck:', insertError)
       return null
     }
 
-    console.log('[CourseDeck] Created new deck:', newDeck.id, 'for course:', courseId)
-    return newDeck as CourseDeck
+    // Now fetch the deck (either the one we just created or the existing one)
+    const { data: deck, error: fetchError } = await supabase
+      .from('flashcard_decks')
+      .select('id, name, description, course_id')
+      .eq('user_id', user.user.id)
+      .eq('course_id', courseId)
+      .single()
+
+    if (fetchError) {
+      console.error('[CourseDeck] Error fetching course deck after insert:', fetchError)
+      return null
+    }
+
+    console.log('[CourseDeck] Deck ready:', deck.id)
+    return deck as CourseDeck
   } catch (error) {
     console.error('Unexpected error in getOrCreateCourseDeck:', error)
     return null
