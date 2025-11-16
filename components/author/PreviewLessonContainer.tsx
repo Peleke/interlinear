@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Eye } from 'lucide-react'
+import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Eye, Play } from 'lucide-react'
 import Link from 'next/link'
 import FillBlankExercise from '@/components/exercises/FillBlankExercise'
 import MultipleChoiceExercise from '@/components/exercises/MultipleChoiceExercise'
 import TranslationExercise from '@/components/exercises/TranslationExercise'
 import DialogViewer from '@/components/dialogs/DialogViewer'
+import PracticeSession from '@/components/practice/PracticeSession'
 
 interface DialogExchange {
   id: string
@@ -88,6 +89,7 @@ export function LessonViewer({
   const [dialogsExpanded, setDialogsExpanded] = useState<Record<string, boolean>>({})
   const [readingsExpanded, setReadingsExpanded] = useState<Record<string, boolean>>({})
   const [selectedReading, setSelectedReading] = useState<{ title: string; word_count: number } | null>(null)
+  const [showPracticeMode, setShowPracticeMode] = useState(false)
 
   // Preview mode simulated completion states
   const [previewCompletedExercises, setPreviewCompletedExercises] = useState<Set<string>>(new Set())
@@ -235,22 +237,31 @@ export function LessonViewer({
                 <h3 className="text-xl font-serif text-sepia-900">
                   Practice Exercises
                 </h3>
-                <button
-                  onClick={() => setExercisesExpanded(!exercisesExpanded)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
-                >
-                  {exercisesExpanded ? (
-                    <>
-                      <ChevronUp className="h-4 w-4" />
-                      <span>Collapse All</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      <span>Expand All</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowPracticeMode(true)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  >
+                    <Play className="h-4 w-4" />
+                    <span>Practice Mode</span>
+                  </button>
+                  <button
+                    onClick={() => setExercisesExpanded(!exercisesExpanded)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sepia-700 hover:bg-sepia-800 rounded transition-colors"
+                  >
+                    {exercisesExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4" />
+                        <span>Collapse All</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4" />
+                        <span>Expand All</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               {exercisesExpanded && (
                 <div className="p-6 space-y-6">
@@ -501,6 +512,29 @@ export function LessonViewer({
         )}
 
       </div>
+
+      {/* Practice Session Modal */}
+      {showPracticeMode && (
+        <PracticeSession
+          exercises={exercises.map(exercise => ({
+            id: exercise.id,
+            type: exercise.type as 'fill_blank' | 'translation' | 'multiple_choice',
+            prompt: exercise.prompt,
+            answer: exercise.answer,
+            choices: exercise.choices,
+            spanish_text: exercise.spanish_text || undefined,
+            english_text: exercise.english_text || undefined
+          }))}
+          onComplete={(xpEarned) => {
+            console.log(`Practice completed! XP earned: ${xpEarned}`)
+            setShowPracticeMode(false)
+            // In preview mode, just show a preview toast
+            alert(`🎉 Practice completed! You earned ${xpEarned} XP (Preview Mode)`)
+          }}
+          onExit={() => setShowPracticeMode(false)}
+          lessonTitle={lesson.title}
+        />
+      )}
     </div>
   )
 }
