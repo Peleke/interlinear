@@ -79,7 +79,7 @@ export class CourseService {
       .from('courses')
       .select(`
         *,
-        lessons(count)
+        lesson_course_ordering(count)
       `)
       .order('created_at', { ascending: false })
 
@@ -88,7 +88,7 @@ export class CourseService {
     // Transform count to number
     return (courses || []).map((course) => ({
       ...course,
-      lesson_count: course.lessons?.[0]?.count || 0,
+      lesson_count: course.lesson_course_ordering?.[0]?.count || 0,
     }))
   }
 
