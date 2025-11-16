@@ -753,7 +753,7 @@ export default function LessonViewer({
           <PracticeSession
             exercises={(isNewStructure ? newExercises : exercises).map(exercise => ({
               id: exercise.id,
-              type: exercise.type as 'fill_blank' | 'translation' | 'multiple_choice',
+              type: (exercise.type || exercise.exercise_type || 'fill_blank') as 'fill_blank' | 'translation' | 'multiple_choice',
               prompt: exercise.prompt,
               answer: exercise.answer,
               choices: exercise.choices,

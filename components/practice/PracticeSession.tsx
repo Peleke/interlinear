@@ -50,6 +50,12 @@ export default function PracticeSession({
 
   const currentExercise = exercises[currentIndex]
 
+  // Debug: Log the current exercise to help troubleshoot
+  useEffect(() => {
+    console.log('Practice Session - Current Exercise:', currentExercise)
+    console.log('All exercises:', exercises)
+  }, [currentIndex, currentExercise, exercises])
+
   const playSound = useCallback((type: 'correct' | 'incorrect' | 'complete') => {
     // In a real app, you'd implement actual sound effects here
     console.log(`Playing ${type} sound`)
@@ -347,25 +353,74 @@ export default function PracticeSession({
                   </h2>
                 </div>
 
-                {currentExercise.type === 'fill_blank' && (
-                  <FillBlankPractice
-                    exercise={currentExercise}
-                    onAnswer={handleAnswer}
-                  />
-                )}
+                {!currentExercise ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-600 mb-4">No exercise found</p>
+                    <button
+                      onClick={onExit}
+                      className="px-4 py-2 bg-gray-600 text-white rounded"
+                    >
+                      Exit Practice
+                    </button>
+                  </div>
+                ) : !currentExercise.type ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-600 mb-4">
+                      Exercise type not specified: {JSON.stringify(currentExercise)}
+                    </p>
+                    <button
+                      onClick={onExit}
+                      className="px-4 py-2 bg-gray-600 text-white rounded"
+                    >
+                      Exit Practice
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {currentExercise.type === 'fill_blank' && (
+                      <FillBlankPractice
+                        exercise={currentExercise}
+                        onAnswer={handleAnswer}
+                      />
+                    )}
 
-                {currentExercise.type === 'translation' && (
-                  <TranslationPractice
-                    exercise={currentExercise}
-                    onAnswer={handleAnswer}
-                  />
-                )}
+                    {currentExercise.type === 'translation' && (
+                      <TranslationPractice
+                        exercise={currentExercise}
+                        onAnswer={handleAnswer}
+                      />
+                    )}
 
-                {currentExercise.type === 'multiple_choice' && (
-                  <MultipleChoicePractice
-                    exercise={currentExercise}
-                    onAnswer={handleAnswer}
-                  />
+                    {currentExercise.type === 'multiple_choice' && (
+                      <MultipleChoicePractice
+                        exercise={currentExercise}
+                        onAnswer={handleAnswer}
+                      />
+                    )}
+
+                    {!['fill_blank', 'translation', 'multiple_choice'].includes(currentExercise.type) && (
+                      <div className="text-center py-8">
+                        <p className="text-red-600 mb-4">
+                          Unsupported exercise type: <strong>{currentExercise.type}</strong>
+                        </p>
+                        <p className="text-gray-600 text-sm mb-4">
+                          Exercise data: {JSON.stringify(currentExercise, null, 2)}
+                        </p>
+                        <button
+                          onClick={() => handleAnswer(false)}
+                          className="px-4 py-2 bg-red-600 text-white rounded mr-2"
+                        >
+                          Skip Exercise
+                        </button>
+                        <button
+                          onClick={onExit}
+                          className="px-4 py-2 bg-gray-600 text-white rounded"
+                        >
+                          Exit Practice
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </motion.div>
