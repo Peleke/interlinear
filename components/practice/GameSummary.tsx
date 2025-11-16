@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Sparkles, Loader2 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 interface Exercise {
   id: string
@@ -57,12 +58,11 @@ ${Object.entries(exerciseTypes).map(([type, count]) => `- ${type.replace('_', ' 
 
 Total exercises: ${exercises.length}
 
-Write a 3-5 sentence summary that:
-1. Describes what content/skills the player will practice
-2. Explains the game mechanics (4 lives, XP system, streaks)
-3. Ends with an UNHINGED, EXCESSIVELY EXCITED call-to-action to GET PLAYING
+Write EXACTLY 2 sentences:
+1. First sentence: What they'll learn in this lesson
+2. Second sentence: UNHINGED, EXCESSIVELY EXCITED call-to-action about dominating the challenge
 
-Keep it fun, energetic, and slightly over-the-top but still informative. Use emojis sparingly. Make it feel like a game show host announcing the challenge!`
+NO hashtags, NO bullet points, NO extra formatting. Just 2 sentences of pure hype! Make it feel like an overly excited game show host!`
 
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -91,9 +91,9 @@ Keep it fun, energetic, and slightly over-the-top but still informative. Use emo
       setError('Failed to generate summary')
       // Fallback summary with unhinged energy
       const fallbackSummaries = [
-        `Get ready to absolutely DEMOLISH "${lesson.title}" through ${exercises.length} mind-bending challenges! You'll tackle everything from fill-in-the-blanks to translations, all while managing your precious 4 lives and racking up those sweet, sweet XP points. Nail consecutive answers for streak bonuses and watch your skills EXPLODE! Time to show this lesson who's BOSS!`,
-        `BUCKLE UP for an epic language learning RAMPAGE! "${lesson.title}" is about to get CRUSHED by your unstoppable brain power through ${exercises.length} killer exercises. Four lives, unlimited determination, and XP gains that'll make your head SPIN! Are you ready to become a LANGUAGE WARRIOR?!`,
-        `This is it - your moment to DESTROY language barriers with "${lesson.title}"! ${exercises.length} exercises stand between you and TOTAL LINGUISTIC DOMINATION. You've got 4 lives, an XP meter that's about to go WILD, and the chance to prove you're an absolute LEGEND! LET'S GOOOOOO!`
+        `You're about to master **${lesson.title}** through ${exercises.length} killer challenges. Time to show this lesson who's *BOSS* and rack up those XP points!`,
+        `Get ready to **DEMOLISH** language barriers with "${lesson.title}" exercises. You've got 4 lives and unlimited potential - let's become a *LANGUAGE WARRIOR*!`,
+        `"${lesson.title}" is about to get **CRUSHED** by your unstoppable brain power. ${exercises.length} challenges stand between you and *TOTAL DOMINATION* - LET'S GO!`
       ]
       setSummary(fallbackSummaries[Math.floor(Math.random() * fallbackSummaries.length)])
     } finally {
@@ -117,11 +117,17 @@ Keep it fun, energetic, and slightly over-the-top but still informative. Use emo
           <Sparkles className="w-4 h-4 text-blue-600" />
           Challenge Awaits!
         </h4>
-        <p className="text-blue-800 text-sm leading-relaxed">
-          Get ready to master "{lesson.title}" through {exercises.length} mind-bending challenges!
-          You'll tackle everything while managing your precious 4 lives and racking up XP points.
-          Time to show this lesson who's BOSS!
-        </p>
+        <div className="text-blue-800 text-sm leading-relaxed">
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className="mb-2">{children}</p>,
+              strong: ({ children }) => <strong className="font-bold text-blue-900">{children}</strong>,
+              em: ({ children }) => <em className="font-semibold text-blue-700">{children}</em>
+            }}
+          >
+            You're about to master **{lesson.title}** through {exercises.length} challenges. Time to show this lesson who's *BOSS*!
+          </ReactMarkdown>
+        </div>
       </div>
     )
   }
@@ -132,9 +138,17 @@ Keep it fun, energetic, and slightly over-the-top but still informative. Use emo
         <Sparkles className="w-4 h-4 text-blue-600" />
         Challenge Overview
       </h4>
-      <p className="text-blue-800 text-sm leading-relaxed">
-        {summary}
-      </p>
+      <div className="text-blue-800 text-sm leading-relaxed">
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p className="mb-2">{children}</p>,
+            strong: ({ children }) => <strong className="font-bold text-blue-900">{children}</strong>,
+            em: ({ children }) => <em className="font-semibold text-blue-700">{children}</em>
+          }}
+        >
+          {summary}
+        </ReactMarkdown>
+      </div>
     </div>
   )
 }
