@@ -177,7 +177,7 @@ export function AssessmentChat({ goals, customGoal, onComplete }: AssessmentChat
       {/* Messages Container */}
       <Card className="bg-white border-sepia-200">
         <CardContent className="p-4 max-h-[500px] overflow-y-auto space-y-4">
-        {messages.map((message) => (
+          {messages.map((message) => (
           <div
             key={message.id}
             className={`flex flex-col ${
@@ -215,20 +215,20 @@ export function AssessmentChat({ goals, customGoal, onComplete }: AssessmentChat
               )}
             </div>
           </div>
-        ))}
+          ))}
 
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-sepia-100 rounded-lg p-4 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-sepia-600" />
-              <span className="text-sepia-600 text-sm">
-                El tutor está pensando...
-              </span>
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-sepia-100 rounded-lg p-4 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-sepia-600" />
+                <span className="text-sepia-600 text-sm">
+                  El tutor está pensando...
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
         </CardContent>
       </Card>
 
