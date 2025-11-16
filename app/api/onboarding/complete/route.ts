@@ -13,35 +13,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { assessed_level, goals, customGoal, timezone } = body
 
-    // Check if profile already exists
-    const { data: existing } = await supabase
+    // First try to update existing profile
+    let { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('user_id')
+      .update({
+        level: assessed_level,
+        assessed_level,
+        goals: goals || [],
+        timezone: timezone || 'UTC',
+        onboarding_completed: true
+      })
       .eq('user_id', user.id)
-      .maybeSingle()
+      .select()
+      .single()
 
-    let profile
-    let error
-
-    if (existing) {
-      // Update existing profile
-      const result = await supabase
-        .from('user_profiles')
-        .update({
-          level: assessed_level,
-          assessed_level,
-          goals: goals || [],
-          timezone: timezone || 'UTC',
-          onboarding_completed: true
-        })
-        .eq('user_id', user.id)
-        .select()
-        .single()
-
-      profile = result.data
-      error = result.error
-    } else {
-      // Create new profile
+    // If no rows were updated, create new profile
+    if (error && error.code === 'PGRST116') {
       const result = await supabase
         .from('user_profiles')
         .insert({

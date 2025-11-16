@@ -9,8 +9,10 @@ export default function CompletePage() {
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [level, setLevel] = useState<string>('')
-  const [isEnrolling, setIsEnrolling] = useState(false)
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [courses, setCourses] = useState<any[]>([])
+  const [recommendedCourse, setRecommendedCourse] = useState<any>(null)
 
   useEffect(() => {
     const completeOnboarding = async () => {
@@ -46,6 +48,25 @@ export default function CompletePage() {
         }
 
         setLevel(assessment.level)
+
+        // Fetch all courses
+        const coursesResponse = await fetch('/api/courses')
+        if (!coursesResponse.ok) {
+          throw new Error('Failed to fetch courses')
+        }
+        const { courses: allCourses } = await coursesResponse.json()
+
+        // Get top 3 courses
+        const topCourses = (allCourses || []).slice(0, 3)
+        setCourses(topCourses)
+
+        // Find recommended course (A1 in title for now)
+        const recommended = allCourses.find((course: any) =>
+          course.title.toLowerCase().includes('a1') ||
+          course.difficulty_level === 'A1'
+        )
+        setRecommendedCourse(recommended)
+
         setStatus('success')
 
         // Trigger confetti after a brief delay to let the page render
@@ -99,23 +120,10 @@ export default function CompletePage() {
     )
   }
 
-  const handleStartJourney = async () => {
-    setIsEnrolling(true)
+  const handleEnrollInCourse = async (course: any) => {
+    setEnrollingCourseId(course.id)
     try {
-      // Fetch A1 course (hard-coded level for now)
-      const courseResponse = await fetch('/api/courses?level=A1')
-      if (!courseResponse.ok) {
-        throw new Error('Failed to fetch course')
-      }
-
-      const { courses } = await courseResponse.json()
-      if (!courses || courses.length === 0) {
-        throw new Error('No A1 course found')
-      }
-
-      const course = courses[0]
-
-      // Auto-enroll in A1 course
+      // Enroll in selected course
       const enrollResponse = await fetch('/api/courses/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,7 +139,7 @@ export default function CompletePage() {
     } catch (error) {
       console.error('Enrollment error:', error)
       setStatus('error')
-      setIsEnrolling(false)
+      setEnrollingCourseId(null)
     }
   }
 
@@ -189,7 +197,7 @@ export default function CompletePage() {
           })()}
         </div>
 
-        {/* Course Recommendation */}
+        {/* Available Courses */}
         <div className="bg-gradient-to-br from-sepia-50 to-amber-50 rounded-lg border-2 border-sepia-300 p-8 mb-8">
           <div className="flex items-start gap-4 mb-6">
             <div className="flex-shrink-0 w-12 h-12 bg-sepia-700 rounded-lg flex items-center justify-center">
@@ -197,67 +205,97 @@ export default function CompletePage() {
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-serif text-sepia-900 mb-2">
-                Recommended for You
+                Available Courses
               </h3>
               <p className="text-sm text-sepia-600 mb-4">
-                Based on your {level} level assessment
+                Based on your {level} level assessment, we think you might be interested in these courses
+                {recommendedCourse ? (
+                  <>...and especially <strong>{recommendedCourse.title}</strong>!</>
+                ) : (
+                  '!'
+                )}
               </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-sepia-200 p-6 mb-6">
-            <h4 className="text-2xl font-serif text-sepia-900 mb-2">
-              A1 Spanish Fundamentals
-            </h4>
-            <p className="text-sepia-700 mb-4">
-              Master the basics of Spanish through immersive interlinear reading.
-              Build your foundation with essential vocabulary, grammar, and conversational skills.
-            </p>
-            <div className="flex items-center gap-4 text-sm text-sepia-600">
-              <span>📖 3 Lessons</span>
-              <span>⏱️ ~2 hours</span>
-              <span>🎯 Beginner</span>
-            </div>
+          <div className="space-y-4 mb-6">
+            {courses.map((course) => {
+              const isRecommended = recommendedCourse && course.id === recommendedCourse.id
+              return (
+                <div
+                  key={course.id}
+                  className={`bg-white rounded-lg border-2 p-6 transition-all ${
+                    isRecommended
+                      ? 'border-green-400 bg-gradient-to-r from-green-50 to-emerald-50'
+                      : 'border-sepia-200 hover:border-sepia-300'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-xl font-serif text-sepia-900">
+                          {course.title}
+                        </h4>
+                        {isRecommended && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                            Recommended
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sepia-700 mb-3">
+                        {course.description || 'Explore this course to enhance your language skills.'}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-sepia-600">
+                        <span>📖 {course.lesson_count || 0} Lessons</span>
+                        <span>🌐 {course.language.charAt(0).toUpperCase() + course.language.slice(1)}</span>
+                        <span>🎯 {course.difficulty_level}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleEnrollInCourse(course)}
+                    disabled={enrollingCourseId === course.id}
+                    className={`w-full px-6 py-3 text-lg font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                      isRecommended
+                        ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'
+                        : 'bg-sepia-700 text-white hover:bg-sepia-800 hover:shadow-lg'
+                    }`}
+                  >
+                    {enrollingCourseId === course.id ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Enrolling...</span>
+                      </>
+                    ) : (
+                      <span>Start This Course</span>
+                    )}
+                  </button>
+                </div>
+              )
+            })}
           </div>
 
-          <div className="space-y-4">
-            <button
-              onClick={handleStartJourney}
-              disabled={isEnrolling}
-              className="w-full px-8 py-4 bg-sepia-700 text-white text-lg font-medium rounded-lg hover:bg-sepia-800 transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isEnrolling ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Enrolling...</span>
-                </>
-              ) : (
-                <span>Start This Course</span>
-              )}
-            </button>
-
-            {/* Helpful hint */}
-            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-900">
-                <strong>Tip:</strong> After enrolling, you'll see your course lessons.
-                Click any lesson to start learning! You can always access your courses
-                from the "Courses" link in the navigation bar.
-              </p>
-            </div>
-
-            {/* Browse alternative */}
-            <div className="text-center pt-4 border-t border-sepia-200">
-              <p className="text-sm text-sepia-600 mb-3">
-                Want to explore other courses first?
-              </p>
+          {courses.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-sepia-600 mb-4">No courses available at the moment.</p>
               <button
                 onClick={() => router.push('/courses')}
-                className="text-sepia-700 hover:text-sepia-900 font-medium text-sm underline"
+                className="text-sepia-700 hover:text-sepia-900 font-medium underline"
               >
-                Browse All Courses
+                Browse Course Catalog
               </button>
             </div>
+          )}
+
+          {/* Helpful hint */}
+          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-900">
+              <strong>Tip:</strong> After enrolling, you'll see your course lessons.
+              Click any lesson to start learning! You can always access your courses
+              from the "Courses" link in the navigation bar.
+            </p>
           </div>
         </div>
 
