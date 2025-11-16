@@ -340,15 +340,15 @@ export default function LessonViewer({
               <div className="bg-white rounded-lg border-2 border-sepia-200">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
-                    Practice Exercises
+                    🎮 Training Ground
                   </h3>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowPracticeMode(true)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-sepia-700 hover:from-blue-700 hover:to-sepia-800 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
                       <Play className="h-4 w-4" />
-                      <span>Practice Mode</span>
+                      <span>Start Challenge</span>
                     </button>
                     <button
                       onClick={() => setExercisesExpanded(!exercisesExpanded)}
@@ -450,7 +450,7 @@ export default function LessonViewer({
               <div className="bg-white rounded-lg border-2 border-sepia-200">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
-                    Practice Exercises
+                    🎮 Training Ground
                   </h3>
                   <div className="flex items-center gap-4">
                     {totalXpEarned > 0 && (
@@ -770,7 +770,13 @@ export default function LessonViewer({
               })
             }}
             onExit={() => setShowPracticeMode(false)}
-            lessonTitle={lesson.title}
+            lesson={{
+              id: lesson.id,
+              title: lesson.title,
+              slug: lesson.slug,
+              overview: lesson.overview,
+              description: lesson.description
+            }}
           />
         )}
       </div>

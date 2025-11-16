@@ -64,7 +64,7 @@ export default function FillBlankPractice({ exercise, onAnswer }: FillBlankPract
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-center"
       >
-        <div className="bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           Fill in the blank
         </div>
@@ -194,7 +194,7 @@ export default function FillBlankPractice({ exercise, onAnswer }: FillBlankPract
           disabled={!userAnswer.trim() || isSubmitting}
           className={`px-8 py-3 text-lg font-semibold rounded-xl transition-all duration-300 ${
             userAnswer.trim()
-              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg transform hover:scale-105'
+              ? 'bg-gradient-to-r from-blue-600 to-sepia-700 hover:from-blue-700 hover:to-sepia-800 text-white shadow-lg transform hover:scale-105'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >

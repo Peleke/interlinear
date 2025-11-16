@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import FillBlankPractice from './exercises/FillBlankPractice'
 import TranslationPractice from './exercises/TranslationPractice'
 import MultipleChoicePractice from './exercises/MultipleChoicePractice'
+import ChallengeScreen from './ChallengeScreen'
+import { Confetti } from '@/components/Confetti'
 
 interface Exercise {
   id: string
@@ -22,15 +24,22 @@ interface PracticeSessionProps {
   exercises: Exercise[]
   onComplete: (xpEarned: number) => void
   onExit: () => void
-  lessonTitle: string
+  lesson: {
+    id: string
+    title: string
+    slug?: string
+    overview?: string
+    description?: string
+  }
 }
 
 export default function PracticeSession({
   exercises,
   onComplete,
   onExit,
-  lessonTitle
+  lesson
 }: PracticeSessionProps) {
+  const [showChallenge, setShowChallenge] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [lives, setLives] = useState(4)
   const [xp, setXP] = useState(0)
@@ -38,6 +47,7 @@ export default function PracticeSession({
   const [streak, setStreak] = useState(0)
   const [showResult, setShowResult] = useState<'correct' | 'incorrect' | null>(null)
   const [isCompleted, setIsCompleted] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
   const [sessionStats, setSessionStats] = useState({
     totalQuestions: exercises.length,
     correctAnswers: 0,
@@ -56,9 +66,71 @@ export default function PracticeSession({
     console.log('All exercises:', exercises)
   }, [currentIndex, currentExercise, exercises])
 
+  // Haptics function
+  const triggerHaptics = useCallback((pattern: 'success' | 'error' | 'complete') => {
+    if ('vibrate' in navigator) {
+      switch (pattern) {
+        case 'success':
+          navigator.vibrate([100]) // Short buzz
+          break
+        case 'error':
+          navigator.vibrate([200, 100, 200]) // Two buzzes
+          break
+        case 'complete':
+          navigator.vibrate([100, 50, 100, 50, 300]) // Celebration pattern
+          break
+      }
+    }
+  }, [])
+
   const playSound = useCallback((type: 'correct' | 'incorrect' | 'complete') => {
-    // In a real app, you'd implement actual sound effects here
-    console.log(`Playing ${type} sound`)
+    // Create audio context and play different tones
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      // Set frequencies and patterns for different sounds
+      switch (type) {
+        case 'correct':
+          // Happy ascending chime
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime) // C5
+          oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1) // E5
+          oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2) // G5
+          gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+          oscillator.start(audioContext.currentTime)
+          oscillator.stop(audioContext.currentTime + 0.3)
+          break
+
+        case 'incorrect':
+          // Sad descending tone
+          oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime) // G4
+          oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime + 0.15) // E4
+          gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3)
+          oscillator.start(audioContext.currentTime)
+          oscillator.stop(audioContext.currentTime + 0.3)
+          break
+
+        case 'complete':
+          // Victory fanfare
+          oscillator.frequency.setValueAtTime(261.63, audioContext.currentTime) // C4
+          oscillator.frequency.setValueAtTime(329.63, audioContext.currentTime + 0.1) // E4
+          oscillator.frequency.setValueAtTime(392.00, audioContext.currentTime + 0.2) // G4
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime + 0.3) // C5
+          gainNode.gain.setValueAtTime(0.15, audioContext.currentTime)
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+          oscillator.start(audioContext.currentTime)
+          oscillator.stop(audioContext.currentTime + 0.5)
+          break
+      }
+    } catch (error) {
+      console.log(`Audio not supported, but would play ${type} sound`)
+    }
   }, [])
 
   const handleAnswer = useCallback((isCorrect: boolean) => {
@@ -70,12 +142,22 @@ export default function PracticeSession({
       setTotalXP(prev => prev + xpGained)
       setStreak(prev => prev + 1)
       setSessionStats(prev => ({ ...prev, correctAnswers: prev.correctAnswers + 1 }))
+
+      // Trigger confetti for each correct answer!
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 3000)
+
+      // Audio and haptics feedback
       playSound('correct')
+      triggerHaptics('success')
     } else {
       setLives(prev => prev - 1)
       setStreak(0)
       setSessionStats(prev => ({ ...prev, incorrectAnswers: prev.incorrectAnswers + 1 }))
+
+      // Audio and haptics feedback
       playSound('incorrect')
+      triggerHaptics('error')
     }
 
     // Show result for 1.5 seconds
@@ -93,6 +175,10 @@ export default function PracticeSession({
         // Session completed
         setIsCompleted(true)
         playSound('complete')
+        triggerHaptics('complete')
+
+        // BIG confetti celebration for completion!
+        setShowConfetti(true)
         return
       }
 
@@ -127,7 +213,7 @@ export default function PracticeSession({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="fixed inset-0 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-gradient-to-br from-sepia-600 via-blue-600 to-sepia-700 flex items-center justify-center z-50"
       >
         <motion.div
           initial={{ y: 50, opacity: 0 }}
@@ -224,7 +310,20 @@ export default function PracticeSession({
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 z-50">
+    <>
+      {showChallenge && (
+        <ChallengeScreen
+          lesson={lesson}
+          exercises={exercises}
+          onBegin={() => setShowChallenge(false)}
+          onClose={onExit}
+        />
+      )}
+
+      {!showChallenge && (
+        <div className="fixed inset-0 bg-gradient-to-br from-sepia-700 via-blue-700 to-sepia-800 z-50">
+          {/* Confetti Animation */}
+          <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* Header */}
       <div className="flex items-center justify-between p-4 bg-white/10 backdrop-blur-sm">
         <button
@@ -262,7 +361,7 @@ export default function PracticeSession({
       </div>
 
       {/* XP Progress */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pt-2 pb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <Star className="w-5 h-5 text-yellow-400 fill-current" />
@@ -349,7 +448,7 @@ export default function PracticeSession({
                     Question {currentIndex + 1} of {exercises.length}
                   </span>
                   <h2 className="text-xl font-bold text-gray-800 mt-2">
-                    {lessonTitle}
+                    {lesson.title}
                   </h2>
                 </div>
 
@@ -427,6 +526,8 @@ export default function PracticeSession({
           )}
         </AnimatePresence>
       </div>
-    </div>
+        </div>
+      )}
+    </>
   )
 }

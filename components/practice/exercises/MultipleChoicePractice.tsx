@@ -26,13 +26,18 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isListening, setIsListening] = useState(false)
 
-  // Generate choices if not provided
-  const choices = exercise.choices || [
+  // Get choices from exercise data structure
+  const choices = exercise.choices || exercise.options?.choices || exercise.options || [
     exercise.answer,
     'Alternative option 1',
     'Alternative option 2',
     'Alternative option 3'
   ]
+
+  // Debug: Log choices to help troubleshoot
+  console.log('MultipleChoice - exercise.choices:', exercise.choices)
+  console.log('MultipleChoice - exercise.options:', exercise.options)
+  console.log('MultipleChoice - final choices:', choices)
 
   // Shuffle choices to randomize correct answer position
   const [shuffledChoices] = useState(() => {
@@ -80,7 +85,7 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-center"
       >
-        <div className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
           <Target className="w-4 h-4" />
           Multiple choice
         </div>
@@ -157,7 +162,7 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
             onClick={() => setSelectedChoice(choice)}
             className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-300 ${
               selectedChoice === choice
-                ? 'border-green-400 bg-gradient-to-r from-green-50 to-emerald-50 transform scale-[1.02] shadow-lg'
+                ? 'border-blue-400 bg-gradient-to-r from-blue-50 to-sepia-50 transform scale-[1.02] shadow-lg'
                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
             }`}
           >

@@ -79,7 +79,7 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-center"
       >
-        <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
           <Languages className="w-4 h-4" />
           Translation
         </div>
@@ -238,7 +238,7 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
           disabled={!userAnswer.trim() || isSubmitting}
           className={`px-8 py-3 text-lg font-semibold rounded-xl transition-all duration-300 ${
             userAnswer.trim()
-              ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg transform hover:scale-105'
+              ? 'bg-gradient-to-r from-blue-600 to-sepia-700 hover:from-blue-700 hover:to-sepia-800 text-white shadow-lg transform hover:scale-105'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
