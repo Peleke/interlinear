@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Loader2, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { AudioButton } from '@/components/tutor/AudioButton'
+import { AudioTooltip } from './AudioTooltip'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface Message {
   id: string
@@ -21,12 +24,27 @@ export function AssessmentChat({ goals, customGoal, onComplete }: AssessmentChat
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [showAudioTooltip, setShowAudioTooltip] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Check if user has seen audio tooltip before
+  useEffect(() => {
+    const hasSeenTooltip = localStorage.getItem('hasSeenOnboardingAudioTooltip')
+    if (!hasSeenTooltip && messages.length > 0 && messages[0].role === 'ai') {
+      setShowAudioTooltip(true)
+    }
+  }, [messages])
+
+  // Handle tooltip dismissal
+  const handleTooltipDismiss = () => {
+    setShowAudioTooltip(false)
+    localStorage.setItem('hasSeenOnboardingAudioTooltip', 'true')
+  }
 
   // Initialize conversation with first AI message
   useEffect(() => {
@@ -157,22 +175,44 @@ export function AssessmentChat({ goals, customGoal, onComplete }: AssessmentChat
   return (
     <div className="space-y-4">
       {/* Messages Container */}
-      <div className="bg-white rounded-lg border border-sepia-200 p-4 max-h-[500px] overflow-y-auto space-y-4">
+      <Card className="bg-white border-sepia-200">
+        <CardContent className="p-4 max-h-[500px] overflow-y-auto space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
+            className={`flex flex-col ${
+              message.role === 'user' ? 'items-end' : 'items-start'
             }`}
           >
-            <div
-              className={`max-w-[80%] rounded-lg p-4 ${
-                message.role === 'ai'
-                  ? 'bg-sepia-100 text-sepia-900'
-                  : 'bg-sepia-700 text-white'
-              }`}
-            >
-              <p className="whitespace-pre-wrap">{message.content}</p>
+            <div className="flex items-start gap-2">
+              <div
+                className={`max-w-[80%] rounded-lg p-4 ${
+                  message.role === 'ai'
+                    ? 'bg-sepia-100 text-sepia-900'
+                    : 'bg-sepia-700 text-white'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              </div>
+
+              {/* Audio button for AI messages */}
+              {message.role === 'ai' && (
+                <div className="flex flex-col gap-1">
+                  <div className="relative">
+                    <AudioButton
+                      text={message.content}
+                      messageId={message.id}
+                    />
+                    {/* Show tooltip only on first AI message */}
+                    {message.id === messages[0]?.id && (
+                      <AudioTooltip
+                        show={showAudioTooltip}
+                        onDismiss={handleTooltipDismiss}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -189,7 +229,8 @@ export function AssessmentChat({ goals, customGoal, onComplete }: AssessmentChat
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Turn Counter */}
       <div className="flex items-center justify-between text-sm text-sepia-600">
