@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Interlinear</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #f7f3f0 0%, #f1ebe3 100%);
+      color: #5a4d3a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .offline-container {
+      text-align: center;
+      max-width: 480px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 48px 32px;
+      box-shadow: 0 8px 32px rgba(139, 115, 85, 0.15);
+      border: 2px solid #e8ddd4;
+    }
+
+    .offline-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #8b7355;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #8a7563;
+      margin-bottom: 32px;
+    }
+
+    .retry-button {
+      background: #8b7355;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .retry-button:hover {
+      background: #75634a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(139, 115, 85, 0.3);
+    }
+
+    .features {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #e8ddd4;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #a18f7a;
+    }
+
+    .feature-icon {
+      font-size: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .offline-container {
+        margin: 20px;
+        padding: 32px 24px;
+      }
+
+      .offline-icon {
+        font-size: 48px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <span class="offline-icon">📚</span>
+    <h1>You're Offline</h1>
+    <p>
+      It looks like you've lost your internet connection. Don't worry – once you're back online,
+      you can continue your language learning journey with Interlinear!
+    </p>
+
+    <button class="retry-button" onclick="window.location.reload()">
+      Try Again
+    </button>
+
+    <div class="features">
+      <div class="feature">
+        <span class="feature-icon">🔄</span>
+        <span>Your progress is automatically saved</span>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">📖</span>
+        <span>Cached lessons available offline</span>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">⚡</span>
+        <span>Fast loading when you return</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check for connectivity and auto-reload when back online
+    window.addEventListener('online', () => {
+      window.location.reload();
+    });
+
+    // Show current connection status
+    if (navigator.onLine) {
+      // Connection restored while viewing this page
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
