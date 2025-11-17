@@ -1,0 +1,21 @@
+{
+  "name": "interlinear-investor-pitch",
+  "version": "1.0.0",
+  "description": "Investor pitch slideshow for Interlinear - AI-powered language learning platform",
+  "type": "module",
+  "scripts": {
+    "build": "slidev build",
+    "dev": "slidev --open",
+    "export": "slidev export",
+    "preview": "slidev --host"
+  },
+  "dependencies": {
+    "@slidev/cli": "^0.47.0",
+    "@slidev/theme-apple-basic": "^0.21.1"
+  },
+  "devDependencies": {
+    "@iconify-json/carbon": "^1.1.21",
+    "@iconify-json/mdi": "^1.1.64",
+    "playwright-chromium": "^1.39.0"
+  }
+}
