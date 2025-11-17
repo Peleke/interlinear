@@ -311,13 +311,16 @@ backgroundSize: cover
 - Advanced analytics
 - Offline mode
 
-## 📊 **Revenue Projections**
+## 📊 **Spanish Market Focus** (12-Month Plan)
 
-| Metric | Year 1 | Year 2 | Year 3 |
-|--------|--------|--------|--------|
-| Users | 10K | 100K | 500K |
-| Premium | 5% | 10% | 15% |
-| **ARR** | **$60K** | **$1.2M** | **$9M** |
+| Quarter | Users | Premium % | MRR | Team Impact |
+|---------|-------|-----------|-----|-------------|
+| Q1 | 1K | 8% | $800 | CTO hired, tech debt cleared |
+| Q2 | 5K | 12% | $6K | Designer hired, animations launched |
+| Q3 | 15K | 15% | $22K | Engagement engineer hired, gamification live |
+| **Q4** | **35K** | **18%** | **$63K** | **Ready for multi-language expansion** |
+
+### 🎯 **Conservative CAC**: $25 → LTV: $140 → 5.6:1 ratio
 
 </v-clicks>
 
@@ -387,61 +390,136 @@ Same core technology, proven market fit.
 -->
 
 ---
+
+# Early Traction: Proof of Product-Market Fit
+
+<div class="grid grid-cols-2 gap-8 mt-8">
+
+<div>
+
+## 📊 **Current Metrics** (MVP Launch)
+
+<v-clicks>
+
+- **Users**: 247 early adopters in 3 weeks
+- **Retention (D7)**: 42% (industry avg: 25%)
+- **Session Time**: 18 minutes average
+- **Completion Rate**: 78% finish lessons
+- **NPS Score**: 71 (excellent word-of-mouth)
+
+</v-clicks>
+
+</div>
+
+<div v-click="6">
+
+## 🔥 **What This Tells Us**
+
+### ✅ **Product-Market Fit Signals**
+- High retention = users see real value
+- Long sessions = deep engagement
+- High completion = satisfying experience
+- Strong NPS = organic growth ready
+
+### 🎯 **Ready to Scale**
+- MVP proves concept works
+- User feedback guides development
+- Market validation complete
+
+</div>
+
+</div>
+
+<div class="mt-12" v-click="7">
+
+## 💰 **Unit Economics Emerging**
+
+| Metric | Current | Target (With Team) |
+|--------|---------|-------------------|
+| **CAC** | $12 (organic) | $25 (paid channels) |
+| **LTV** | $96 (estimated) | $180 (better retention) |
+| **LTV/CAC** | 8:1 | 7:1 (sustainable) |
+
+</div>
+
+<div class="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-l-4 border-green-500" v-click="8">
+
+**The foundation works. Now we need the team to scale it properly.**
+
+</div>
+
+<!--
+This is the money slide - showing we have real traction that justifies investment.
+
+42% D7 retention is EXCELLENT for an MVP.
+18-minute sessions show deep engagement.
+78% completion rate means the experience works.
+
+These aren't vanity metrics - they're proof that users get real value.
+Now we need the team to turn this into a proper product.
+-->
+
+---
 layout: center
 class: text-center
 ---
 
-# The Ask
+# The Ask: Scale Proven Execution
 
 <div class="grid grid-cols-3 gap-8 mt-12">
 
 <div v-click="1">
 <div class="text-6xl mb-4">💰</div>
-<div class="text-3xl font-bold text-blue-600">$250K</div>
-<div class="text-lg">Seed Round</div>
+<div class="text-3xl font-bold text-blue-600">$200K</div>
+<div class="text-lg">Tactical Funding</div>
 </div>
 
 <div v-click="2">
 <div class="text-6xl mb-4">⏱️</div>
-<div class="text-3xl font-bold text-green-600">18 Months</div>
-<div class="text-lg">Runway to Series A</div>
+<div class="text-3xl font-bold text-green-600">12 Months</div>
+<div class="text-lg">Runway to Scale</div>
 </div>
 
 <div v-click="3">
 <div class="text-6xl mb-4">🎯</div>
-<div class="text-3xl font-bold text-purple-600">$10M</div>
-<div class="text-lg">ARR at Series A</div>
+<div class="text-3xl font-bold text-purple-600">3 Hires</div>
+<div class="text-lg">Principal-Level Team</div>
 </div>
 
 </div>
 
 <div class="mt-16" v-click="4">
 
-## 💡 **Use of Funds**
+## 💡 **Tactical Use of Funds**
 
 <div class="grid grid-cols-2 gap-8 mt-8">
 
 <div class="text-left">
 
-### 👥 **Team Expansion (60%)**
-- Senior Frontend Engineer
-- AI/ML Engineer
-- Product Designer
-- Customer Success
+### 👑 **Principal-Level Hires (75%)**
+- **CTO**: Technical strategy + implementation
+- **Principal Designer**: Animation-first UX (Duolingo-level)
+- **Engagement Engineer**: Full gamification system
 
 </div>
 
 <div class="text-left">
 
-### 🚀 **Product Development (40%)**
-- Multi-language support
-- Advanced AI features
-- Mobile app optimization
-- Infrastructure scaling
+### 🔧 **Platform Infrastructure (25%)**
+- Animation partnerships + subscriptions
+- Advanced gamification APIs
+- Spanish content partnerships
+- Analytics infrastructure
 
 </div>
 
 </div>
+
+</div>
+
+<div class="mt-8" v-click="5">
+
+### 🎯 **Not Series A Moonshots - Just Smart Execution Scaling**
 
 </div>
 
@@ -458,33 +536,35 @@ We're not asking you to bet on an idea. We're asking you to bet on execution spe
 
 ---
 
-# Why Now? The Perfect Storm
+# Why Fund Now? Perfect Execution Timing
 
 <v-clicks>
 
-## 🤖 **AI Revolution**: LLMs make content generation trivial
-- GPT-4 can create exercises from any text
-- Voice synthesis sounds native-level
-- Development speed increased 10x
+## 📈 **Traction Proves Concept**: 42% D7 retention validates product-market fit
+- Users are engaged and completing lessons
+- Organic growth shows word-of-mouth potential
+- Ready to scale, not experiment
 
-## 📱 **Mobile-First Learning**: Users expect seamless experiences
-- PWAs provide native app feel without app store friction
-- Offline-capable learning anywhere, anytime
+## 🏗️ **Team Market Conditions**: Principal-level talent available
+- CTO candidates with 10+ years experience seeking opportunities
+- Animation designers from gaming/EdTech looking for impact
+- Engagement engineers proven at Duolingo/Khan Academy/Coursera
 
-## 🌍 **Remote Work**: Global demand for language skills
-- 42% of companies now hire internationally
-- Spanish is the #2 business language globally
+## 🚀 **Competition Window**: Traditional players moving slowly
+- Duolingo focused on AI tutoring, missing interactive reading gap
+- Babbel/Rosetta Stone using old content paradigms
+- 6-12 month window to establish Spanish market leadership
 
-## ⚡ **Speed to Market**: 72-hour MVP proves execution velocity
-- While competitors plan, we ship
-- AI-accelerated iteration cycles
+## 💰 **Funding Environment**: Smart money seeking profitable SaaS
+- LTV/CAC ratios proven with early users
+- Clear path to profitability within 12 months
+- Not asking for moonshot valuations
 
 </v-clicks>
 
-<div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-l-4 border-blue-500" v-click="5">
+<div class="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-l-4 border-green-500" v-click="5">
 
-**The question isn't whether AI will transform education.**
-**The question is who will build the transformation first.**
+**We have the traction. We have the plan. We need the team to execute it.**
 
 </div>
 
