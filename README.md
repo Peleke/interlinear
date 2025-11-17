@@ -1,78 +1,76 @@
-# Interlinear Reader
+# Interlinear AI
 
-**Stop switching tabs. Start learning languages.**
+**Master Languages with AI Tutoring. Classical to Modern.**
 
-Every unknown word is one click away from becoming part of your permanent vocabulary. No app switching. No copy-paste. No losing your place. Just pure, uninterrupted reading that builds your language skills automatically.
+The first AI language tutor that teaches like a university professor—with real-time error correction, character roleplay, and support for dead languages like Latin. No green owls, no gamified flashcards, just intelligent feedback that adapts to your learning level.
 
-**[Try it now →](https://interlinear.peleke.me)**
-
----
-
-## Why This Exists
-
-You know the drill: You're reading in your target language. You hit an unknown word. Now what?
-
-1. Highlight the word
-2. Open a new tab
-3. Search in Google Translate or a dictionary
-4. Read the definition
-5. Go back to your article
-6. Try to remember where you were
-7. Repeat 47 more times
-8. Give up and watch Netflix instead
-
-**This is why people don't learn languages through reading.** Not because reading doesn't work (it's the single most effective method for vocabulary acquisition) but because the tooling makes it feel like punishment.
-
-## How It Works
-
-Click any word. Get instant definition + native pronunciation. Done.
-
-Behind the scenes, we're silently building your personal vocabulary database. Every click is tracked, timestamped, and sorted by frequency. You're not managing flashcards: you're just reading. Your vocabulary list builds itself.
-
-**The entire workflow collapses to a single click:**
-- 🎯 **Instant lookup** with audio pronunciation (ElevenLabs neural TTS)
-- 📊 **Automatic tracking**: click count, recency, frequency analytics
-- 🧠 **Stay in flow**: inline definitions, no context switching
-- 🔒 **Private by default**: your data is encrypted and RLS-protected
-
-[Demo video placeholder]
-
-**What you get:**
-- Read faster (no tab switching)
-- Learn more (every word is trackable)
-- Remember better (frequency + recency data for spaced repetition)
-- Stay motivated (reading feels effortless, not like homework)
-
-This is reading the way it should be: immersive, intelligent, and completely frictionless.
-
-**[Start reading →](https://interlinear.peleke.me)**
+**[Experience AI Tutoring →](https://interlinear.peleke.me)**
 
 ---
 
-## Current Features
+## The Problem with Language Apps
 
-### Interactive Reading
-- Click any word → instant dictionary lookup from Free Dictionary API
-- Native-quality audio pronunciation via ElevenLabs text-to-speech
-- Inline display preserves reading context
+Current language learning is stuck in 2010:
+- **Scripted chatbots** that can't handle real conversation
+- **Gamified flashcards** that don't teach context or usage
+- **Green owls** that guilt-trip instead of actually teaching
+- **Zero support** for classical languages like Latin
 
-### Vocabulary Analytics
-- Automatic frequency tracking for every clicked word
-- Sortable by recency, frequency, and alphabetical order
-- Personal vocabulary dashboard with learning statistics
-- Export-ready data structure for external SRS systems
+**Result:** Millions of people "learning" languages for years without ever becoming conversational.
 
-### User Experience
-- Mobile-responsive design (responsive grid, touch-optimized)
-- WCAG 2.1 AA accessibility compliance
-- Serif typography with warm sepia palette for extended reading comfort
-- Fast loading (~1.2s initial page load, sub-100ms definition lookups)
+## Our AI Education Revolution
 
-### Infrastructure
-- Production deployment on Google Cloud Run (us-east4)
-- OpenTofu-managed infrastructure (Artifact Registry, Secret Manager, IAM)
-- GitHub Actions CI/CD with automated container builds
-- Health monitoring and structured logging
+We built the first language tutor that actually *teaches*—using advanced AI to provide university-grade instruction with personalized feedback.
+
+### 🧠 **Real-Time Error Correction**
+Not just "wrong answer"—detailed grammar explanations by category, with native pronunciation of your mistakes so you hear the difference.
+
+### 🎭 **Character Roleplay System**
+Practice real conversations with AI characters who maintain narrative coherence and adapt to your responses, creating immersive dialogue experiences.
+
+### 🏛️ **Classical Language Mastery**
+First modern AI platform for Latin—helping students, educators, and classical literature enthusiasts master ancient languages with the same sophistication as modern ones.
+
+### 👩‍🏫 **Professor-Style Reviews**
+Comprehensive performance analysis that identifies patterns in your mistakes and provides targeted improvement strategies.
+
+### 📊 **CEFR-Adaptive Intelligence**
+Automatically adjusts difficulty from A1 (beginner) to C2 (mastery) based on your responses, ensuring optimal challenge level.
+
+### 📱 **Native PWA Experience**
+Install to your device like a real app—works offline, instant loading, no browser chrome. Built for serious learners.
+
+**This is language learning the way it should be: intelligent, adaptive, and university-grade.**
+
+**[Start mastering languages →](https://interlinear.peleke.me)**
+
+---
+
+## Advanced AI Capabilities
+
+### 🧠 **AI Tutoring Engine**
+- Real-time error correction with detailed grammar explanations
+- Character roleplay system for contextual conversations
+- Professor-style performance analysis and feedback
+- CEFR-adaptive intelligence (A1-C2 automatic level adjustment)
+
+### 🏛️ **Classical Language Innovation**
+- First AI platform supporting Latin with full sophistication
+- Interactive Caesar translation demos
+- Academic-grade content for university coursework
+- Support for classical literature and historical texts
+
+### 🎮 **Gamified Learning System**
+- Duolingo-style practice mode with lives and XP progression
+- Streak tracking for consistent learning habits
+- AI-generated exercises based on personal vocabulary
+- Beautiful animations and responsive feedback
+
+### 📱 **Progressive Web App**
+- Native app experience (installable to home screen)
+- Offline functionality with smart caching
+- Service worker optimization for instant loading
+- Performance-first architecture (~1.2s initial load)
 
 ---
 
