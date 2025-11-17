@@ -338,7 +338,7 @@ export default function LessonViewer({
                 </div>
               )}
               <div className="bg-white rounded-lg border-2 border-sepia-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
                     🎮 Training Ground
                   </h3>
@@ -448,7 +448,7 @@ export default function LessonViewer({
                 </div>
               )}
               <div className="bg-white rounded-lg border-2 border-sepia-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-sepia-200">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-sepia-200">
                   <h3 className="text-xl font-serif text-sepia-900">
                     🎮 Training Ground
                   </h3>

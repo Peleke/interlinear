@@ -65,7 +65,7 @@ export default function ChallengeScreen({ lesson, exercises, onBegin, onClose }:
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col"
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-sepia-700 text-white p-8 text-center">
@@ -81,68 +81,50 @@ export default function ChallengeScreen({ lesson, exercises, onBegin, onClose }:
         </div>
 
         {/* Content */}
-        <div className="p-8 space-y-8">
-          {/* Challenge Stats */}
-          <div className="grid grid-cols-3 gap-6">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-center p-4 bg-gradient-to-br from-blue-50 to-sepia-50 rounded-lg border border-blue-200"
-            >
-              <Target className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <div className="text-2xl font-bold text-gray-900">{exercises.length}</div>
-              <div className="text-sm text-gray-600">Exercises</div>
-            </motion.div>
-
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-200"
-            >
-              <Trophy className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <div className="text-2xl font-bold text-gray-900">{maxXP}</div>
-              <div className="text-sm text-gray-600">Max XP</div>
-            </motion.div>
-
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg border border-orange-200"
-            >
-              <Clock className="w-8 h-8 mx-auto mb-2 text-orange-600" />
-              <div className="text-2xl font-bold text-gray-900">{Math.ceil(estimatedTime)}m</div>
-              <div className="text-sm text-gray-600">Est. Time</div>
-            </motion.div>
-          </div>
-
-          {/* Exercise Types */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Your Bounty - Compact Stats */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.3 }}
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">What's Inside</h3>
-            <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">🎁 Your Bounty</h3>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2 px-3 py-2 bg-blue-100 rounded-full">
+                <Target className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">{exercises.length} Exercises</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-100 rounded-full">
+                <Trophy className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-900">{maxXP} Max XP</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-orange-100 rounded-full">
+                <Clock className="w-4 h-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-900">{Math.ceil(estimatedTime)}m Est.</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Your Challenge - Compact Types */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">⚔️ Your Challenge</h3>
+            <div className="flex flex-wrap gap-2">
               {Object.entries(exerciseTypes).map(([type, count], index) => (
                 <motion.div
                   key={type}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.5 + index * 0.1 }}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-full"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white rounded-lg">
-                      {typeIcons[type] || <Target className="w-4 h-4" />}
-                    </div>
-                    <span className="font-medium text-gray-900">
-                      {typeLabels[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-600">{count}x</span>
+                  {typeIcons[type] || <Target className="w-4 h-4" />}
+                  <span className="text-sm font-medium text-gray-700">
+                    {typeLabels[type] || type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} ({count}x)
+                  </span>
                 </motion.div>
               ))}
             </div>
@@ -160,7 +142,7 @@ export default function ChallengeScreen({ lesson, exercises, onBegin, onClose }:
         </div>
 
         {/* Action Buttons */}
-        <div className="p-8 pt-0 flex gap-4">
+        <div className="flex-shrink-0 p-6 pt-0 flex gap-4">
           <Button
             variant="outline"
             onClick={onClose}
