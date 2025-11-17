@@ -32,6 +32,7 @@ export default withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
+  disable: false, // Force enable in dev mode
   runtimeCaching: [
     // Cache fonts with CacheFirst strategy
     {
