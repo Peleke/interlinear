@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Interlinear - Interactive Language Learning',
     short_name: 'Interlinear',
     description: 'Master languages through interactive reading and AI-powered conversations',
-    start_url: '/',
+    start_url: '/dashboard',
     display: 'standalone',
     background_color: '#8b7355', // sepia-700 for splash consistency
     theme_color: '#8b7355', // sepia-700 for native app feel
