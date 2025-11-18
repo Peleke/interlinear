@@ -231,7 +231,7 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="text-center pt-4"
+        className="text-center pt-6 pb-4"
       >
         <Button
           onClick={handleSubmit}
