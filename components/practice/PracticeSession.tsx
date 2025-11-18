@@ -321,7 +321,7 @@ export default function PracticeSession({
       )}
 
       {!showChallenge && (
-        <div className="fixed inset-0 bg-gradient-to-br from-sepia-700 via-blue-700 to-sepia-800 z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-sepia-700 via-blue-700 to-sepia-800 dark:from-gray-900 dark:via-blue-900 dark:to-black z-50">
           {/* Confetti Animation */}
           <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* Header */}
@@ -350,10 +350,10 @@ export default function PracticeSession({
           {[...Array(4)].map((_, i) => (
             <Heart
               key={i}
-              className={`w-6 h-6 ${
+              className={`w-6 h-6 transition-all duration-300 ${
                 i < lives
-                  ? 'text-red-400 fill-current'
-                  : 'text-white/30'
+                  ? 'text-red-400 fill-current dark:text-neon-pink dark:drop-shadow-[0_0_8px_rgba(255,20,147,0.8)] pulse-neon'
+                  : 'text-white/30 dark:text-gray-600'
               }`}
             />
           ))}
@@ -364,19 +364,19 @@ export default function PracticeSession({
       <div className="px-4 pt-2 pb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <Star className="w-5 h-5 text-yellow-400 fill-current" />
-            <span className="text-white font-medium">XP: {totalXP}</span>
+            <Star className="w-5 h-5 text-yellow-400 fill-current dark:text-neon-yellow dark:drop-shadow-[0_0_8px_rgba(255,255,0,0.8)]" />
+            <span className="text-white font-medium dark:text-neon-cyan">XP: {totalXP}</span>
           </div>
           {streak > 1 && (
             <div className="flex items-center space-x-1">
-              <Zap className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="text-white text-sm">Streak: {streak}</span>
+              <Zap className="w-4 h-4 text-yellow-400 fill-current dark:text-neon-green dark:drop-shadow-[0_0_8px_rgba(57,255,20,0.8)] pulse-neon" />
+              <span className="text-white text-sm dark:text-neon-green">Streak: {streak}</span>
             </div>
           )}
         </div>
-        <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+        <div className="bg-white/20 dark:bg-gray-800/50 rounded-full h-2 overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full"
+            className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-neon-green dark:to-neon-cyan rounded-full dark:shadow-[0_0_8px_rgba(57,255,20,0.6)]"
             initial={{ width: 0 }}
             animate={{ width: `${xpProgress}%` }}
             transition={{ duration: 0.5 }}
@@ -393,8 +393,10 @@ export default function PracticeSession({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className={`text-center ${
-                showResult === 'correct' ? 'text-green-400' : 'text-red-400'
+              className={`text-center transition-all duration-300 ${
+                showResult === 'correct'
+                  ? 'text-green-400 dark:text-neon-green dark:drop-shadow-[0_0_12px_rgba(57,255,20,0.8)]'
+                  : 'text-red-400 dark:text-neon-pink dark:drop-shadow-[0_0_12px_rgba(255,20,147,0.8)]'
               }`}
             >
               <motion.div

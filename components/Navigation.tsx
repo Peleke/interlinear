@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function Navigation() {
   const pathname = usePathname()
@@ -40,8 +41,8 @@ export function Navigation() {
                 href={link.href}
                 className={`px-4 py-2 rounded-md transition-colors text-sm ${
                   isActive
-                    ? 'bg-sepia-700 text-white'
-                    : 'text-sepia-700 border border-sepia-700 hover:bg-sepia-50'
+                    ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black glow-green'
+                    : 'text-sepia-700 border border-sepia-700 hover:bg-sepia-50 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800'
                 }`}
               >
                 {link.label}
@@ -54,12 +55,15 @@ export function Navigation() {
             href={authorLink.href}
             className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
               pathname.startsWith('/author')
-                ? 'bg-gold text-sepia-900 shadow-sm'
-                : 'bg-sepia-100 text-sepia-700 border border-sepia-300 hover:bg-sepia-200'
+                ? 'bg-gold text-sepia-900 shadow-sm dark:bg-neon-purple dark:text-black glow-purple'
+                : 'bg-sepia-100 text-sepia-700 border border-sepia-300 hover:bg-sepia-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700'
             }`}
           >
             {authorLink.label}
           </Link>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -82,14 +86,14 @@ export function Navigation() {
           />
 
           {/* Slide-out Drawer */}
-          <div className="fixed top-0 right-0 bottom-0 w-64 bg-parchment shadow-2xl z-50 md:hidden animate-in slide-in-from-right duration-300">
+          <div className="fixed top-0 right-0 bottom-0 w-64 bg-parchment dark:bg-gray-900 shadow-2xl z-50 md:hidden animate-in slide-in-from-right duration-300">
             <div className="flex flex-col h-full">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-sepia-200">
-                <h2 className="text-2xl font-serif text-sepia-900">Menu</h2>
+              <div className="flex items-center justify-between p-6 border-b border-sepia-200 dark:border-gray-600">
+                <h2 className="text-2xl font-serif text-sepia-900 dark:text-white">Menu</h2>
                 <button
                   onClick={closeMobileMenu}
-                  className="p-2 text-sepia-700 hover:bg-sepia-100 rounded-md transition-colors"
+                  className="p-2 text-sepia-700 dark:text-gray-300 hover:bg-sepia-100 dark:hover:bg-gray-700 rounded-md transition-colors"
                   aria-label="Close menu"
                 >
                   <X size={20} />
@@ -107,8 +111,8 @@ export function Navigation() {
                       onClick={closeMobileMenu}
                       className={`px-4 py-3 rounded-md transition-colors text-lg ${
                         isActive
-                          ? 'bg-sepia-700 text-white'
-                          : 'text-sepia-700 hover:bg-sepia-100'
+                          ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black glow-green'
+                          : 'text-sepia-700 dark:text-gray-200 hover:bg-sepia-100 dark:hover:bg-gray-800'
                       }`}
                     >
                       {link.label}
@@ -117,14 +121,14 @@ export function Navigation() {
                 })}
 
                 {/* Author Mode Link - Mobile */}
-                <div className="pt-4 mt-4 border-t border-sepia-200">
+                <div className="pt-4 mt-4 border-t border-sepia-200 dark:border-gray-600">
                   <Link
                     href={authorLink.href}
                     onClick={closeMobileMenu}
                     className={`px-4 py-3 rounded-md transition-colors text-lg font-medium ${
                       pathname.startsWith('/author')
-                        ? 'bg-gold text-sepia-900'
-                        : 'bg-sepia-100 text-sepia-700 hover:bg-sepia-200'
+                        ? 'bg-gold text-sepia-900 dark:bg-neon-purple dark:text-black glow-purple'
+                        : 'bg-sepia-100 text-sepia-700 hover:bg-sepia-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
                     {authorLink.label}
@@ -133,8 +137,12 @@ export function Navigation() {
               </div>
 
               {/* Footer */}
-              <div className="p-6 border-t border-sepia-200">
-                <p className="text-xs text-sepia-500 text-center">
+              <div className="p-6 border-t border-sepia-200 dark:border-gray-600">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-sepia-600 dark:text-gray-400">Theme</span>
+                  <ThemeToggle />
+                </div>
+                <p className="text-xs text-sepia-500 dark:text-gray-500 text-center">
                   Interlinear Reader
                 </p>
               </div>

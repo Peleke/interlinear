@@ -23,6 +23,35 @@
   --input: 20 5.9% 90%;
   --ring: 20 14.3% 4.1%;
   --radius: 0.5rem;
+
+  /* Neon color system */
+  --neon-green: 120 100% 54%;       /* #39ff14 - Primary neon */
+  --neon-cyan: 186 100% 50%;        /* #00f5ff - Secondary neon */
+  --neon-yellow: 60 100% 50%;       /* #ffff00 - Warning neon */
+  --neon-pink: 328 100% 54%;        /* #ff1493 - Error neon */
+  --neon-purple: 285 100% 50%;      /* #bf00ff - Accent neon */
+}
+
+.dark {
+  --background: 240 10% 4%;         /* #0a0a0f - Deep space black */
+  --foreground: 0 0% 92%;           /* #eaeaea - Light gray text */
+  --card: 240 10% 10%;              /* #1a1a2e - Dark navy cards */
+  --card-foreground: 0 0% 92%;
+  --popover: 240 10% 10%;
+  --popover-foreground: 0 0% 92%;
+  --primary: var(--neon-green);     /* Electric green primary */
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 8% 15%;          /* Darker secondary */
+  --secondary-foreground: 0 0% 92%;
+  --muted: 240 8% 15%;
+  --muted-foreground: 0 0% 65%;
+  --accent: var(--neon-cyan);       /* Cyan accent */
+  --accent-foreground: 240 10% 4%;
+  --destructive: var(--neon-pink);  /* Hot pink destructive */
+  --destructive-foreground: 240 10% 4%;
+  --border: 240 8% 20%;             /* Subtle borders */
+  --input: 240 8% 15%;
+  --ring: var(--neon-green);
 }
 
 body {
@@ -39,6 +68,90 @@ body {
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari, Opera */
+  }
+
+  /* Neon glow effects for game-like UI */
+  .glow-green {
+    box-shadow: 0 0 5px hsl(var(--neon-green)), 0 0 10px hsl(var(--neon-green)), 0 0 15px hsl(var(--neon-green));
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 5px hsl(var(--neon-cyan)), 0 0 10px hsl(var(--neon-cyan)), 0 0 15px hsl(var(--neon-cyan));
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 5px hsl(var(--neon-purple)), 0 0 10px hsl(var(--neon-purple)), 0 0 15px hsl(var(--neon-purple));
+  }
+
+  .glow-yellow {
+    box-shadow: 0 0 5px hsl(var(--neon-yellow)), 0 0 10px hsl(var(--neon-yellow)), 0 0 15px hsl(var(--neon-yellow));
+  }
+
+  .glow-pink {
+    box-shadow: 0 0 5px hsl(var(--neon-pink)), 0 0 10px hsl(var(--neon-pink)), 0 0 15px hsl(var(--neon-pink));
+  }
+
+  /* Animated neon pulse for game elements */
+  .pulse-neon {
+    animation: pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-neon {
+    0%, 100% {
+      opacity: 1;
+      filter: brightness(1);
+    }
+    50% {
+      opacity: 0.7;
+      filter: brightness(1.3);
+    }
+  }
+
+  /* Neon border animations */
+  .border-neon-green {
+    border-color: hsl(var(--neon-green));
+  }
+
+  .border-neon-cyan {
+    border-color: hsl(var(--neon-cyan));
+  }
+
+  .border-neon-purple {
+    border-color: hsl(var(--neon-purple));
+  }
+
+  /* Text neon colors */
+  .text-neon-green {
+    color: hsl(var(--neon-green));
+  }
+
+  .text-neon-cyan {
+    color: hsl(var(--neon-cyan));
+  }
+
+  .text-neon-yellow {
+    color: hsl(var(--neon-yellow));
+  }
+
+  .text-neon-pink {
+    color: hsl(var(--neon-pink));
+  }
+
+  .text-neon-purple {
+    color: hsl(var(--neon-purple));
+  }
+
+  /* Background neon colors with opacity */
+  .bg-neon-green\/10 {
+    background-color: hsl(var(--neon-green) / 0.1);
+  }
+
+  .bg-neon-cyan\/10 {
+    background-color: hsl(var(--neon-cyan) / 0.1);
+  }
+
+  .bg-neon-purple\/10 {
+    background-color: hsl(var(--neon-purple) / 0.1);
   }
 }
 

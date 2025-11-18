@@ -6,6 +6,7 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: ['class'],
   theme: {
     extend: {
       colors: {
@@ -29,6 +30,14 @@ const config: Config = {
           900: '#2B221B',
         },
         crimson: '#A4443E',
+        // Neon color palette for dark theme gaming UI
+        neon: {
+          green: '#39ff14',      // Primary neon - electric green
+          cyan: '#00f5ff',       // Secondary neon - cyan blue
+          yellow: '#ffff00',     // Warning neon - electric yellow
+          pink: '#ff1493',       // Error neon - hot pink
+          purple: '#bf00ff',     // Accent neon - purple
+        },
         // shadcn/ui theme variables
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
