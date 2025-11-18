@@ -72,14 +72,45 @@ export async function POST(
       )
     }
 
-    // Mark as complete
+    // Get current user profile for streak calculation
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('xp, streak, last_activity_date')
+      .eq('user_id', user.id)
+      .single()
+
+    const now = new Date()
+    const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
+
+    // Calculate new streak
+    let newStreak = 1 // Default for first activity or after gap
+    if (profile?.last_activity_date) {
+      const lastActivity = new Date(profile.last_activity_date)
+      const lastActivityDate = lastActivity.toISOString().split('T')[0]
+      const daysDifference = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
+
+      if (lastActivityDate === today) {
+        // Already active today, keep current streak
+        newStreak = profile.streak || 1
+      } else if (daysDifference === 1) {
+        // Yesterday was last activity, increment streak
+        newStreak = (profile.streak || 0) + 1
+      }
+      // Gap > 1 day: reset to 1 (default above)
+    }
+
+    // Calculate XP earned (basic lesson completion)
+    const xpEarned = 50 // Base XP for completing a lesson
+    const newXP = (profile?.xp || 0) + xpEarned
+
+    // Start transaction: mark lesson complete + update user profile
     const { data: completion, error: completionError } = await supabase
       .from('lesson_completions')
       .insert({
         user_id: user.id,
         lesson_id: lessonId,
-        completed_at: new Date().toISOString(),
-        xp_earned: 0 // Default to 0 XP for basic completion
+        completed_at: now.toISOString(),
+        xp_earned: xpEarned
       })
       .select()
       .single()
@@ -90,6 +121,26 @@ export async function POST(
         { error: 'Failed to mark lesson as complete' },
         { status: 500 }
       )
+    }
+
+    // Update user profile with new XP, streak, and activity date
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        user_id: user.id,
+        xp: newXP,
+        streak: newStreak,
+        last_activity_date: now.toISOString(),
+        // Preserve other fields that might exist
+        level: profile?.level || 'A1',
+        onboarding_completed: true
+      }, {
+        onConflict: 'user_id'
+      })
+
+    if (profileError) {
+      console.error('Profile update error:', profileError)
+      // Don't fail the request if profile update fails, lesson is still marked complete
     }
 
     // Revalidate the lesson page and course pages with actual courseId
