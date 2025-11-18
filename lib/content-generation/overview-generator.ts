@@ -1,18 +1,23 @@
-interface LessonData {
-  id: string
-  title: string
-  language: 'es' | 'la'
-  readings?: any[]
-  exercises?: any[]
-  dialogs?: any[]
-  grammar?: any[]
-  vocabulary?: any[]
-}
+import { generateAIOverview, type LessonData } from '@/lib/mastra/workflows/overviewGeneration'
 
 export async function generateLessonOverview(
   lesson: LessonData,
   overviewType: 'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'
 ): Promise<string> {
+  try {
+    // Use AI-powered generation as primary method
+    return await generateAIOverview(lesson, overviewType)
+  } catch (error) {
+    console.error('AI generation failed, falling back to template:', error)
+    // Fallback to template-based generation if AI fails
+    return generateFallbackOverview(lesson, overviewType)
+  }
+}
+
+function generateFallbackOverview(
+  lesson: LessonData,
+  overviewType: 'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'
+): string {
   switch (overviewType) {
     case 'general':
       return generateGeneralOverview(lesson)

@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Sparkles, Loader2, Copy, Replace } from 'lucide-react'
+import { Sparkles, Loader2, Copy, Replace, Eye, EyeOff } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import ReactMarkdown from 'react-markdown'
 
 type OverviewType = 'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'
 
@@ -72,6 +73,7 @@ export function GenerateOverviewModal({
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedOverview, setGeneratedOverview] = useState('')
   const [error, setError] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
 
   const handleGenerate = async () => {
     setIsGenerating(true)
@@ -117,6 +119,7 @@ export function GenerateOverviewModal({
     onOpenChange(false)
     setGeneratedOverview('')
     setError('')
+    setShowPreview(false)
   }
 
   const selectedOption = overviewTypeOptions.find(opt => opt.value === selectedType)
@@ -215,34 +218,60 @@ export function GenerateOverviewModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Generated Overview</Label>
-                <Badge variant="secondary" className="text-xs">
-                  AI Generated • Markdown Supported
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    {showPreview ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
+                    {showPreview ? 'Edit' : 'Preview'}
+                  </Button>
+                  <Badge variant="secondary" className="text-xs">
+                    AI Generated • Markdown Supported
+                  </Badge>
+                </div>
               </div>
 
-              <Textarea
-                value={generatedOverview}
-                onChange={(e) => setGeneratedOverview(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
-                placeholder="Generated overview will appear here..."
-              />
+              {showPreview ? (
+                <div className="border rounded-md p-4 bg-muted/10 min-h-[200px]">
+                  <div className="prose prose-sepia max-w-none text-sm">
+                    <ReactMarkdown>{generatedOverview}</ReactMarkdown>
+                  </div>
+                </div>
+              ) : (
+                <Textarea
+                  value={generatedOverview}
+                  onChange={(e) => setGeneratedOverview(e.target.value)}
+                  className="min-h-[200px] font-mono text-sm"
+                  placeholder="Generated overview will appear here..."
+                />
+              )}
 
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => handleUse('append')}
-                  size="sm"
-                >
-                  <Copy className="mr-2 h-4 w-4" />
-                  Append to Current
-                </Button>
-                <Button
-                  onClick={() => handleUse('replace')}
-                  size="sm"
-                >
-                  <Replace className="mr-2 h-4 w-4" />
-                  Replace Current
-                </Button>
+              <div className="flex gap-2 justify-between">
+                <div className="text-xs text-muted-foreground">
+                  {showPreview
+                    ? 'Showing markdown preview. Click "Edit" to modify the content.'
+                    : 'Raw markdown content. Click "Preview" to see how it will look.'
+                  }
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleUse('append')}
+                    size="sm"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Append to Current
+                  </Button>
+                  <Button
+                    onClick={() => handleUse('replace')}
+                    size="sm"
+                  >
+                    <Replace className="mr-2 h-4 w-4" />
+                    Replace Current
+                  </Button>
+                </div>
               </div>
             </div>
           )}

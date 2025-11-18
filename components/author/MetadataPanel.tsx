@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Wand2 } from 'lucide-react'
 import { GenerateOverviewModal } from './GenerateOverviewModal'
+import { BatchGenerateOverviewModal } from './BatchGenerateOverviewModal'
 
 interface Course {
   id: string
@@ -45,6 +46,7 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [generateModalType, setGenerateModalType] = useState<'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'>('general')
   const [currentOverview, setCurrentOverview] = useState('')
+  const [showBatchModal, setShowBatchModal] = useState(false)
 
   useEffect(() => {
     fetch('/api/courses')
@@ -87,6 +89,62 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
         break
     }
   }
+
+  const handleBatchOverviewsGenerated = (overviews: Record<string, string>) => {
+    const updates: Partial<MetadataValues> = {}
+
+    if (overviews.general) updates.overview = overviews.general
+    if (overviews.readings) updates.readings_overview = overviews.readings
+    if (overviews.exercises) updates.exercises_overview = overviews.exercises
+    if (overviews.dialogs) updates.dialogs_overview = overviews.dialogs
+    if (overviews.grammar) updates.grammar_overview = overviews.grammar
+
+    onChange(updates)
+  }
+
+  // Define overview options for batch generation
+  const overviewOptions = [
+    {
+      type: 'general' as const,
+      label: 'General Lesson Overview',
+      description: 'Overall lesson introduction and structure',
+      icon: '📖',
+      current: values.overview,
+      enabled: true
+    },
+    {
+      type: 'readings' as const,
+      label: 'Interactive Readings Overview',
+      description: 'Description of reading activities and benefits',
+      icon: '📚',
+      current: values.readings_overview,
+      enabled: true
+    },
+    {
+      type: 'exercises' as const,
+      label: 'Exercises Overview',
+      description: 'Information about practice exercises',
+      icon: '✏️',
+      current: values.exercises_overview,
+      enabled: true
+    },
+    {
+      type: 'dialogs' as const,
+      label: 'Dialogs Overview',
+      description: 'Overview of conversation practice',
+      icon: '💬',
+      current: values.dialogs_overview,
+      enabled: true
+    },
+    {
+      type: 'grammar' as const,
+      label: 'Grammar Concepts Overview',
+      description: 'Grammar section introduction',
+      icon: '📝',
+      current: values.grammar_overview,
+      enabled: true
+    }
+  ]
 
   return (
     <div className="space-y-6">
@@ -182,15 +240,25 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
                 Add descriptions for the lesson and individual sections (all support Markdown)
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleGenerateOverview('general', values.overview)}
-              className="shrink-0"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate
-            </Button>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBatchModal(true)}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Wand2 className="mr-2 h-4 w-4" />
+                Batch Generate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleGenerateOverview('general', values.overview)}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate
+              </Button>
+            </div>
           </div>
 
           {/* General Lesson Overview */}
@@ -216,12 +284,23 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
 
           {/* Readings Overview */}
           <div className="space-y-2">
-            <Label htmlFor="readings_overview">
-              📚 Interactive Readings Overview
-              <span className="text-sm text-muted-foreground ml-2">
-                (Optional, Markdown supported)
-              </span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="readings_overview">
+                📚 Interactive Readings Overview
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Optional, Markdown supported)
+                </span>
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('readings', values.readings_overview)}
+                className="text-xs h-auto px-2 py-1"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Generate
+              </Button>
+            </div>
             <Textarea
               id="readings_overview"
               value={values.readings_overview}
@@ -234,12 +313,23 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
 
           {/* Exercises Overview */}
           <div className="space-y-2">
-            <Label htmlFor="exercises_overview">
-              ✏️ Exercises Overview
-              <span className="text-sm text-muted-foreground ml-2">
-                (Optional, Markdown supported)
-              </span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="exercises_overview">
+                ✏️ Exercises Overview
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Optional, Markdown supported)
+                </span>
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('exercises', values.exercises_overview)}
+                className="text-xs h-auto px-2 py-1"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Generate
+              </Button>
+            </div>
             <Textarea
               id="exercises_overview"
               value={values.exercises_overview}
@@ -252,12 +342,23 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
 
           {/* Dialogs Overview */}
           <div className="space-y-2">
-            <Label htmlFor="dialogs_overview">
-              💬 Dialogs Overview
-              <span className="text-sm text-muted-foreground ml-2">
-                (Optional, Markdown supported)
-              </span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="dialogs_overview">
+                💬 Dialogs Overview
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Optional, Markdown supported)
+                </span>
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('dialogs', values.dialogs_overview)}
+                className="text-xs h-auto px-2 py-1"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Generate
+              </Button>
+            </div>
             <Textarea
               id="dialogs_overview"
               value={values.dialogs_overview}
@@ -270,12 +371,23 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
 
           {/* Grammar Overview */}
           <div className="space-y-2">
-            <Label htmlFor="grammar_overview">
-              📝 Grammar Concepts Overview
-              <span className="text-sm text-muted-foreground ml-2">
-                (Optional, Markdown supported)
-              </span>
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="grammar_overview">
+                📝 Grammar Concepts Overview
+                <span className="text-sm text-muted-foreground ml-2">
+                  (Optional, Markdown supported)
+                </span>
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('grammar', values.grammar_overview)}
+                className="text-xs h-auto px-2 py-1"
+              >
+                <Sparkles className="mr-1 h-3 w-3" />
+                Generate
+              </Button>
+            </div>
             <Textarea
               id="grammar_overview"
               value={values.grammar_overview}
@@ -324,6 +436,15 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
         currentOverview={currentOverview}
         overviewType={generateModalType}
         onOverviewGenerated={handleOverviewGenerated}
+      />
+
+      {/* Batch Generate Modal */}
+      <BatchGenerateOverviewModal
+        open={showBatchModal}
+        onOpenChange={setShowBatchModal}
+        lessonId={lessonId}
+        overviewOptions={overviewOptions}
+        onOverviewsGenerated={handleBatchOverviewsGenerated}
       />
     </div>
   )
