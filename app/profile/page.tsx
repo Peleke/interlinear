@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { VocabularyService } from '@/lib/vocabulary'
 import type { VocabularyStats } from '@/types'
 import { useRouter } from 'next/navigation'
+import { NotificationSettings } from '@/components/pwa/NotificationSettings'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,17 @@ export default function ProfilePage() {
     router.push('/')
   }
 
+  // Smart back navigation based on referrer or browser history
+  const handleBackNavigation = () => {
+    // Check if we can go back in browser history
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      // Fallback to dashboard if no history (e.g., direct link)
+      router.push('/dashboard')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -67,12 +79,12 @@ export default function ProfilePage() {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <div className="mb-8">
-          <a
-            href="/reader"
+          <button
+            onClick={handleBackNavigation}
             className="text-sepia-700 hover:text-sepia-900 transition-colors inline-flex items-center gap-2 mb-4"
           >
-            <span>←</span> Back to Reader
-          </a>
+            <span>←</span> Back
+          </button>
           <h1 className="text-4xl font-serif text-sepia-900 mb-2">Profile</h1>
           <p className="text-sepia-600">Your account and learning progress</p>
         </div>
@@ -141,6 +153,9 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Push Notifications */}
+        <NotificationSettings userId={user?.id} />
 
         {/* Actions */}
         <div className="bg-white rounded-lg border border-sepia-200 shadow-sm p-6">

@@ -1,0 +1,61 @@
+{
+  "name": "Interlinear - Word of the Day",
+  "short_name": "Interlinear",
+  "description": "Spanish and Latin word learning with daily vocabulary and push notifications",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f5f1eb",
+  "theme_color": "#7c2d12",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["education", "reference", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Word of the Day",
+      "short_name": "Word",
+      "description": "View today's featured word",
+      "url": "/word-of-day",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Learn",
+      "description": "Continue your learning journey",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

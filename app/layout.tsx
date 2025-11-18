@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { Toaster } from 'sonner'
+import { PWAInstallBanner } from '@/components/pwa/PWAInstallBanner'
 
 export const metadata: Metadata = {
   title: 'Interlinear - Spanish Reading Companion',
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>{children}</AuthProvider>
         <Toaster position="top-right" />
+        <PWAInstallBanner />
       </body>
     </html>
   )
