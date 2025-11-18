@@ -27,7 +27,7 @@ export function Navigation() {
   return (
     <>
       <nav className="flex items-center justify-between mb-6 relative">
-        <Link href="/" className="text-3xl font-serif text-sepia-900 hover:text-crimson transition-colors">
+        <Link href="/" className="text-3xl font-serif text-sepia-900 dark:text-white hover:text-crimson dark:hover:text-neon-cyan transition-colors">
           Interlinear
         </Link>
 
@@ -41,7 +41,7 @@ export function Navigation() {
                 href={link.href}
                 className={`px-4 py-2 rounded-md transition-colors text-sm ${
                   isActive
-                    ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black glow-green'
+                    ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black dark:glow-green'
                     : 'text-sepia-700 border border-sepia-700 hover:bg-sepia-50 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800'
                 }`}
               >
@@ -55,7 +55,7 @@ export function Navigation() {
             href={authorLink.href}
             className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
               pathname.startsWith('/author')
-                ? 'bg-gold text-sepia-900 shadow-sm dark:bg-neon-purple dark:text-black glow-purple'
+                ? 'bg-gold text-sepia-900 shadow-sm dark:bg-neon-purple dark:text-black dark:glow-purple'
                 : 'bg-sepia-100 text-sepia-700 border border-sepia-300 hover:bg-sepia-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700'
             }`}
           >
@@ -111,7 +111,7 @@ export function Navigation() {
                       onClick={closeMobileMenu}
                       className={`px-4 py-3 rounded-md transition-colors text-lg ${
                         isActive
-                          ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black glow-green'
+                          ? 'bg-sepia-700 text-white dark:bg-neon-green dark:text-black dark:glow-green'
                           : 'text-sepia-700 dark:text-gray-200 hover:bg-sepia-100 dark:hover:bg-gray-800'
                       }`}
                     >
@@ -127,7 +127,7 @@ export function Navigation() {
                     onClick={closeMobileMenu}
                     className={`px-4 py-3 rounded-md transition-colors text-lg font-medium ${
                       pathname.startsWith('/author')
-                        ? 'bg-gold text-sepia-900 dark:bg-neon-purple dark:text-black glow-purple'
+                        ? 'bg-gold text-sepia-900 dark:bg-neon-purple dark:text-black dark:glow-purple'
                         : 'bg-sepia-100 text-sepia-700 hover:bg-sepia-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >

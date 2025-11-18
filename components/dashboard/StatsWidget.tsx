@@ -47,86 +47,86 @@ export default function StatsWidget({ xp, streak, level: _level, completedLesson
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* XP Widget */}
-      <div className="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+      <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-gray-800 dark:to-gray-700 border-2 border-purple-200 dark:border-neon-purple dark:glow-purple rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-purple-600 rounded-lg">
-            <Zap className="h-6 w-6 text-white" />
+          <div className="p-3 bg-purple-600 dark:bg-neon-purple rounded-lg">
+            <Zap className="h-6 w-6 text-white dark:text-black" />
           </div>
-          <TrendingUp className="h-5 w-5 text-purple-600" />
+          <TrendingUp className="h-5 w-5 text-purple-600 dark:text-neon-purple" />
         </div>
         <div className="mb-2">
-          <p className="text-sm font-medium text-purple-700 uppercase tracking-wide">
+          <p className="text-sm font-medium text-purple-700 dark:text-neon-purple uppercase tracking-wide">
             Experience Points
           </p>
-          <p className="text-4xl font-bold text-purple-900">{xp.toLocaleString()}</p>
+          <p className="text-4xl font-bold text-purple-900 dark:text-neon-purple">{xp.toLocaleString()}</p>
         </div>
-        <div className="text-xs text-purple-600">
+        <div className="text-xs text-purple-600 dark:text-gray-300">
           {nextLevelXp - xp} XP to Level {level + 1}
         </div>
       </div>
 
       {/* Streak Widget */}
-      <div className="bg-gradient-to-br from-orange-50 to-red-100 border-2 border-orange-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+      <div className="bg-gradient-to-br from-orange-50 to-red-100 dark:from-gray-800 dark:to-gray-700 border-2 border-orange-200 dark:border-neon-pink dark:glow-pink rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg">
-            <Flame className="h-6 w-6 text-white" />
+          <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 dark:from-neon-pink dark:to-neon-pink rounded-lg">
+            <Flame className="h-6 w-6 text-white dark:text-black" />
           </div>
           {streak > 0 && <span className="text-2xl">🔥</span>}
         </div>
         <div className="mb-2">
-          <p className="text-sm font-medium text-orange-700 uppercase tracking-wide">
+          <p className="text-sm font-medium text-orange-700 dark:text-neon-pink uppercase tracking-wide">
             Day Streak
           </p>
-          <p className="text-4xl font-bold text-orange-900">{streak}</p>
+          <p className="text-4xl font-bold text-orange-900 dark:text-neon-pink">{streak}</p>
         </div>
-        <div className="text-xs text-orange-600">
+        <div className="text-xs text-orange-600 dark:text-gray-300">
           {streak > 0 ? 'Keep it going!' : 'Start your streak today!'}
         </div>
       </div>
 
       {/* Level Widget */}
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-100 border-2 border-blue-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+      <div className="bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-gray-800 dark:to-gray-700 border-2 border-blue-200 dark:border-neon-cyan dark:glow-cyan rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg">
-            <Trophy className="h-6 w-6 text-white" />
+          <div className="p-3 bg-gradient-to-br from-blue-600 to-cyan-600 dark:from-neon-cyan dark:to-neon-cyan rounded-lg">
+            <Trophy className="h-6 w-6 text-white dark:text-black" />
           </div>
           <span className="text-2xl">⭐</span>
         </div>
         <div className="mb-2">
-          <p className="text-sm font-medium text-blue-700 uppercase tracking-wide">
+          <p className="text-sm font-medium text-blue-700 dark:text-neon-cyan uppercase tracking-wide">
             Current Level
           </p>
-          <p className="text-4xl font-bold text-blue-900">{level}</p>
+          <p className="text-4xl font-bold text-blue-900 dark:text-neon-cyan">{level}</p>
         </div>
         {/* Progress bar */}
         <div className="mt-3">
-          <div className="h-2 bg-white rounded-full overflow-hidden">
+          <div className="h-2 bg-white dark:bg-gray-600 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-600 to-cyan-600 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-neon-cyan dark:to-neon-green transition-all duration-500 dark:shadow-[0_0_8px_rgba(0,245,255,0.6)]"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-blue-600 mt-1">{Math.round(progress)}% to next level</p>
+          <p className="text-xs text-blue-600 dark:text-gray-300 mt-1">{Math.round(progress)}% to next level</p>
         </div>
       </div>
 
       {/* Lessons Completed Widget */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-2 border-green-200 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+      <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-gray-700 border-2 border-green-200 dark:border-neon-green dark:glow-green rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
         <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg">
-            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="p-3 bg-gradient-to-br from-green-600 to-emerald-600 dark:from-neon-green dark:to-neon-green rounded-lg">
+            <svg className="h-6 w-6 text-white dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <span className="text-2xl">📚</span>
         </div>
         <div className="mb-2">
-          <p className="text-sm font-medium text-green-700 uppercase tracking-wide">
+          <p className="text-sm font-medium text-green-700 dark:text-neon-green uppercase tracking-wide">
             Lessons Completed
           </p>
-          <p className="text-4xl font-bold text-green-900">{completedLessons}</p>
+          <p className="text-4xl font-bold text-green-900 dark:text-neon-green">{completedLessons}</p>
         </div>
-        <div className="text-xs text-green-600">
+        <div className="text-xs text-green-600 dark:text-gray-300">
           {completedLessons > 0 ? 'Amazing progress!' : 'Complete your first lesson!'}
         </div>
       </div>

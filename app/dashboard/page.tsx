@@ -92,19 +92,19 @@ export default async function DashboardPage() {
   )
 
   return (
-    <div className="min-h-screen bg-parchment">
+    <div className="min-h-screen bg-parchment dark:bg-gray-900">
       {/* Navigation */}
       <div className="max-w-6xl mx-auto px-6 pt-6">
         <Navigation />
       </div>
 
       {/* Hero section */}
-      <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
+      <div className="bg-gradient-to-br from-sepia-50 to-amber-50 dark:from-gray-800 dark:to-gray-700 border-b border-sepia-200 dark:border-gray-600">
         <div className="max-w-6xl mx-auto px-6 py-12">
-          <h1 className="text-4xl font-serif text-sepia-900 mb-4">
+          <h1 className="text-4xl font-serif text-sepia-900 dark:text-white mb-4">
             Dashboard
           </h1>
-          <p className="text-lg text-sepia-700">
+          <p className="text-lg text-sepia-700 dark:text-gray-200">
             Track your progress and continue learning
           </p>
         </div>
@@ -140,13 +140,13 @@ export default async function DashboardPage() {
             </div>
 
             {/* Browse more courses */}
-            <div className="text-center py-12 border-t border-sepia-200">
-              <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+            <div className="text-center py-12 border-t border-sepia-200 dark:border-gray-600">
+              <h2 className="text-2xl font-serif text-sepia-900 dark:text-white mb-4">
                 Want to explore more?
               </h2>
               <Link
                 href="/courses"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-sepia-700 text-white rounded-lg hover:bg-sepia-800 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-sepia-700 dark:bg-neon-green dark:text-black dark:glow-green text-white rounded-lg hover:bg-sepia-800 dark:hover:bg-neon-cyan transition-colors"
               >
                 <BookOpen className="h-5 w-5" />
                 <span>Browse All Courses</span>
@@ -156,17 +156,17 @@ export default async function DashboardPage() {
         ) : (
           <div className="text-center py-20">
             <div className="flex justify-center mb-6">
-              <BookOpen className="h-20 w-20 text-sepia-300" />
+              <BookOpen className="h-20 w-20 text-sepia-300 dark:text-gray-600" />
             </div>
-            <h2 className="text-2xl font-serif text-sepia-900 mb-4">
+            <h2 className="text-2xl font-serif text-sepia-900 dark:text-white mb-4">
               No Courses Yet
             </h2>
-            <p className="text-lg text-sepia-600 mb-8">
+            <p className="text-lg text-sepia-600 dark:text-gray-300 mb-8">
               Start your Spanish learning journey today!
             </p>
             <Link
               href="/courses"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-sepia-700 text-white rounded-lg hover:bg-sepia-800 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-sepia-700 dark:bg-neon-green dark:text-black dark:glow-green text-white rounded-lg hover:bg-sepia-800 dark:hover:bg-neon-cyan transition-colors"
             >
               <BookOpen className="h-5 w-5" />
               <span>Browse Courses</span>
