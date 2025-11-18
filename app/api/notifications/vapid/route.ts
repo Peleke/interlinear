@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   // Use the VAPID public key from environment variables
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  const publicKey = process.env.VAPID_PUBLIC_KEY
 
   if (!publicKey) {
     return NextResponse.json(

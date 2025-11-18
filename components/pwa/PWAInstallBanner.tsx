@@ -32,10 +32,10 @@ export function PWAInstallBanner() {
         if (daysSince < 7) return
       }
 
-      // Show banner after 30 seconds of usage
+      // Show banner after 3 seconds for testing (was 30 seconds)
       const timer = setTimeout(() => {
         setShowBanner(true)
-      }, 30000)
+      }, 3000)
 
       return () => clearTimeout(timer)
     }

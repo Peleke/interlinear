@@ -1,11 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, BellOff, Check, X, AlertCircle } from 'lucide-react'
+import { Bell, BellOff, Check, X, AlertCircle, Clock, Globe } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 interface NotificationSettingsProps {
   userId?: string
+}
+
+interface UserPreferences {
+  language: 'spanish' | 'latin'
+  notification_time: string
+  push_subscriptions: any[]
 }
 
 export function NotificationSettings({ userId }: NotificationSettingsProps) {
@@ -14,11 +21,35 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null)
+  const [selectedLanguage, setSelectedLanguage] = useState<'spanish' | 'latin'>('spanish')
+  const [notificationTime, setNotificationTime] = useState('09:00')
   const supabase = createClient()
 
   useEffect(() => {
+    if (userId) {
+      loadUserPreferences()
+    }
     checkNotificationStatus()
-  }, [])
+  }, [userId])
+
+  const loadUserPreferences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_preferences')
+        .select('language, notification_time, push_subscriptions')
+        .eq('user_id', userId)
+        .single()
+
+      if (data) {
+        setPreferences(data)
+        setSelectedLanguage(data.language || 'spanish')
+        setNotificationTime(data.notification_time || '09:00')
+      }
+    } catch (err) {
+      console.error('Error loading preferences:', err)
+    }
+  }
 
   const checkNotificationStatus = async () => {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) {
@@ -33,6 +64,34 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
       setIsSubscribed(!!subscription)
     } catch (err) {
       console.error('Error checking subscription status:', err)
+    }
+  }
+
+  const updateUserPreferences = async (updates: Partial<UserPreferences>) => {
+    if (!userId) return
+
+    try {
+      const { error } = await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: userId,
+          ...updates,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        })
+
+      if (error) throw error
+
+      // Reload preferences
+      await loadUserPreferences()
+      setSuccess('Preferences updated successfully!')
+      setTimeout(() => setSuccess(null), 3000)
+
+    } catch (err) {
+      console.error('Error updating preferences:', err)
+      setError('Failed to update preferences')
+      setTimeout(() => setError(null), 3000)
     }
   }
 
@@ -103,7 +162,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
       setTimeout(() => setSuccess(null), 5000)
 
     } catch (err) {
-      setError('Failed to enable notifications')
+      setError('Failed to enable notifications. Make sure you have a stable internet connection.')
       console.error('Subscription failed:', err)
     } finally {
       setLoading(false)
@@ -161,7 +220,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
       })
 
       if (response.ok) {
-        setSuccess('Test notification sent!')
+        setSuccess('Test notification sent! Check your device.')
         setTimeout(() => setSuccess(null), 3000)
       } else {
         throw new Error('Failed to send test notification')
@@ -172,6 +231,16 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleLanguageChange = (language: 'spanish' | 'latin') => {
+    setSelectedLanguage(language)
+    updateUserPreferences({ language })
+  }
+
+  const handleTimeChange = (time: string) => {
+    setNotificationTime(time)
+    updateUserPreferences({ notification_time: time })
   }
 
   if (!('Notification' in window) || !('serviceWorker' in navigator)) {
@@ -189,7 +258,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Status Messages */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -209,6 +278,52 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
         </div>
       )}
 
+      {/* Language Preferences */}
+      <div className="bg-white border border-sepia-200 rounded-lg p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Globe className="text-sepia-600" size={24} />
+          <div>
+            <h3 className="font-semibold text-sepia-900">Language Preferences</h3>
+            <p className="text-sm text-sepia-600">
+              Choose your preferred language for word of the day
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mb-4">
+          <button
+            onClick={() => handleLanguageChange('spanish')}
+            className={`flex-1 p-3 rounded-lg border transition-colors ${
+              selectedLanguage === 'spanish'
+                ? 'bg-sepia-700 text-white border-sepia-700'
+                : 'bg-sepia-50 text-sepia-900 border-sepia-200 hover:bg-sepia-100'
+            }`}
+          >
+            🇪🇸 Español
+          </button>
+          <button
+            onClick={() => handleLanguageChange('latin')}
+            className={`flex-1 p-3 rounded-lg border transition-colors ${
+              selectedLanguage === 'latin'
+                ? 'bg-sepia-700 text-white border-sepia-700'
+                : 'bg-sepia-50 text-sepia-900 border-sepia-200 hover:bg-sepia-100'
+            }`}
+          >
+            🏛️ Latina
+          </button>
+        </div>
+
+        <div className="text-center">
+          <Link
+            href={`/word-of-day?lang=${selectedLanguage}`}
+            className="inline-flex items-center gap-2 text-sepia-700 hover:text-sepia-900 transition-colors"
+          >
+            <span>📚</span>
+            View today's word in {selectedLanguage === 'spanish' ? 'Spanish' : 'Latin'}
+          </Link>
+        </div>
+      </div>
+
       {/* Notification Settings */}
       <div className="bg-white border border-sepia-200 rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -225,12 +340,18 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Notification Status */}
           <div className="flex items-center justify-between p-3 bg-sepia-50 rounded-lg">
             <div>
-              <div className="font-medium text-sepia-900">Daily Word Notifications</div>
+              <div className="font-medium text-sepia-900">
+                Status: {isSubscribed ? '🟢 Enabled' : '🔴 Disabled'}
+              </div>
               <div className="text-sm text-sepia-600">
-                Receive your word of the day at 9:00 AM
+                {isSubscribed
+                  ? `Receiving notifications daily at ${notificationTime}`
+                  : 'Click Enable to start receiving notifications'
+                }
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -281,9 +402,44 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
             </div>
           </div>
 
+          {/* Notification Time Selector */}
+          {isSubscribed && (
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Clock className="text-blue-600" size={20} />
+                <div>
+                  <div className="font-medium text-sepia-900">Daily Notification Time</div>
+                  <div className="text-sm text-sepia-600">Choose when to receive your daily word</div>
+                </div>
+              </div>
+              <select
+                value={notificationTime}
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="px-3 py-2 border border-sepia-300 rounded-md bg-white text-sepia-900 focus:ring-2 focus:ring-sepia-500 focus:border-sepia-500"
+              >
+                <option value="07:00">7:00 AM</option>
+                <option value="08:00">8:00 AM</option>
+                <option value="09:00">9:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">1:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+                <option value="17:00">5:00 PM</option>
+                <option value="18:00">6:00 PM</option>
+                <option value="19:00">7:00 PM</option>
+                <option value="20:00">8:00 PM</option>
+                <option value="21:00">9:00 PM</option>
+              </select>
+            </div>
+          )}
+
           {isSubscribed && (
             <div className="text-sm text-sepia-600 bg-green-50 border border-green-200 rounded-lg p-3">
-              ✅ You're subscribed to push notifications. You'll receive daily word notifications and can get test notifications.
+              ✅ You're subscribed to daily {selectedLanguage === 'spanish' ? 'Spanish' : 'Latin'} word notifications at {notificationTime}.
+              You can test notifications and adjust your preferences anytime.
             </div>
           )}
         </div>
