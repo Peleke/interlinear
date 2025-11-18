@@ -60,10 +60,11 @@ export default function CompletePage() {
         const topCourses = (allCourses || []).slice(0, 3)
         setCourses(topCourses)
 
-        // Find recommended course (A1 in title for now)
+        // Find recommended course (vibras puras in title for now)
         const recommended = allCourses.find((course: any) =>
-          course.title.toLowerCase().includes('a1') ||
-          course.difficulty_level === 'A1'
+          course.title.toLowerCase().includes('vibras puras') ||
+          course.title.toLowerCase().includes('vibras') ||
+          course.title.toLowerCase().includes('puras')
         )
         setRecommendedCourse(recommended)
 
