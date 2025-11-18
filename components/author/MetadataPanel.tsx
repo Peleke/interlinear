@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -11,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Sparkles } from 'lucide-react'
+import { GenerateOverviewModal } from './GenerateOverviewModal'
 
 interface Course {
   id: string
@@ -33,11 +36,15 @@ interface MetadataValues {
 interface Props {
   values: MetadataValues
   onChange: (values: Partial<MetadataValues>) => void
+  lessonId: string
 }
 
-export function MetadataPanel({ values, onChange }: Props) {
+export function MetadataPanel({ values, onChange, lessonId }: Props) {
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [generateModalType, setGenerateModalType] = useState<'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'>('general')
+  const [currentOverview, setCurrentOverview] = useState('')
 
   useEffect(() => {
     fetch('/api/courses')
@@ -51,6 +58,35 @@ export function MetadataPanel({ values, onChange }: Props) {
         setIsLoadingCourses(false)
       })
   }, [])
+
+  const handleGenerateOverview = (
+    type: 'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar',
+    current: string
+  ) => {
+    setGenerateModalType(type)
+    setCurrentOverview(current)
+    setShowGenerateModal(true)
+  }
+
+  const handleOverviewGenerated = (generatedOverview: string) => {
+    switch (generateModalType) {
+      case 'general':
+        onChange({ overview: generatedOverview })
+        break
+      case 'readings':
+        onChange({ readings_overview: generatedOverview })
+        break
+      case 'exercises':
+        onChange({ exercises_overview: generatedOverview })
+        break
+      case 'dialogs':
+        onChange({ dialogs_overview: generatedOverview })
+        break
+      case 'grammar':
+        onChange({ grammar_overview: generatedOverview })
+        break
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -139,11 +175,22 @@ export function MetadataPanel({ values, onChange }: Props) {
 
         {/* Section Overviews */}
         <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Lesson & Section Overviews</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Add descriptions for the lesson and individual sections (all support Markdown)
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Lesson & Section Overviews</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add descriptions for the lesson and individual sections (all support Markdown)
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleGenerateOverview('general', values.overview)}
+              className="shrink-0"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate
+            </Button>
           </div>
 
           {/* General Lesson Overview */}
@@ -268,6 +315,16 @@ export function MetadataPanel({ values, onChange }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Generate Overview Modal */}
+      <GenerateOverviewModal
+        open={showGenerateModal}
+        onOpenChange={setShowGenerateModal}
+        lessonId={lessonId}
+        currentOverview={currentOverview}
+        overviewType={generateModalType}
+        onOverviewGenerated={handleOverviewGenerated}
+      />
     </div>
   )
 }
