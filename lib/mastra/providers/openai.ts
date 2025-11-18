@@ -3,7 +3,7 @@
  * Configures OpenAI GPT-4o-mini for content generation
  */
 
-import { OpenAI } from '@mastra/core';
+import OpenAI from 'openai';
 
 // Cost per 1M tokens (GPT-4o-mini pricing as of Nov 2024)
 const COST_PER_INPUT_TOKEN = 0.150 / 1_000_000;  // $0.150 per 1M input tokens
@@ -31,9 +31,6 @@ export function createOpenAIProvider() {
 
   return new OpenAI({
     apiKey,
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-    maxTokens: 4096,
-    temperature: 0.7,
   });
 }
 

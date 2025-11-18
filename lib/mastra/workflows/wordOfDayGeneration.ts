@@ -79,18 +79,29 @@ JSON format:
   ]
 }`;
 
-    const response = await openai.model('gpt-4').generateText({
-      prompt,
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
       temperature: 0.8, // Higher creativity for varied sentences
-      maxTokens: 1000,
+      max_tokens: 1000,
+      response_format: { type: "json_object" }
     });
 
     // Try to parse JSON response
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(response);
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
+      parsedResponse = JSON.parse(content);
     } catch (parseError) {
-      console.error('Failed to parse LLM response as JSON:', response);
+      console.error('Failed to parse LLM response as JSON:', response.choices[0]?.message?.content);
       throw new Error('Invalid JSON response from LLM');
     }
 

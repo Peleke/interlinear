@@ -65,20 +65,23 @@ export function PWAInstallBanner() {
   }, [])
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt()
+        const choiceResult = await deferredPrompt.userChoice
 
-    try {
-      await deferredPrompt.prompt()
-      const choiceResult = await deferredPrompt.userChoice
+        if (choiceResult.outcome === 'accepted') {
+          setIsInstalled(true)
+        }
 
-      if (choiceResult.outcome === 'accepted') {
-        setIsInstalled(true)
+        setShowBanner(false)
+        setDeferredPrompt(null)
+      } catch (error) {
+        console.error('Installation failed:', error)
       }
-
-      setShowBanner(false)
-      setDeferredPrompt(null)
-    } catch (error) {
-      console.error('Installation failed:', error)
+    } else {
+      // Show manual instructions for browsers that don't support automatic install
+      alert('To install this app:\n\n• Chrome: Click the three dots menu → "Install Interlinear"\n• Safari: Click Share button → "Add to Home Screen"\n• Firefox: Look for install icon in address bar')
     }
   }
 
@@ -87,7 +90,7 @@ export function PWAInstallBanner() {
     localStorage.setItem('pwa-install-dismissed', Date.now().toString())
   }
 
-  if (isInstalled || !showBanner || !deferredPrompt) return null
+  if (isInstalled || !showBanner) return null
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
