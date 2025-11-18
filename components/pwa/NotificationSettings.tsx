@@ -319,7 +319,7 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
             className="inline-flex items-center gap-2 text-sepia-700 hover:text-sepia-900 transition-colors"
           >
             <span>📚</span>
-            View today's word in {selectedLanguage === 'spanish' ? 'Spanish' : 'Latin'}
+            {selectedLanguage === 'spanish' ? 'Ver Palabra del Día' : 'Vide Verbum Diei'}
           </Link>
         </div>
       </div>
