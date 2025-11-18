@@ -46,6 +46,7 @@ export default function MobileStatsChart({
   const [currentMode, setCurrentMode] = useState<ChartMode>('constellation')
   const [isLoaded, setIsLoaded] = useState(false)
   const [typedMessage, setTypedMessage] = useState('')
+  const [showTooltip, setShowTooltip] = useState(false)
 
   // Load user preference from localStorage
   useEffect(() => {
@@ -97,6 +98,16 @@ export default function MobileStatsChart({
     return () => clearTimeout(timer)
   }, [isLoaded, nextLesson])
 
+  // Auto-hide tooltip after 3 seconds
+  useEffect(() => {
+    if (showTooltip) {
+      const timer = setTimeout(() => {
+        setShowTooltip(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showTooltip])
+
   const statsData: StatsData = { xp, streak, level, completedLessons }
 
   if (!isLoaded) {
@@ -122,7 +133,10 @@ export default function MobileStatsChart({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="flex bg-sepia-100/80 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-sepia-200" title="More charts coming soon!">
+        <div
+          className="flex bg-sepia-100/80 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-sepia-200 relative"
+          onClick={() => setShowTooltip(!showTooltip)}
+        >
           {chartModes.map((mode, index) => (
             <motion.button
               key={mode.key}
@@ -152,6 +166,22 @@ export default function MobileStatsChart({
               )}
             </motion.button>
           ))}
+
+          {/* Mobile Tooltip */}
+          <AnimatePresence>
+            {showTooltip && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-sepia-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-10"
+              >
+                More charts coming soon!
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-sepia-800 rotate-45"></div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
 
