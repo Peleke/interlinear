@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f5f5dc"/>
+  <rect x="20" y="60" width="1240" height="80" fill="#8b7355" rx="8"/>
+  <text x="640" y="110" font-family="Arial, sans-serif" font-size="32" font-weight="bold"
+        text-anchor="middle" fill="white">Interlinear - Interactive Spanish Reading</text>
+  <rect x="40" y="180" width="1200" height="480" fill="white" rx="12" stroke="#e0e0e0" stroke-width="2"/>
+  <text x="640" y="240" font-family="Arial, sans-serif" font-size="24"
+        text-anchor="middle" fill="#333">Click words to learn • AI conversations • Progress tracking</text>
+  <text x="200" y="320" font-family="Arial, sans-serif" font-size="18" fill="#8b7355">El gato</text>
+  <text x="290" y="320" font-family="Arial, sans-serif" font-size="18" fill="#333">camina por la</text>
+  <text x="450" y="320" font-family="Arial, sans-serif" font-size="18" fill="#8b7355">casa</text>
+  <rect x="190" y="300" width="70" height="25" fill="none" stroke="#8b7355" stroke-width="2" rx="4"/>
+  <rect x="440" y="300" width="60" height="25" fill="none" stroke="#8b7355" stroke-width="2" rx="4"/>
+</svg>

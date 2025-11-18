@@ -13,22 +13,44 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['education', 'productivity'],
     icons: [
       {
-        src: '/icon-192x192.png',
+        src: '/icon-192x192.svg',
         sizes: '192x192',
-        type: 'image/png',
-        purpose: 'any maskable'
-      },
-      {
-        src: '/icon-512x512.png',
-        sizes: '512x512',
-        type: 'image/png',
-        purpose: 'any maskable'
-      },
-      {
-        src: '/apple-touch-icon.png',
-        sizes: '180x180',
-        type: 'image/png',
+        type: 'image/svg+xml',
         purpose: 'any'
+      },
+      {
+        src: '/icon-192x192.svg',
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'maskable'
+      },
+      {
+        src: '/icon-512x512.svg',
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any'
+      },
+      {
+        src: '/icon-512x512.svg',
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'maskable'
+      }
+    ],
+    screenshots: [
+      {
+        src: '/screenshot-wide.svg',
+        sizes: '1280x720',
+        type: 'image/svg+xml',
+        form_factor: 'wide',
+        label: 'Interactive Spanish Reading Experience'
+      },
+      {
+        src: '/screenshot-mobile.svg',
+        sizes: '390x844',
+        type: 'image/svg+xml',
+        form_factor: 'narrow',
+        label: 'Mobile Language Learning'
       }
     ]
   }
