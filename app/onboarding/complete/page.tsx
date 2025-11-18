@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle, Info } from 'lucide-react'
 import { Confetti } from '@/components/Confetti'
+import ReactMarkdown from 'react-markdown'
 
 export default function CompletePage() {
   const router = useRouter()
@@ -243,9 +244,11 @@ export default function CompletePage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sepia-700 mb-3">
-                        {course.description || 'Explore this course to enhance your language skills.'}
-                      </p>
+                      <div className="text-sepia-700 mb-3 prose prose-sepia prose-sm max-w-none">
+                        <ReactMarkdown>
+                          {course.description || 'Explore this course to enhance your language skills.'}
+                        </ReactMarkdown>
+                      </div>
                       <div className="flex items-center gap-4 text-sm text-sepia-600">
                         <span>📖 {course.lesson_count || 0} Lessons</span>
                         <span>🌐 {course.language.charAt(0).toUpperCase() + course.language.slice(1)}</span>
