@@ -112,12 +112,24 @@ export function PWAInstallBanner() {
           </div>
         </div>
 
-        <div className="text-sm text-sepia-600 mb-4">
-          • Instant access to Word of the Day
-          • Push notifications for new words
-          • Works offline with saved content
-          • No app store required!
-        </div>
+        <ul className="text-sm text-sepia-600 mb-4 space-y-1">
+          <li className="flex items-start gap-2">
+            <span className="text-sepia-700 mt-0.5">•</span>
+            <span>Instant access to Word of the Day</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-sepia-700 mt-0.5">•</span>
+            <span>Push notifications for new words</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-sepia-700 mt-0.5">•</span>
+            <span>Works offline with saved content</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-sepia-700 mt-0.5">•</span>
+            <span>No app store required!</span>
+          </li>
+        </ul>
 
         <div className="flex gap-2">
           <button
