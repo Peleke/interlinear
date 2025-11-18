@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Target } from 'lucide-react'
+import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import ConstellationChart from './charts/ConstellationChart'
 import RingChart from './charts/RingChart'
 
@@ -101,10 +102,12 @@ export default function MobileStatsChart({
   if (!isLoaded) {
     return (
       <div className={`h-80 flex items-center justify-center ${className}`}>
-        <div className="animate-pulse-glow">
-          <div className="w-16 h-16 bg-sunset-gold rounded-full flex items-center justify-center">
-            <span className="text-2xl">🌟</span>
-          </div>
+        <div className="w-32 h-32">
+          <DotLottieReact
+            src="/assets/lottie/mandala.lottie"
+            loop
+            autoplay
+          />
         </div>
       </div>
     )
@@ -114,12 +117,12 @@ export default function MobileStatsChart({
     <div className={`relative ${className}`}>
       {/* Chart Mode Toggle */}
       <motion.div
-        className="flex justify-center mb-4"
+        className="flex justify-center mb-0"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="flex bg-sepia-100/80 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-sepia-200">
+        <div className="flex bg-sepia-100/80 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-sepia-200" title="More charts coming soon!">
           {chartModes.map((mode, index) => (
             <motion.button
               key={mode.key}
@@ -153,7 +156,7 @@ export default function MobileStatsChart({
       </motion.div>
 
       {/* Chart Container */}
-      <div className="h-80 relative overflow-hidden">
+      <div className="h-72 relative overflow-hidden mt-1">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -172,7 +175,7 @@ export default function MobileStatsChart({
       {/* Streak Indicator */}
       {isLoaded && (
         <motion.div
-          className="mt-6 space-y-6"
+          className="mt-1 space-y-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
