@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import StatsWidget from '@/components/dashboard/StatsWidget'
+import MobileStatsChart from '@/components/dashboard/MobileStatsChart'
+import TrainingGroundCTA from '@/components/dashboard/TrainingGroundCTA'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -25,10 +27,15 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .single()
 
+  // Convert text level to numeric for charts
+  const levelMap: Record<string, number> = {
+    'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6
+  }
+
   const userStats = {
-    xp: profile?.xp || 0,
-    streak: profile?.streak || 0,
-    level: profile?.level || 1
+    xp: profile?.xp || 0,       // Real XP from database
+    streak: profile?.streak || 0,   // Real streak from database
+    level: levelMap[profile?.level || 'A1'] || 1      // Convert text level to numeric
   }
 
   // Get total completed lessons count
@@ -64,8 +71,9 @@ export default async function DashboardPage() {
       // Get total lessons
       const { data: lessons } = await supabase
         .from('lessons')
-        .select('id')
+        .select('id, title, sequence_order')
         .eq('course_id', course.id)
+        .order('sequence_order', { ascending: true })
 
       const totalLessons = lessons?.length || 0
 
@@ -83,13 +91,38 @@ export default async function DashboardPage() {
       const progress =
         totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0
 
+      // Find next uncompleted lesson
+      const completedLessonIds = new Set(completions?.map(c => c.lesson_id) || [])
+      const nextLesson = lessons?.find(lesson => !completedLessonIds.has(lesson.id))
+
       return {
         ...course,
         lessonCount: totalLessons,
-        progress
+        progress,
+        nextLesson
       }
     })
   )
+
+  // Find the current course with highest progress for CTA
+  const currentCourse = coursesWithProgress
+    .filter(course => course.progress > 0 && course.progress < 100)
+    .sort((a, b) => b.progress - a.progress)[0]
+
+  // Get next lesson from current course, or first course if no current
+  const nextLessonData = currentCourse?.nextLesson
+    ? {
+        id: currentCourse.nextLesson.id,
+        title: currentCourse.nextLesson.title,
+        courseId: currentCourse.id
+      }
+    : coursesWithProgress[0]?.nextLesson
+      ? {
+          id: coursesWithProgress[0].nextLesson.id,
+          title: coursesWithProgress[0].nextLesson.title,
+          courseId: coursesWithProgress[0].id
+        }
+      : null
 
   return (
     <div className="min-h-screen bg-parchment">
@@ -98,30 +131,60 @@ export default async function DashboardPage() {
         <Navigation />
       </div>
 
-      {/* Hero section */}
-      <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <h1 className="text-4xl font-serif text-sepia-900 mb-4">
-            Dashboard
-          </h1>
-          <p className="text-lg text-sepia-700">
-            Track your progress and continue learning
-          </p>
+      {/* Desktop Hero + Stats */}
+      <div className="hidden md:block">
+        <div className="bg-gradient-to-br from-sepia-50 to-amber-50 border-b border-sepia-200">
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <h1 className="text-4xl font-serif text-sepia-900 mb-4">
+              Dashboard
+            </h1>
+            <p className="text-lg text-sepia-700">
+              Track your progress and continue learning
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <StatsWidget
+            xp={userStats.xp}
+            streak={userStats.streak}
+            level={userStats.level}
+            completedLessons={completedLessonsCount}
+          />
         </div>
       </div>
 
-      {/* Stats Widgets */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <StatsWidget
-          xp={userStats.xp}
-          streak={userStats.streak}
-          level={userStats.level}
-          completedLessons={completedLessonsCount}
-        />
+      {/* Mobile Gaming Dashboard */}
+      <div className="md:hidden bg-gradient-to-br from-desert-sand via-sepia-50 to-desert-warm min-h-screen overflow-hidden relative">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-b from-sunset-gold/5 via-transparent to-sunset-red/5 pointer-events-none" />
+
+        <div className="relative px-6 py-8 space-y-8">
+          {/* Mobile Stats Chart */}
+          <MobileStatsChart
+            xp={userStats.xp}
+            streak={userStats.streak}
+            level={userStats.level}
+            completedLessons={completedLessonsCount}
+            nextLesson={nextLessonData}
+            className="animate-fade-in"
+          />
+
+          {/* Training Ground CTA */}
+          <TrainingGroundCTA
+            currentCourse={currentCourse ? {
+              id: currentCourse.id,
+              title: currentCourse.title,
+              progress: currentCourse.progress
+            } : null}
+            nextLesson={nextLessonData}
+            className="animate-slide-in-from-top-2"
+          />
+        </div>
       </div>
 
-      {/* Courses grid */}
-      <div className="max-w-6xl mx-auto px-6 pb-12">
+      {/* Courses grid - Desktop only */}
+      <div className="hidden md:block max-w-6xl mx-auto px-6 pb-12">
         {coursesWithProgress && coursesWithProgress.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

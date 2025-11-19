@@ -201,9 +201,36 @@ export default function PracticeSession({
     })
   }, [exercises.length])
 
-  const handleComplete = useCallback(() => {
+  const handleComplete = useCallback(async () => {
+    // Save XP to database immediately
+    if (totalXP > 0) {
+      try {
+        // Create a practice session completion event to save XP
+        const response = await fetch('/api/practice/complete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            xpEarned: totalXP,
+            exercisesCompleted: sessionStats.correctAnswers,
+            accuracy: Math.round((sessionStats.correctAnswers / sessionStats.totalQuestions) * 100)
+          })
+        })
+
+        if (!response.ok) {
+          console.error('Failed to save practice XP')
+        } else {
+          const data = await response.json()
+          console.log(`💰 Practice XP saved: +${totalXP} (Total: ${data.newTotalXp})`)
+        }
+      } catch (error) {
+        console.error('Error saving practice XP:', error)
+      }
+    }
+
     onComplete(totalXP)
-  }, [onComplete, totalXP])
+  }, [onComplete, totalXP, sessionStats.correctAnswers, sessionStats.totalQuestions])
 
   if (isCompleted) {
     const accuracy = Math.round((sessionStats.correctAnswers / sessionStats.totalQuestions) * 100)

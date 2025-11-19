@@ -1,120 +1,85 @@
-# Interlinear AI
+# Interlinear
 
-**Master Languages with AI Tutoring. Classical to Modern.**
+**An AI Tutoring Laboratory for Language Acquisition**
 
-The first AI language tutor that teaches like a university professor—with real-time error correction, character roleplay, and support for dead languages like Latin. No green owls, no gamified flashcards, just intelligent feedback that adapts to your learning level.
+In the hallowed tradition of experimental pedagogy, where Montessori once observed children teaching themselves through carefully designed environments, we present an investigation into whether artificial intelligence might serve as a competent language instructor. This is not another application promising fluency in thirty days, but rather a serious attempt at computational linguistics applied to human learning.
 
-**[Experience AI Tutoring →](https://interlinear.peleke.me)**
+The platform emerged from a simple observation: most language learning software treats human cognition as a series of disconnected exercises, when in fact language acquisition occurs through contextual immersion and meaningful error correction. Here, we attempt something more ambitious—an AI that understands the difference between *knowing* and *using* a language.
 
----
+## What Actually Works Here
 
-## The Problem with Language Apps
+**Real-Time Error Analysis**
+Not the usual "incorrect, try again" but detailed grammatical explanations organized by error type, with native audio pronunciation of corrections. The system distinguishes between lexical mistakes and syntactic confusion.
 
-Current language learning is stuck in 2010:
-- **Scripted chatbots** that can't handle real conversation
-- **Gamified flashcards** that don't teach context or usage
-- **Green owls** that guilt-trip instead of actually teaching
-- **Zero support** for classical languages like Latin
+**Conversational Roleplay Architecture**
+Practice sessions with AI personas who maintain narrative coherence across extended dialogues. Characters respond contextually rather than from scripted decision trees, allowing for genuine conversational flow.
 
-**Result:** Millions of people "learning" languages for years without ever becoming conversational.
+**Classical Language Implementation**
+The first computationally sophisticated approach to Latin instruction. Where other platforms treat dead languages as curiosities, this system provides the same analytical depth available for modern languages.
 
-## Our AI Education Revolution
+**Performance Pattern Recognition**
+Comprehensive post-session analysis identifying recurring error patterns and suggesting targeted remediation strategies. Think office hours with a linguistics professor who never forgets your previous mistakes.
 
-We built the first language tutor that actually *teaches*—using advanced AI to provide university-grade instruction with personalized feedback.
+**Adaptive Complexity Calibration**
+Dynamic difficulty adjustment from Common European Framework levels A1 through C2, based on demonstrated competency rather than user self-assessment.
 
-### 🧠 **Real-Time Error Correction**
-Not just "wrong answer"—detailed grammar explanations by category, with native pronunciation of your mistakes so you hear the difference.
-
-### 🎭 **Character Roleplay System**
-Practice real conversations with AI characters who maintain narrative coherence and adapt to your responses, creating immersive dialogue experiences.
-
-### 🏛️ **Classical Language Mastery**
-First modern AI platform for Latin—helping students, educators, and classical literature enthusiasts master ancient languages with the same sophistication as modern ones.
-
-### 👩‍🏫 **Professor-Style Reviews**
-Comprehensive performance analysis that identifies patterns in your mistakes and provides targeted improvement strategies.
-
-### 📊 **CEFR-Adaptive Intelligence**
-Automatically adjusts difficulty from A1 (beginner) to C2 (mastery) based on your responses, ensuring optimal challenge level.
-
-### 📱 **Native PWA Experience**
-Install to your device like a real app—works offline, instant loading, no browser chrome. Built for serious learners.
-
-**This is language learning the way it should be: intelligent, adaptive, and university-grade.**
-
-**[Start mastering languages →](https://interlinear.peleke.me)**
+**Progressive Web Application**
+Installable to devices with offline functionality. No app store gatekeeping, no forced updates, no platform-specific compromises.
 
 ---
 
-## Advanced AI Capabilities
+## Technical Architecture
 
-### 🧠 **AI Tutoring Engine**
-- Real-time error correction with detailed grammar explanations
-- Character roleplay system for contextual conversations
-- Professor-style performance analysis and feedback
-- CEFR-adaptive intelligence (A1-C2 automatic level adjustment)
+The system operates on several interconnected layers, each designed to address specific pedagogical requirements rather than technical convenience.
 
-### 🏛️ **Classical Language Innovation**
-- First AI platform supporting Latin with full sophistication
-- Interactive Caesar translation demos
-- Academic-grade content for university coursework
-- Support for classical literature and historical texts
+**AI Tutoring Engine**
+Real-time error correction with categorized grammar explanations, character roleplay for contextual conversation practice, comprehensive performance analysis mimicking academic feedback patterns, and automatic CEFR level adjustment from A1 through C2 based on demonstrated competency.
 
-### 🎮 **Gamified Learning System**
-- Duolingo-style practice mode with lives and XP progression
-- Streak tracking for consistent learning habits
-- AI-generated exercises based on personal vocabulary
-- Beautiful animations and responsive feedback
+**Classical Language Processing**
+The first AI platform providing sophisticated Latin instruction with the same analytical depth as modern languages. Interactive translation of classical texts, academic-grade content suitable for university coursework, comprehensive support for classical literature and historical documents.
 
-### 📱 **Progressive Web App**
-- Native app experience (installable to home screen)
-- Offline functionality with smart caching
-- Service worker optimization for instant loading
-- Performance-first architecture (~1.2s initial load)
+**Adaptive Learning Architecture**
+Spaced repetition algorithms optimized for individual vocabulary acquisition, AI-generated exercises based on personal learning patterns, streak tracking and progression systems designed for sustained engagement rather than addictive dopamine loops.
+
+**Progressive Web Application Infrastructure**
+Installable application experience with offline functionality, intelligent caching for immediate response times, service worker optimization resulting in sub-1.2-second initial load times, performance-first architecture avoiding common web application bottlenecks.
 
 ---
 
-## Architecture & Technical Details
+## Implementation Details
 
 ### Technology Stack
 
-| Layer | Technology | Rationale |
-|-------|-----------|-----------|
-| **Frontend** | Next.js 15 (App Router) + TypeScript | React Server Components for optimal performance; TypeScript for type safety |
-| **Database** | Supabase (PostgreSQL) | Managed PostgreSQL with built-in auth, Row Level Security, and real-time subscriptions |
-| **Authentication** | Supabase Auth | OAuth-ready auth with email verification and session management |
-| **Text-to-Speech** | ElevenLabs API | Best-in-class neural TTS for pronunciation quality |
-| **Dictionary** | Free Dictionary API | Zero-cost, comprehensive English dictionary with phonetics |
-| **Deployment** | Google Cloud Run | Serverless containers with auto-scaling (0-10 instances) |
-| **IaC** | OpenTofu (Terraform fork) | Declarative infrastructure with state management in GCS |
-| **CI/CD** | GitHub Actions | Automated builds on merge to main |
+The platform rests on carefully chosen technologies, each selected for specific pedagogical or operational requirements rather than popularity or familiarity.
 
-### Key Architectural Decisions
+**Frontend Architecture**
+Next.js 15 with App Router and TypeScript. React Server Components provide optimal performance while TypeScript ensures type safety across the application boundary. The choice reflects a preference for compile-time verification over runtime discovery of errors.
 
-#### 1. **Server-Side Rendering with Dynamic Rendering**
-- **Decision**: Force dynamic rendering for all pages (`export const dynamic = 'force-dynamic'`)
-- **Rationale**: Supabase client initialization requires runtime environment variables; static generation attempts to access them at build time, causing failures
-- **Tradeoff**: Sacrificed static generation performance for deployment simplicity. Alternative would be edge runtime with environment variable injection, but adds complexity.
+**Database and Authentication**
+Supabase PostgreSQL with integrated authentication. Managed PostgreSQL provides Row Level Security and real-time subscriptions. OAuth-ready authentication with email verification and session management, chosen for security compliance rather than implementation convenience.
 
-#### 2. **Client-Side Audio Caching**
-- **Decision**: Store TTS audio in Supabase `audio_cache` table with user-scoped RLS
-- **Rationale**: ElevenLabs charges per character; caching reduces API costs by ~80% for repeated words
-- **Tradeoff**: Database storage costs vs API costs. Break-even at ~10 repeated pronunciations per word.
+**Audio and Dictionary Services**
+ElevenLabs API for neural text-to-speech synthesis, providing pronunciation quality adequate for serious language study. Free Dictionary API for comprehensive English lexical data with phonetic transcriptions.
 
-#### 3. **Container Build Strategy**
-- **Decision**: Bake `NEXT_PUBLIC_*` env vars into Docker image at build time via `--build-arg`
-- **Rationale**: Next.js compiles client-side env vars into JavaScript bundle; runtime injection doesn't work
-- **Tradeoff**: Requires rebuild for env var changes, but enables immutable deployments with proper image tagging
+**Infrastructure and Deployment**
+Google Cloud Run for serverless container deployment with automatic scaling from zero to ten instances. OpenTofu (Terraform fork) for declarative infrastructure management with state storage in Google Cloud Storage. GitHub Actions for automated builds triggered by main branch merges.
 
-#### 4. **Manual Deployment Trigger**
-- **Decision**: GitHub Actions builds containers; Terraform deployment is manual
-- **Rationale**: Separates build (automated, fast feedback) from deploy (deliberate, rollback-safe)
-- **Tradeoff**: Extra manual step vs risk of auto-deploying breaking changes to production
+### Critical Design Decisions
 
-#### 5. **Vocabulary Implicit Tracking**
-- **Decision**: Save every clicked word to database immediately (no "save" button)
-- **Rationale**: Removes friction; users learn by reading, not by managing lists
-- **Tradeoff**: Higher database writes, but trivial cost (~$0.01/1000 writes on Supabase)
+**Dynamic Rendering Strategy**
+All pages use forced dynamic rendering rather than static generation. Supabase client initialization requires runtime environment variables, making static generation impossible without complex environment variable injection. This trades static generation performance for deployment simplicity.
+
+**Audio Caching Economics**
+Text-to-speech audio cached in Supabase with user-scoped Row Level Security. ElevenLabs charges per character, making caching economically necessary. Database storage costs break even after approximately ten repeated pronunciations per word, reducing overall API costs by roughly eighty percent.
+
+**Container Build Approach**
+Client-side environment variables baked into Docker images at build time. Next.js compiles these variables into the JavaScript bundle, making runtime injection ineffective. This requires image rebuilds for environment changes but enables immutable deployments with proper versioning.
+
+**Deployment Control Separation**
+GitHub Actions handle automated container builds while Terraform deployments remain manual. This separates fast build feedback from deliberate deployment decisions, preventing automatic deployment of breaking changes to production.
+
+**Implicit Vocabulary Tracking**
+Every word click saves immediately to database without user confirmation. This removes interface friction, allowing users to focus on reading rather than vocabulary management. Higher database write volume proves trivial in cost at current scale.
 
 ### Infrastructure Design
 
@@ -148,77 +113,43 @@ Install to your device like a real app—works offline, instant loading, no brow
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Security Model:**
-- All database queries filtered by `auth.uid()` via RLS policies
-- ElevenLabs API key server-side only (never exposed to client)
-- Supabase anon key client-side (safe; RLS enforces user isolation)
+**Security Architecture**
+All database queries filtered by authenticated user ID through Row Level Security policies. ElevenLabs API key maintained server-side exclusively, never exposed to client applications. Supabase anonymous key distributed to clients safely, with RLS enforcing complete user data isolation.
 
-**Scaling Strategy:**
-- Cloud Run auto-scales 0→10 instances based on CPU (horizontal scaling)
-- Supabase connection pooling handles 60 concurrent connections (sufficient for ~1000 MAU)
-- ElevenLabs rate limit: 50 req/sec (overkill for current scale)
+**Scaling Characteristics**
+Cloud Run provides automatic horizontal scaling from zero to ten instances based on CPU utilization. Supabase connection pooling handles sixty concurrent connections, sufficient for approximately one thousand monthly active users. ElevenLabs rate limits allow fifty requests per second, far exceeding current requirements.
 
-### Performance Characteristics
+### Performance Metrics
 
-| Metric | Value | Target |
-|--------|-------|--------|
-| **Initial Load** | ~1.2s (TTI) | <2s |
-| **Definition Lookup** | <100ms (cache) / ~300ms (cold) | <500ms |
-| **TTS Generation** | ~800ms (ElevenLabs latency) | <1s |
-| **Database Query** | <50ms (Supabase co-located) | <100ms |
-| **Container Cold Start** | ~2s (Cloud Run) | <3s |
+The system maintains specific performance targets across all operations, with monitoring focused on user-perceived latency rather than theoretical throughput.
 
-**Cost Structure** (at 1000 MAU):
-- Cloud Run: ~$15/month (1 min instance, us-east4)
-- Supabase: Free tier (under 500MB, <2GB transfer)
-- ElevenLabs: ~$5/month (with 80% cache hit rate)
-- **Total**: ~$20/month
+**Response Time Benchmarks**
+Initial page load achieves Time to Interactive under 1.2 seconds, targeting sub-2-second performance. Definition lookups respond in under 100 milliseconds when cached, 300 milliseconds for cold requests, with 500 milliseconds as the acceptable threshold.
+
+Text-to-speech generation operates within 800 milliseconds through ElevenLabs processing, targeting sub-1-second response times. Database queries complete in under 50 milliseconds with Supabase co-location, maintaining a 100-millisecond target. Container cold starts require approximately 2 seconds through Cloud Run, targeting sub-3-second initialization.
+
+**Economic Model at Scale**
+At one thousand monthly active users, infrastructure costs remain minimal. Cloud Run requires approximately fifteen dollars monthly for single-instance operation in us-east4 region. Supabase operates within free tier limits under 500MB storage with under 2GB monthly transfer. ElevenLabs costs approximately five dollars monthly with eighty percent cache hit rate efficiency. Total operational cost: twenty dollars monthly.
 
 ---
 
-## Quick Start
+## Development Setup
 
 ### Prerequisites
 
-- Node.js 20+
-- npm or yarn
-- Supabase account
-- ElevenLabs API key
+Node.js 20 or later, npm or yarn package manager, Supabase account with project configuration, ElevenLabs API key for text-to-speech functionality.
 
-### Local Development
+### Local Environment Configuration
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/interlinear.git
-   cd interlinear
-   ```
+Clone the repository and navigate to the project directory. Install dependencies through npm package manager. Configure environment variables by creating `.env.local` with the following structure:
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+ELEVENLABS_API_KEY=your-elevenlabs-key
+```
 
-3. **Set up environment variables**
-
-   Create `.env.local`:
-   ```bash
-   NEXT_PUBLIC_SUPABASE_URL=your-project-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   ELEVENLABS_API_KEY=your-elevenlabs-key
-   ```
-
-4. **Set up database**
-
-   Run the SQL migrations in `supabase/schema.sql` on your Supabase project.
-
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
-
-   Navigate to [http://localhost:3000](http://localhost:3000)
+Database setup requires running SQL migrations located in `supabase/schema.sql` through your Supabase project interface. Start the development server with `npm run dev` and navigate to [http://localhost:3000](http://localhost:3000) for local access.
 
 ## Project Structure
 
@@ -361,138 +292,46 @@ npm run build
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Development Roadmap
+## Current Implementation Status
 
-### Phase 1: MVP (Completed)
-- ✅ Core reading interface with click-to-define
-- ✅ Audio pronunciation (ElevenLabs integration)
-- ✅ Automatic vocabulary tracking with frequency analytics
-- ✅ User authentication and profile management
-- ✅ Production deployment (GCP Cloud Run + OpenTofu)
-- ✅ CI/CD pipeline (GitHub Actions)
+### Production Features
 
-### Phase 2: Learning Loop (Next)
-- 🚧 **AI Tutor Mode**: GPT-4 powered exercises based on clicked vocabulary
-  - Contextual sentence generation using user's vocabulary
-  - Fill-in-the-blank and translation exercises
-  - Adaptive difficulty based on click frequency
-- 🚧 **Spaced Repetition System**: Automatic review scheduling
-  - Algorithm: SM-2 (Anki-style) with click frequency weighting
-  - Native push notifications for review reminders
+Core reading interface with click-to-define functionality operational. Audio pronunciation through ElevenLabs integration provides native-quality text-to-speech. Automatic vocabulary tracking with frequency analytics captures user learning patterns without interface friction.
 
-### Phase 3: Expansion (Future)
-- Multi-language support (Spanish → French, German, Italian)
-- Text upload (PDF/EPUB parsing)
-- Vocabulary export (Anki-compatible CSV)
-- Browser extension (read any webpage)
+User authentication and profile management through Supabase provides secure session handling. Production deployment architecture utilizing Google Cloud Run with OpenTofu infrastructure management ensures reliable scaling. CI/CD pipeline through GitHub Actions provides automated builds and deployment verification.
 
-### Known Limitations
-- **English-only**: Dictionary API is English-specific; multi-language requires paid APIs
-- **No offline mode**: Requires network for definitions and TTS
-- **Limited corpus**: No built-in reading library (user must paste text)
-- **No mobile app**: PWA could improve mobile experience but requires additional testing
+### Advanced Learning Systems
+
+AI Tutor Mode operational with GPT-4 powered exercise generation based on accumulated vocabulary. Contextual sentence generation utilizes user-specific word frequency data. Fill-in-the-blank, multiple choice, and translation exercises adapt difficulty based on demonstrated competency.
+
+Spaced repetition system implements SM-2 algorithm with click frequency weighting for optimal review scheduling. Course authoring platform allows creation of structured learning content with AI-generated exercises, vocabulary lists, and grammar explanations.
+
+### Current Scope and Limitations
+
+Platform operates primarily in English with Latin language support for classical texts. Dictionary API restriction to English necessitates paid API services for additional languages. Network connectivity required for definitions and text-to-speech functionality.
+
+Reading library requires user-provided content rather than built-in corpus. Progressive Web Application architecture provides mobile functionality without native application development requirements.
 
 ---
 
-## Project Scope & Portfolio Context
+## Project Philosophy and Implementation Notes
 
-**Built as**: Full-stack portfolio project demonstrating production-grade engineering practices
+This platform emerged from an investigation into whether artificial intelligence could provide meaningful language instruction rather than mere gamification. The implementation prioritizes pedagogical effectiveness over user engagement metrics, focusing on actual language acquisition rather than retention through behavioral psychology.
 
-**Timeline**: ~2 weeks (architecture → deployment)
+**Technical Achievements**
+Zero-downtime deployments through image tagging and Terraform state management. Type-safe full-stack TypeScript implementation with comprehensive ESLint rule enforcement. Database-level security through PostgreSQL Row Level Security policies. Cost-optimized architecture maintaining twenty-dollar monthly operational costs for one thousand active users.
 
-**Key Achievements**:
-- Zero-downtime deployments with image tagging and Terraform state management
-- Type-safe full-stack TypeScript with strict ESLint rules
-- Database-level security with PostgreSQL Row Level Security
-- Cost-optimized architecture (~$20/month for 1000 MAU)
-- Comprehensive deployment automation (see [DEPLOY.md](./DEPLOY.md))
-
-**Design Philosophy**:
-- **Solve one problem well**: Reading comprehension, not full language curriculum
-- **Implicit over explicit**: Track behavior without asking users to manage data
-- **Infrastructure as code**: Reproducible deployments with OpenTofu
-- **Cost awareness**: Free tier optimization with graceful scaling
+**Design Principles**
+Focused problem solving targeting reading comprehension and vocabulary acquisition rather than comprehensive language curriculum coverage. Implicit data tracking reducing user interface friction by capturing learning behavior automatically. Infrastructure as code ensuring reproducible deployments through OpenTofu configuration management. Cost-conscious architecture optimizing free tier usage with graceful scaling capabilities.
 
 ---
 
-## Local Development
+## Acknowledgments
 
-### Prerequisites
-- Node.js 20+
-- Supabase account (free tier)
-- ElevenLabs API key (free tier: 10k characters/month)
-
-### Setup
-
-```bash
-# Clone and install
-git clone https://github.com/yourusername/interlinear.git
-cd interlinear
-npm install
-
-# Environment variables (.env.local)
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-ELEVENLABS_API_KEY=your-elevenlabs-key
-
-# Database setup
-# Run supabase/schema.sql in your Supabase SQL editor
-
-# Start dev server
-npm run dev
-# → http://localhost:3000
-```
-
-### Scripts
-```bash
-npm run dev          # Development server with hot reload
-npm run build        # Production build
-npm run type-check   # TypeScript validation
-npm run lint         # ESLint + Prettier
-npm test             # Jest tests (if present)
-```
-
----
-
-## Deployment
-
-**Full walkthrough**: [DEPLOY.md](./DEPLOY.md)
-
-**Quick deploy**:
-```bash
-# 1. Deploy infrastructure (Artifact Registry, IAM, Secrets)
-./scripts/deploy-infra.sh staging
-
-# 2. Build and push container
-./scripts/deploy-app.sh staging
-
-# 3. Deploy Cloud Run service
-./scripts/deploy-infra.sh staging --with-cloud-run --image-tag <sha>
-```
-
-**GitHub Secrets Required**:
-- `GCP_SA_KEY` - Service account JSON
-- `GCP_PROJECT_ID` - GCP project ID
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
----
-
-## Credits & Acknowledgments
-
-- **Dictionary API**: [Free Dictionary API](https://dictionaryapi.dev/) - Public domain
-- **Text-to-Speech**: [ElevenLabs](https://elevenlabs.io/) - Neural voice synthesis
-- **Database & Auth**: [Supabase](https://supabase.com/) - PostgreSQL + Auth + Realtime
-- **Infrastructure**: Google Cloud Platform
+**Dictionary Services**: Free Dictionary API providing comprehensive English lexical data in the public domain. **Text-to-Speech**: ElevenLabs neural voice synthesis enabling high-quality pronunciation feedback. **Database Infrastructure**: Supabase PostgreSQL with integrated authentication and real-time capabilities. **Cloud Infrastructure**: Google Cloud Platform providing serverless container hosting and managed services.
 
 ---
 
 ## License
 
-MIT - See [LICENSE](./LICENSE) for details
-
----
-
-**Built by**: [Your Name]
-**Contact**: your.email@example.com
-**Portfolio**: [yourportfolio.com](https://yourportfolio.com)
+MIT License - See [LICENSE](./LICENSE) for complete terms
