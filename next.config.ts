@@ -22,10 +22,8 @@ const nextConfig: NextConfig = {
     }
     return config
   },
-  // Alternative: use experimental serverComponentsExternalPackages
-  experimental: {
-    serverComponentsExternalPackages: ['@nlpjs/core', '@nlpjs/lang-es'],
-  },
+  // Use new serverExternalPackages instead of deprecated experimental option
+  serverExternalPackages: ['@nlpjs/core', '@nlpjs/lang-es'],
 }
 
 export default withPWA({
