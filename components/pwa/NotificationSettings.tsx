@@ -134,10 +134,58 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
 
       const { publicKey } = await vapidResponse.json()
 
+      // Convert DER-encoded VAPID key to raw P-256 public key (65 bytes)
+      const derToRawKey = (base64String: string) => {
+        // Convert URL-safe base64 to regular base64
+        let base64 = base64String
+          .replace(/-/g, '+')  // Replace - with +
+          .replace(/_/g, '/')  // Replace _ with /
+
+        // Add padding if needed
+        const padding = '='.repeat((4 - base64.length % 4) % 4)
+        base64 += padding
+
+        try {
+          const rawData = window.atob(base64)
+          const derArray = new Uint8Array(rawData.length)
+
+          for (let i = 0; i < rawData.length; ++i) {
+            derArray[i] = rawData.charCodeAt(i)
+          }
+
+          // Extract raw 65-byte P-256 public key from DER encoding
+          // DER format: 30 59 30 13 06 07 2A 86 48 CE 3D 02 01 06 08 2A 86 48 CE 3D 03 01 07 03 42 00 [65 bytes]
+          // The raw key starts at byte 26 (0x1A) and is 65 bytes long
+          if (derArray.length >= 91 && derArray[0] === 0x30) {
+            return derArray.slice(26, 91) // Extract the 65-byte raw key
+          } else {
+            throw new Error('Invalid DER format - not a P-256 public key')
+          }
+        } catch (e) {
+          console.error('Failed to decode DER VAPID key:', e)
+          throw new Error('Invalid VAPID key format')
+        }
+      }
+
+      console.log('🔑 VAPID Key received:', publicKey)
+      console.log('🔑 Key length:', publicKey?.length)
+      console.log('🔧 Converting to ArrayBuffer...')
+
+      const arrayBuffer = derToRawKey(publicKey)
+      console.log('✅ ArrayBuffer created:', arrayBuffer)
+      console.log('✅ ArrayBuffer length:', arrayBuffer.length, 'bytes (should be 65)')
+
+      console.log('📡 Attempting pushManager.subscribe...')
+      console.log('📡 Registration:', registration)
+      console.log('📡 PushManager:', registration.pushManager)
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: publicKey
+        applicationServerKey: arrayBuffer
       })
+
+      console.log('🎉 Subscription successful!', subscription)
+      console.log('🎉 Subscription endpoint:', subscription.endpoint)
 
       // Save subscription to database
       const response = await fetch('/api/notifications/subscribe', {
@@ -162,8 +210,14 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
       setTimeout(() => setSuccess(null), 5000)
 
     } catch (err) {
-      setError('Failed to enable notifications. Make sure you have a stable internet connection.')
-      console.error('Subscription failed:', err)
+      console.error('🚨 DETAILED ERROR:', err)
+      if (err instanceof Error) {
+        setError(`Subscription failed: ${err.message}`)
+        console.error('Error name:', err.name)
+        console.error('Error stack:', err.stack)
+      } else {
+        setError('Failed to enable notifications. Check console for details.')
+      }
     } finally {
       setLoading(false)
     }
