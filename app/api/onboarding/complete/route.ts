@@ -13,7 +13,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { assessed_level, goals, customGoal, timezone } = body
 
-    // Use upsert to handle existing profiles gracefully
+    // Get existing profile first to preserve XP/streak
+    const { data: existingProfile } = await supabase
+      .from('user_profiles')
+      .select('xp, streak')
+      .eq('user_id', user.id)
+      .single()
+
+    // Use upsert to handle existing profiles gracefully - PRESERVE XP!
     const { data: profile, error } = await supabase
       .from('user_profiles')
       .upsert({
@@ -23,8 +30,8 @@ export async function POST(request: NextRequest) {
         goals: goals || [],
         timezone: timezone || 'UTC',
         onboarding_completed: true,
-        xp: 0,
-        streak: 0
+        xp: existingProfile?.xp || 0,  // PRESERVE existing XP!
+        streak: existingProfile?.streak || 0  // PRESERVE existing streak!
       }, {
         onConflict: 'user_id',
         ignoreDuplicates: false

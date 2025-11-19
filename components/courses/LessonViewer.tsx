@@ -129,10 +129,42 @@ export default function LessonViewer({
     initCourseDeck()
   }, [courseId, lesson.courses?.title])
 
-  const handleExerciseComplete = (exerciseId: string, isCorrect: boolean, xpEarned: number) => {
+  const handleExerciseComplete = async (exerciseId: string, isCorrect: boolean, xpEarned: number) => {
     if (isCorrect) {
       setCompletedExercises((prev) => new Set(prev).add(exerciseId))
       setTotalXpEarned((prev) => prev + xpEarned)
+
+      // Call API to save XP to database immediately
+      try {
+        const response = await fetch(`/api/exercises/${exerciseId}/complete`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            isCorrect,
+            xpEarned
+          })
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          console.error('Failed to save exercise XP:', data.error)
+          return
+        }
+
+        if (data.leveledUp) {
+          // Show level up notification
+          console.log('🎉 LEVEL UP! New level:', data.level)
+          // TODO: Add proper level up notification UI
+        }
+
+        console.log(`💰 Exercise XP saved: +${xpEarned} (Total: ${data.xp})`)
+
+      } catch (error) {
+        console.error('Error saving exercise XP:', error)
+      }
     }
   }
 

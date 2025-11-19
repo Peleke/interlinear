@@ -43,11 +43,13 @@ export default function ConstellationChart({ xp, streak, level, completedLessons
     title: ''
   })
 
-  // Calculate level progress
-  const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2000, 3500, 5500, 8000, 11000]
+  // Calculate level progress - MUST match API thresholds
+  const LEVEL_THRESHOLDS = [0, 200, 500, 1000, 2000, 5000]
   const currentLevelXp = LEVEL_THRESHOLDS[level - 1] || 0
   const nextLevelXp = LEVEL_THRESHOLDS[level] || currentLevelXp + 1000
-  const levelProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100
+  const rawLevelProgress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100
+  const levelProgress = Math.max(0, Math.min(100, rawLevelProgress)) // Clamp between 0-100
+
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -130,6 +132,7 @@ export default function ConstellationChart({ xp, streak, level, completedLessons
     // Level ring (progress)
     const circumference = 2 * Math.PI * ringRadius
     const progressLength = (levelProgress / 100) * circumference
+
 
     const levelRingProgress = mainGroup.append('circle')
       .attr('cx', centerX)

@@ -18,13 +18,13 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/icon-192x192.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'any maskable'
+        purpose: 'any'
       },
       {
         src: '/icon-512x512.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'any maskable'
+        purpose: 'any'
       },
       {
         src: '/apple-touch-icon.png',
@@ -33,12 +33,28 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any'
       }
     ],
+    screenshots: [
+      {
+        src: '/screenshots/desktop-dashboard.png',
+        sizes: '1920x1080',
+        type: 'image/png',
+        form_factor: 'wide',
+        label: 'Dashboard view on desktop'
+      },
+      {
+        src: '/screenshots/mobile-dashboard.png',
+        sizes: '390x844',
+        type: 'image/png',
+        form_factor: 'narrow',
+        label: 'Dashboard view on mobile'
+      }
+    ],
     shortcuts: [
       {
-        name: 'Word of the Day',
-        short_name: 'Word',
-        description: 'View today\'s featured word',
-        url: '/word-of-day',
+        name: 'Dashboard',
+        short_name: 'Learn',
+        description: 'Continue your learning journey',
+        url: '/dashboard',
         icons: [
           {
             src: '/icon-192x192.png',
@@ -48,10 +64,10 @@ export default function manifest(): MetadataRoute.Manifest {
         ]
       },
       {
-        name: 'Dashboard',
-        short_name: 'Learn',
-        description: 'Continue your learning journey',
-        url: '/dashboard',
+        name: 'Word of the Day',
+        short_name: 'Word',
+        description: 'View today\'s featured word',
+        url: '/word-of-day',
         icons: [
           {
             src: '/icon-192x192.png',

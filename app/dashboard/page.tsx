@@ -44,7 +44,7 @@ export default async function DashboardPage() {
     .select('id')
     .eq('user_id', user.id)
 
-  const completedLessonsCount = allCompletions?.length || 8
+  const completedLessonsCount = allCompletions?.length || 0
 
   // Get enrolled courses
   const { data: enrollments, error: enrollmentsError } = await supabase

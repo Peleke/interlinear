@@ -86,21 +86,24 @@ export async function POST(
       // Don't fail the request, just log
     }
 
-    // Award XP if correct
+    // Award XP if correct - UPDATE THE CORRECT TABLE!
     let new_total_xp = 0
     if (is_correct && xp_earned > 0) {
       const { data: profile } = await supabase
-        .from('users')
+        .from('user_profiles')
         .select('xp')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single()
 
       new_total_xp = (profile?.xp || 0) + xp_earned
 
       const { error: xpError } = await supabase
-        .from('users')
-        .update({ xp: new_total_xp })
-        .eq('id', user.id)
+        .from('user_profiles')
+        .update({
+          xp: new_total_xp,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
 
       if (xpError) {
         console.error('Failed to award XP:', xpError)
@@ -108,9 +111,9 @@ export async function POST(
     } else {
       // Get current XP even if not correct
       const { data: profile } = await supabase
-        .from('users')
+        .from('user_profiles')
         .select('xp')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
         .single()
 
       new_total_xp = profile?.xp || 0
