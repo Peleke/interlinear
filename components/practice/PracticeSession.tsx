@@ -385,7 +385,7 @@ export default function PracticeSession({
       </div>
 
       {/* Exercise Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 overflow-y-auto p-6 flex items-start justify-center min-h-0">
         <AnimatePresence mode="wait">
           {showResult ? (
             <motion.div
@@ -440,9 +440,9 @@ export default function PracticeSession({
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              className="w-full max-w-2xl"
+              className="w-full max-w-2xl my-auto"
             >
-              <div className="bg-white rounded-2xl p-8 shadow-2xl">
+              <div className="bg-white rounded-2xl p-8 shadow-2xl min-h-fit">
                 <div className="mb-6 text-center">
                   <span className="text-sm text-gray-500 font-medium">
                     Question {currentIndex + 1} of {exercises.length}

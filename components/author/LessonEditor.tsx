@@ -423,6 +423,7 @@ export function LessonEditor({ lesson: initialLesson, userId }: Props) {
 
             {activeTab === 'metadata' && (
               <MetadataPanel
+                lessonId={lesson.id}
                 values={{
                   title: lesson.title,
                   language: lesson.language,
