@@ -173,12 +173,10 @@ export function GenerateOverviewModal({
           {/* Current Overview Preview */}
           {currentOverview && (
             <div className="space-y-2">
-              <Label>Current Overview</Label>
-              <div className="bg-muted/50 rounded-md p-3 text-sm">
-                <div className="font-mono text-muted-foreground mb-2">Current content:</div>
-                <div className="line-clamp-4">
-                  {currentOverview.substring(0, 200)}
-                  {currentOverview.length > 200 && '...'}
+              <h4 className="text-lg font-bold">Current Overview</h4>
+              <div className="bg-muted/50 rounded-md p-3 text-sm max-h-32 overflow-y-auto">
+                <div className="prose prose-sepia max-w-none text-sm">
+                  <ReactMarkdown>{currentOverview}</ReactMarkdown>
                 </div>
               </div>
             </div>
