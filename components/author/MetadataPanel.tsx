@@ -288,17 +288,16 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleGenerateOverview('readings', values.readings_overview)}
                 className="h-6 w-6 p-0"
-                title="Generate readings overview"
+                title="Generate readings overview with AI"
               >
                 <Sparkles className="h-3 w-3" />
               </Button>
-              <span className="text-xs text-muted-foreground">Click to generate with AI</span>
             </div>
             <Textarea
               id="readings_overview"
@@ -318,17 +317,16 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleGenerateOverview('exercises', values.exercises_overview)}
                 className="h-6 w-6 p-0"
-                title="Generate exercises overview"
+                title="Generate exercises overview with AI"
               >
                 <Sparkles className="h-3 w-3" />
               </Button>
-              <span className="text-xs text-muted-foreground">Click to generate with AI</span>
             </div>
             <Textarea
               id="exercises_overview"
@@ -348,17 +346,16 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleGenerateOverview('dialogs', values.dialogs_overview)}
                 className="h-6 w-6 p-0"
-                title="Generate dialogs overview"
+                title="Generate dialogs overview with AI"
               >
                 <Sparkles className="h-3 w-3" />
               </Button>
-              <span className="text-xs text-muted-foreground">Click to generate with AI</span>
             </div>
             <Textarea
               id="dialogs_overview"
@@ -378,17 +375,16 @@ export function MetadataPanel({ values, onChange, lessonId }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleGenerateOverview('grammar', values.grammar_overview)}
                 className="h-6 w-6 p-0"
-                title="Generate grammar overview"
+                title="Generate grammar overview with AI"
               >
                 <Sparkles className="h-3 w-3" />
               </Button>
-              <span className="text-xs text-muted-foreground">Click to generate with AI</span>
             </div>
             <Textarea
               id="grammar_overview"
