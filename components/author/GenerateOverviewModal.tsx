@@ -216,19 +216,6 @@ export function GenerateOverviewModal({
           {/* Generated Overview */}
           {generatedOverview && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview(!showPreview)}
-                >
-                  {showPreview ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
-                  {showPreview ? 'Edit' : 'Preview'}
-                </Button>
-                <Badge variant="secondary" className="text-xs">
-                  AI Generated • Markdown Supported
-                </Badge>
-              </div>
 
               {showPreview ? (
                 <div className="border rounded-md p-4 bg-muted/10 min-h-[200px]">
@@ -246,6 +233,14 @@ export function GenerateOverviewModal({
               )}
 
               <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
+                  {showPreview ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
+                  {showPreview ? 'Edit' : 'Preview'}
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleUse('append')}
