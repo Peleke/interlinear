@@ -29,14 +29,26 @@ export default function WordOfDayPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  // Smart back navigation based on referrer or browser history
+  // Smart back navigation - intelligent context-aware routing
   const handleBackNavigation = () => {
-    // Check if we can go back in browser history
-    if (window.history.length > 1) {
+    // Check referrer to understand where user came from
+    const referrer = document.referrer
+    const referrerUrl = referrer ? new URL(referrer) : null
+    const referrerPath = referrerUrl?.pathname
+
+    // If came from landing page (/), external site, or direct access -> go to dashboard
+    if (!referrer || !referrerUrl || referrerPath === '/' || referrerUrl.origin !== window.location.origin) {
+      router.push('/dashboard')
+      return
+    }
+
+    // If came from a valid internal route -> smart back navigation
+    const validRoutes = ['/dashboard', '/profile', '/vocabulary', '/login', '/settings']
+    if (validRoutes.some(route => referrerPath?.startsWith(route))) {
       router.back()
     } else {
-      // Fallback to home if no history (e.g., direct link)
-      router.push('/')
+      // Unknown route or push notification -> default to dashboard
+      router.push('/dashboard')
     }
   }
 
