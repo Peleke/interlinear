@@ -1,10 +1,32 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { FeatureCard } from '@/components/landing/FeatureCard'
 import { AnimatedDemo } from '@/components/landing/AnimatedDemo'
 import { DeviceMockup } from '@/components/landing/DeviceMockup'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LandingPage() {
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+      } catch (error) {
+        console.error('Error getting user:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    getUser()
+  }, [])
   return (
     <div className="min-h-screen bg-gradient-to-b from-parchment to-sepia-50">
       {/* Hero Section */}
@@ -37,27 +59,62 @@ export default function LandingPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Link href="/signup">
-                  <Button
-                    size="lg"
-                    className="text-lg px-8 py-6 bg-crimson hover:bg-crimson/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                  >
-                    Start learning free →
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
-                  >
-                    Log in
-                  </Button>
-                </Link>
+                {isLoading ? (
+                  <div className="flex gap-4">
+                    <div className="w-48 h-16 bg-sepia-200 rounded-lg animate-pulse" />
+                    <div className="w-32 h-16 bg-sepia-200 rounded-lg animate-pulse" />
+                  </div>
+                ) : user ? (
+                  // Logged in user - show dashboard/continue learning
+                  <>
+                    <Link href="/dashboard">
+                      <Button
+                        size="lg"
+                        className="text-lg px-8 py-6 bg-crimson hover:bg-crimson/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        Continue learning →
+                      </Button>
+                    </Link>
+                    <Link href="/word-of-day">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
+                      >
+                        Word of the Day
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  // Not logged in - show signup/login
+                  <>
+                    <Link href="/signup">
+                      <Button
+                        size="lg"
+                        className="text-lg px-8 py-6 bg-crimson hover:bg-crimson/90 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        Start learning free →
+                      </Button>
+                    </Link>
+                    <Link href="/login">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
+                      >
+                        Log in
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
 
               <p className="text-sm text-sepia-500">
-                No credit card required • Get started in 30 seconds
+                {user ? (
+                  `Welcome back! Ready to continue your language journey?`
+                ) : (
+                  "No credit card required • Get started in 30 seconds"
+                )}
               </p>
             </div>
 

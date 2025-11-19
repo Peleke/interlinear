@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -11,6 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Sparkles, Wand2 } from 'lucide-react'
+import { GenerateOverviewModal } from './GenerateOverviewModal'
+import { BatchGenerateOverviewModal } from './BatchGenerateOverviewModal'
 
 interface Course {
   id: string
@@ -33,11 +37,16 @@ interface MetadataValues {
 interface Props {
   values: MetadataValues
   onChange: (values: Partial<MetadataValues>) => void
+  lessonId: string
 }
 
-export function MetadataPanel({ values, onChange }: Props) {
+export function MetadataPanel({ values, onChange, lessonId }: Props) {
   const [courses, setCourses] = useState<Course[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [generateModalType, setGenerateModalType] = useState<'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar'>('general')
+  const [currentOverview, setCurrentOverview] = useState('')
+  const [showBatchModal, setShowBatchModal] = useState(false)
 
   useEffect(() => {
     fetch('/api/courses')
@@ -51,6 +60,91 @@ export function MetadataPanel({ values, onChange }: Props) {
         setIsLoadingCourses(false)
       })
   }, [])
+
+  const handleGenerateOverview = (
+    type: 'general' | 'readings' | 'exercises' | 'dialogs' | 'grammar',
+    current: string
+  ) => {
+    setGenerateModalType(type)
+    setCurrentOverview(current)
+    setShowGenerateModal(true)
+  }
+
+  const handleOverviewGenerated = (generatedOverview: string) => {
+    switch (generateModalType) {
+      case 'general':
+        onChange({ overview: generatedOverview })
+        break
+      case 'readings':
+        onChange({ readings_overview: generatedOverview })
+        break
+      case 'exercises':
+        onChange({ exercises_overview: generatedOverview })
+        break
+      case 'dialogs':
+        onChange({ dialogs_overview: generatedOverview })
+        break
+      case 'grammar':
+        onChange({ grammar_overview: generatedOverview })
+        break
+    }
+  }
+
+  const handleBatchOverviewsGenerated = (overviews: Record<string, string>) => {
+    const updates: Partial<MetadataValues> = {}
+
+    if (overviews.general) updates.overview = overviews.general
+    if (overviews.readings) updates.readings_overview = overviews.readings
+    if (overviews.exercises) updates.exercises_overview = overviews.exercises
+    if (overviews.dialogs) updates.dialogs_overview = overviews.dialogs
+    if (overviews.grammar) updates.grammar_overview = overviews.grammar
+
+    onChange(updates)
+  }
+
+  // Define overview options for batch generation
+  const overviewOptions = [
+    {
+      type: 'general' as const,
+      label: 'General Lesson Overview',
+      description: 'Overall lesson introduction and structure',
+      icon: '📖',
+      current: values.overview,
+      enabled: true
+    },
+    {
+      type: 'readings' as const,
+      label: 'Interactive Readings Overview',
+      description: 'Description of reading activities and benefits',
+      icon: '📚',
+      current: values.readings_overview,
+      enabled: true
+    },
+    {
+      type: 'exercises' as const,
+      label: 'Exercises Overview',
+      description: 'Information about practice exercises',
+      icon: '✏️',
+      current: values.exercises_overview,
+      enabled: true
+    },
+    {
+      type: 'dialogs' as const,
+      label: 'Dialogs Overview',
+      description: 'Overview of conversation practice',
+      icon: '💬',
+      current: values.dialogs_overview,
+      enabled: true
+    },
+    {
+      type: 'grammar' as const,
+      label: 'Grammar Concepts Overview',
+      description: 'Grammar section introduction',
+      icon: '📝',
+      current: values.grammar_overview,
+      enabled: true
+    }
+  ]
 
   return (
     <div className="space-y-6">
@@ -144,6 +238,25 @@ export function MetadataPanel({ values, onChange }: Props) {
             <p className="text-sm text-muted-foreground mb-4">
               Add descriptions for the lesson and individual sections (all support Markdown)
             </p>
+            <div className="flex gap-2 mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBatchModal(true)}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                <Wand2 className="mr-2 h-4 w-4" />
+                Batch Generate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleGenerateOverview('general', values.overview)}
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Overview
+              </Button>
+            </div>
           </div>
 
           {/* General Lesson Overview */}
@@ -175,6 +288,17 @@ export function MetadataPanel({ values, onChange }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
+            <div className="mb-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('readings', values.readings_overview)}
+                className="h-6 w-6 p-0"
+                title="Generate readings overview with AI"
+              >
+                <Sparkles className="h-3 w-3" />
+              </Button>
+            </div>
             <Textarea
               id="readings_overview"
               value={values.readings_overview}
@@ -193,6 +317,17 @@ export function MetadataPanel({ values, onChange }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
+            <div className="mb-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('exercises', values.exercises_overview)}
+                className="h-6 w-6 p-0"
+                title="Generate exercises overview with AI"
+              >
+                <Sparkles className="h-3 w-3" />
+              </Button>
+            </div>
             <Textarea
               id="exercises_overview"
               value={values.exercises_overview}
@@ -211,6 +346,17 @@ export function MetadataPanel({ values, onChange }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
+            <div className="mb-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('dialogs', values.dialogs_overview)}
+                className="h-6 w-6 p-0"
+                title="Generate dialogs overview with AI"
+              >
+                <Sparkles className="h-3 w-3" />
+              </Button>
+            </div>
             <Textarea
               id="dialogs_overview"
               value={values.dialogs_overview}
@@ -229,6 +375,17 @@ export function MetadataPanel({ values, onChange }: Props) {
                 (Optional, Markdown supported)
               </span>
             </Label>
+            <div className="mb-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleGenerateOverview('grammar', values.grammar_overview)}
+                className="h-6 w-6 p-0"
+                title="Generate grammar overview with AI"
+              >
+                <Sparkles className="h-3 w-3" />
+              </Button>
+            </div>
             <Textarea
               id="grammar_overview"
               value={values.grammar_overview}
@@ -268,6 +425,25 @@ export function MetadataPanel({ values, onChange }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Generate Overview Modal */}
+      <GenerateOverviewModal
+        open={showGenerateModal}
+        onOpenChange={setShowGenerateModal}
+        lessonId={lessonId}
+        currentOverview={currentOverview}
+        overviewType={generateModalType}
+        onOverviewGenerated={handleOverviewGenerated}
+      />
+
+      {/* Batch Generate Modal */}
+      <BatchGenerateOverviewModal
+        open={showBatchModal}
+        onOpenChange={setShowBatchModal}
+        lessonId={lessonId}
+        overviewOptions={overviewOptions}
+        onOverviewsGenerated={handleBatchOverviewsGenerated}
+      />
     </div>
   )
 }

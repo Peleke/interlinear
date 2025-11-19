@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { VocabularyService } from '@/lib/vocabulary'
 import type { VocabularyStats } from '@/types'
 import { useRouter } from 'next/navigation'
+import { NotificationSettings } from '@/components/pwa/NotificationSettings'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +51,29 @@ export default function ProfilePage() {
     router.push('/')
   }
 
+  // Smart back navigation - intelligent context-aware routing
+  const handleBackNavigation = () => {
+    // Check referrer to understand where user came from
+    const referrer = document.referrer
+    const referrerUrl = referrer ? new URL(referrer) : null
+    const referrerPath = referrerUrl?.pathname
+
+    // If came from landing page (/), external site, or direct access -> go to dashboard
+    if (!referrer || !referrerUrl || referrerPath === '/' || referrerUrl.origin !== window.location.origin) {
+      router.push('/dashboard')
+      return
+    }
+
+    // If came from a valid internal route -> smart back navigation
+    const validRoutes = ['/dashboard', '/word-of-day', '/vocabulary', '/login', '/settings']
+    if (validRoutes.some(route => referrerPath?.startsWith(route))) {
+      router.back()
+    } else {
+      // Unknown route or push notification -> default to dashboard
+      router.push('/dashboard')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-parchment flex items-center justify-center">
@@ -67,12 +91,12 @@ export default function ProfilePage() {
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Header */}
         <div className="mb-8">
-          <a
-            href="/reader"
+          <button
+            onClick={handleBackNavigation}
             className="text-sepia-700 hover:text-sepia-900 transition-colors inline-flex items-center gap-2 mb-4"
           >
-            <span>←</span> Back to Reader
-          </a>
+            <span>←</span> Back
+          </button>
           <h1 className="text-4xl font-serif text-sepia-900 mb-2">Profile</h1>
           <p className="text-sepia-600">Your account and learning progress</p>
         </div>
@@ -141,6 +165,9 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Push Notifications */}
+        <NotificationSettings userId={user?.id} />
 
         {/* Actions */}
         <div className="bg-white rounded-lg border border-sepia-200 shadow-sm p-6">
