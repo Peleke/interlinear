@@ -2,15 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { generateSpanishWordOfDay, generateLatinWordOfDay } from '@/lib/mastra/tools/wordOfDay';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const MERRIAM_WEBSTER_API_KEY = process.env.MERRIAM_WEBSTER_API_KEY;
-
 export async function POST(request: NextRequest) {
   try {
+    // Initialize Supabase client at runtime
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const MERRIAM_WEBSTER_API_KEY = process.env.MERRIAM_WEBSTER_API_KEY;
     const { language = 'spanish', date = new Date().toISOString().split('T')[0] } = await request.json();
 
     if (!['spanish', 'latin'].includes(language)) {
