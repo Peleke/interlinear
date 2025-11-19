@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Download, Smartphone } from 'lucide-react'
+import { X, Download, Smartphone, Share } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: Array<string>
@@ -12,12 +12,26 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
 }
 
+// Detect iOS Safari
+const isIOSSafari = () => {
+  if (typeof window === 'undefined') return false
+  const ua = window.navigator.userAgent
+  const iOS = /iPad|iPhone|iPod/.test(ua)
+  const webkit = /WebKit/.test(ua)
+  const isSafari = iOS && webkit && !/(CriOS|FxiOS|OPiOS|mercury)/.test(ua)
+  return isSafari
+}
+
 export function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showBanner, setShowBanner] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
+    // Detect iOS on mount
+    setIsIOS(isIOSSafari())
+
     // Check if app is already installed
     const checkInstalled = () => {
       if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -65,6 +79,11 @@ export function PWAInstallBanner() {
   }, [])
 
   const handleInstall = async () => {
+    if (isIOS) {
+      // iOS-specific instructions (no automatic install available)
+      return // Do nothing - the UI will show the iOS instructions
+    }
+
     if (deferredPrompt) {
       try {
         await deferredPrompt.prompt()
@@ -81,7 +100,7 @@ export function PWAInstallBanner() {
       }
     } else {
       // Show manual instructions for browsers that don't support automatic install
-      alert('To install this app:\n\n• Chrome: Click the three dots menu → "Install Interlinear"\n• Safari: Click Share button → "Add to Home Screen"\n• Firefox: Look for install icon in address bar')
+      alert('To install this app:\n\n• Chrome: Click the three dots menu → "Install Interlinear"\n• Firefox: Look for install icon in address bar\n• Edge: Click the three dots menu → "Install this site as an app"')
     }
   }
 
@@ -131,21 +150,48 @@ export function PWAInstallBanner() {
           </li>
         </ul>
 
-        <div className="flex gap-2">
-          <button
-            onClick={handleInstall}
-            className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2"
-          >
-            <Download size={16} />
-            Install
-          </button>
-          <button
-            onClick={handleDismiss}
-            className="px-4 py-2 text-sepia-600 hover:text-sepia-800 transition-colors"
-          >
-            Later
-          </button>
-        </div>
+        {isIOS ? (
+          // iOS-specific UI with step-by-step instructions
+          <div className="space-y-3">
+            <div className="bg-sepia-50 rounded-md p-3 border border-sepia-200">
+              <h4 className="font-medium text-sepia-900 mb-2 flex items-center gap-2">
+                <Share size={16} />
+                Install on iPhone/iPad
+              </h4>
+              <ol className="text-sm text-sepia-700 space-y-1 list-decimal list-inside">
+                <li>Tap the <strong>Share</strong> button in Safari's toolbar</li>
+                <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+                <li>Tap <strong>"Add"</strong> in the top-right corner</li>
+                <li>The app will appear on your home screen!</li>
+              </ol>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDismiss}
+                className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white px-4 py-2 rounded-md transition-colors"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Standard PWA install for other browsers
+          <div className="flex gap-2">
+            <button
+              onClick={handleInstall}
+              className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2"
+            >
+              <Download size={16} />
+              Install
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="px-4 py-2 text-sepia-600 hover:text-sepia-800 transition-colors"
+            >
+              Later
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
