@@ -243,13 +243,25 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
     } catch (err) {
       console.error('🚨 DETAILED ERROR:', err)
       if (err instanceof Error) {
+        // Check if we're actually on localhost vs production
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
         if (err.message.includes('timeout')) {
-          // Special handling for localhost timeout
-          setError('⏱️ Development Limitation: Push notifications may not work fully on localhost. This will work perfectly in production with HTTPS. The notification system is properly configured!')
-          // Clear error after 8 seconds for localhost timeout
-          setTimeout(() => setError(null), 8000)
+          if (isLocalhost) {
+            // Localhost-specific message
+            setError('⏱️ Development Limitation: Push notifications may not work fully on localhost. This will work perfectly in production with HTTPS.')
+            setTimeout(() => setError(null), 8000)
+          } else {
+            // Production timeout - likely iOS or browser-specific issue
+            setError('Subscription timeout. This can happen on iOS Safari. Try again or use the app in standalone mode after installing it.')
+            setTimeout(() => setError(null), 6000)
+          }
+        } else if (err.message.includes('denied') || err.message.includes('permission')) {
+          setError('Permission denied. Please enable notifications in your browser settings.')
+          setTimeout(() => setError(null), 6000)
         } else {
           setError(`Subscription failed: ${err.message}`)
+          setTimeout(() => setError(null), 5000)
         }
         console.error('Error name:', err.name)
         console.error('Error stack:', err.stack)
@@ -357,21 +369,31 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
         <div className={`border rounded-lg p-4 ${
           error.includes('Development Limitation')
             ? 'bg-amber-50 border-amber-200'
+            : error.includes('timeout') || error.includes('iOS')
+            ? 'bg-blue-50 border-blue-200'
             : 'bg-red-50 border-red-200'
         }`}>
           <div className={`flex items-start gap-3 ${
             error.includes('Development Limitation')
               ? 'text-amber-800'
+              : error.includes('timeout') || error.includes('iOS')
+              ? 'text-blue-700'
               : 'text-red-700'
           }`}>
             {error.includes('Development Limitation') ? (
               <AlertCircle size={24} className="flex-shrink-0 mt-0.5" />
+            ) : error.includes('timeout') || error.includes('iOS') ? (
+              <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
             ) : (
               <X size={20} className="flex-shrink-0 mt-0.5" />
             )}
             <div>
               <span className="font-medium block">
-                {error.includes('Development Limitation') ? 'Localhost Development Notice' : 'Error'}
+                {error.includes('Development Limitation')
+                  ? 'Localhost Development Notice'
+                  : error.includes('timeout') || error.includes('iOS')
+                  ? 'iOS Safari Notice'
+                  : 'Error'}
               </span>
               <span className="text-sm">{error}</span>
               {error.includes('Development Limitation') && (
@@ -379,6 +401,13 @@ export function NotificationSettings({ userId }: NotificationSettingsProps) {
                   <p>✅ VAPID keys are configured correctly</p>
                   <p>✅ API endpoints are working</p>
                   <p>🚀 Deploy to production for full functionality</p>
+                </div>
+              )}
+              {(error.includes('timeout') || error.includes('iOS')) && !error.includes('Development Limitation') && (
+                <div className="mt-2 text-sm">
+                  <p>💡 iOS Safari has stricter push notification requirements</p>
+                  <p>📱 Try installing the app to your home screen first</p>
+                  <p>🔄 You can also try again - sometimes it works on the second attempt</p>
                 </div>
               )}
             </div>
