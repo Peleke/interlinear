@@ -1,198 +1,187 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Download, Smartphone, Share } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import { Share, X, Download, Smartphone } from 'lucide-react'
 
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: Array<string>
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed'
-    platform: string
-  }>
-  prompt(): Promise<void>
+type BeforeInstallPromptEvent = Event & {
+  platforms?: string[]
+  prompt: () => Promise<void>
+  userChoice?: Promise<{ outcome: 'accepted' | 'dismissed'; platform?: string }>
 }
 
-// Detect iOS Safari
-const isIOSSafari = () => {
+const STORAGE_KEY = 'pwa-install-banner-dismissed-v1'
+
+function isIOSSafari(): boolean {
   if (typeof window === 'undefined') return false
-  const ua = window.navigator.userAgent
+  const ua = window.navigator.userAgent || ''
   const iOS = /iPad|iPhone|iPod/.test(ua)
   const webkit = /WebKit/.test(ua)
+  // Exclude Chrome/Firefox/Opera on iOS which still report WebKit
   const isSafari = iOS && webkit && !/(CriOS|FxiOS|OPiOS|mercury)/.test(ua)
   return isSafari
 }
 
-export function PWAInstallBanner() {
+function getIsStandalone(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    // Standard check
+    const dm = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
+    // iOS fallback
+    const navStandalone = (window.navigator as any).standalone === true
+    return !!dm || !!navStandalone
+  } catch {
+    return false
+  }
+}
+
+export function PWAInstallBanner(): JSX.Element | null {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showBanner, setShowBanner] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
-    // Detect iOS on mount
     setIsIOS(isIOSSafari())
 
-    // Check if app is already installed
-    const checkInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches) {
-        setIsInstalled(true)
-        return
-      }
+    // Check installed state
+    setIsInstalled(getIsStandalone())
 
-      // Check if dismissed recently (within 7 days)
-      const dismissedAt = localStorage.getItem('pwa-install-dismissed')
-      if (dismissedAt) {
-        const daysSince = (Date.now() - parseInt(dismissedAt)) / (1000 * 60 * 60 * 24)
-        if (daysSince < 7) return
-      }
-
-      // Show banner immediately for testing
-      const timer = setTimeout(() => {
-        setShowBanner(true)
-      }, 100)
-
-      return () => clearTimeout(timer)
+    // If already dismissed or installed, don't show
+    if (dismissed || getIsStandalone()) {
+      return
     }
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault()
+    // iOS: we can't use beforeinstallprompt — show iOS UI
+    if (isIOSSafari()) {
+      setShowBanner(true)
+      return
+    }
+
+    // Non-iOS: listen for beforeinstallprompt
+    function onBeforeInstallPrompt(e: Event) {
+      // Prevent the browser from showing the native prompt immediately
+      try {
+        ;(e as any).preventDefault?.()
+      } catch {}
       setDeferredPrompt(e as BeforeInstallPromptEvent)
-      checkInstalled()
+      setShowBanner(true)
     }
 
-    const handleAppInstalled = () => {
+    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener)
+
+    // Also listen for appinstalled to hide banner if it was installed via other means
+    function onAppInstalled() {
       setIsInstalled(true)
       setShowBanner(false)
-      setDeferredPrompt(null)
     }
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Check on mount
-    checkInstalled()
+    window.addEventListener('appinstalled', onAppInstalled)
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
+      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener)
+      window.removeEventListener('appinstalled', onAppInstalled)
     }
+    // Note: intentionally not putting `isIOS` or `dismissed` in dependency list to avoid re-registering
+    // this effect unnecessarily — the initial mount detection is sufficient.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleInstall = async () => {
-    if (isIOS) {
-      // iOS-specific instructions (no automatic install available)
-      return // Do nothing - the UI will show the iOS instructions
-    }
-
-    if (deferredPrompt) {
-      try {
-        await deferredPrompt.prompt()
-        const choiceResult = await deferredPrompt.userChoice
-
-        if (choiceResult.outcome === 'accepted') {
-          setIsInstalled(true)
-        }
-
-        setShowBanner(false)
-        setDeferredPrompt(null)
-      } catch (error) {
-        console.error('Installation failed:', error)
-      }
-    } else {
-      // Show manual instructions for browsers that don't support automatic install
-      alert('To install this app:\n\n• Chrome: Click the three dots menu → "Install Interlinear"\n• Firefox: Look for install icon in address bar\n• Edge: Click the three dots menu → "Install this site as an app"')
-    }
-  }
-
-  const handleDismiss = () => {
+  // Dismiss and persist
+  const handleDismiss = useCallback(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, '1')
+    } catch {}
+    setDismissed(true)
     setShowBanner(false)
-    localStorage.setItem('pwa-install-dismissed', Date.now().toString())
-  }
+  }, [])
 
-  if (isInstalled || !showBanner) return null
+  // Trigger the install prompt for non-iOS
+  const handleInstallClick = useCallback(async () => {
+    if (!deferredPrompt) return
+    try {
+      await deferredPrompt.prompt()
+      // Optionally inspect the result:
+      // const choice = await deferredPrompt.userChoice
+    } catch {
+      // ignore errors, but hide the banner
+    } finally {
+      setShowBanner(false)
+    }
+  }, [deferredPrompt])
 
-  return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-white rounded-lg shadow-xl border border-sepia-200 p-4 relative">
-        <button
-          onClick={handleDismiss}
-          className="absolute top-2 right-2 p-1 text-sepia-400 hover:text-sepia-600 transition-colors"
-        >
-          <X size={16} />
-        </button>
+  if (dismissed || isInstalled || !showBanner) return null
 
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-sepia-700 rounded-lg flex items-center justify-center text-white">
-            <Smartphone size={24} />
+  // --- iOS UI ---
+  if (isIOS) {
+    return (
+      <div className="fixed bottom-4 inset-x-4 z-50">
+        <div className="mx-auto max-w-lg rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg ring-1 ring-black/5 p-4 flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <Smartphone size={28} />
           </div>
-          <div>
-            <h3 className="font-semibold text-sepia-900">Install Interlinear</h3>
-            <p className="text-sm text-sepia-600">Get the app for quick access</p>
+          <div className="flex-1 text-sm leading-tight">
+            <div className="font-medium">Install this app on iOS</div>
+            <div className="mt-1">
+              Open the <strong>Share</strong> menu <Share className="inline-block ml-1 mr-1" size={14} /> and
+              choose <strong>"Add to Home Screen"</strong>.
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Tip: Make sure you're using Safari and not private browsing.
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <button
+              aria-label="Dismiss"
+              onClick={handleDismiss}
+              className="p-1 rounded hover:bg-black/5"
+              title="Dismiss"
+            >
+              <X size={18} />
+            </button>
           </div>
         </div>
+      </div>
+    )
+  }
 
-        <ul className="text-sm text-sepia-600 mb-4 space-y-1">
-          <li className="flex items-start gap-2">
-            <span className="text-sepia-700 mt-0.5">•</span>
-            <span>Instant access to Word of the Day</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-sepia-700 mt-0.5">•</span>
-            <span>Push notifications for new words</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-sepia-700 mt-0.5">•</span>
-            <span>Works offline with saved content</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-sepia-700 mt-0.5">•</span>
-            <span>No app store required!</span>
-          </li>
-        </ul>
+  // --- Non-iOS UI (uses beforeinstallprompt) ---
+  return (
+    <div className="fixed bottom-4 inset-x-4 z-50">
+      <div className="mx-auto max-w-md rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg ring-1 ring-black/5 p-3 flex items-center gap-3">
+        <div className="flex-shrink-0">
+          <Download size={20} />
+        </div>
+        <div className="flex-1 text-sm">
+          <div className="font-medium">Install this app</div>
+          <div className="text-xs text-gray-600">For the best experience, install this app to your device.</div>
+        </div>
 
-        {isIOS ? (
-          // iOS-specific UI with step-by-step instructions
-          <div className="space-y-3">
-            <div className="bg-sepia-50 rounded-md p-3 border border-sepia-200">
-              <h4 className="font-medium text-sepia-900 mb-2 flex items-center gap-2">
-                <Share size={16} />
-                Install on iPhone/iPad
-              </h4>
-              <ol className="text-sm text-sepia-700 space-y-1 list-decimal list-inside">
-                <li>Tap the <strong>Share</strong> button in Safari's toolbar</li>
-                <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                <li>Tap <strong>"Add"</strong> in the top-right corner</li>
-                <li>The app will appear on your home screen!</li>
-              </ol>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleDismiss}
-                className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white px-4 py-2 rounded-md transition-colors"
-              >
-                Got it!
-              </button>
-            </div>
-          </div>
-        ) : (
-          // Standard PWA install for other browsers
-          <div className="flex gap-2">
-            <button
-              onClick={handleInstall}
-              className="flex-1 bg-sepia-700 hover:bg-sepia-800 text-white px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2"
-            >
-              <Download size={16} />
-              Install
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="px-4 py-2 text-sepia-600 hover:text-sepia-800 transition-colors"
-            >
-              Later
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleInstallClick}
+            disabled={!deferredPrompt}
+            className="rounded px-3 py-1 bg-slate-900 text-white text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Install
+          </button>
+          <button
+            aria-label="Dismiss"
+            onClick={handleDismiss}
+            className="p-1 rounded hover:bg-black/5"
+            title="Dismiss"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
     </div>
   )
 }
+
+export default PWAInstallBanner
