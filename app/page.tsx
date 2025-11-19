@@ -81,7 +81,7 @@ export default function LandingPage() {
                         variant="outline"
                         className="text-lg px-8 py-6 border-2 border-sepia-700 text-sepia-700 hover:bg-sepia-700 hover:text-white transition-all duration-300"
                       >
-                        Word of Day
+                        Word of the Day
                       </Button>
                     </Link>
                   </>
