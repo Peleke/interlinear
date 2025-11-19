@@ -3,7 +3,7 @@
  * Uses Mastra + OpenAI to generate engaging lesson overviews
  */
 
-import { createOpenAIProvider } from '../providers/openai';
+import OpenAI from 'openai';
 
 interface LessonData {
   id: string
@@ -23,7 +23,9 @@ export async function generateAIOverview(
   try {
     console.log(`🤖 Generating AI-powered ${overviewType} overview for lesson: ${lesson.title}`);
 
-    const openai = await createOpenAIProvider();
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
     const prompt = buildPrompt(lesson, overviewType);
 
     console.log(`📝 Using prompt for ${overviewType} overview generation`);
