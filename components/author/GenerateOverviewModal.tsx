@@ -217,20 +217,17 @@ export function GenerateOverviewModal({
           {generatedOverview && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Generated Overview</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPreview(!showPreview)}
-                  >
-                    {showPreview ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
-                    {showPreview ? 'Edit' : 'Preview'}
-                  </Button>
-                  <Badge variant="secondary" className="text-xs">
-                    AI Generated • Markdown Supported
-                  </Badge>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                >
+                  {showPreview ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
+                  {showPreview ? 'Edit' : 'Preview'}
+                </Button>
+                <Badge variant="secondary" className="text-xs">
+                  AI Generated • Markdown Supported
+                </Badge>
               </div>
 
               {showPreview ? (
@@ -248,30 +245,22 @@ export function GenerateOverviewModal({
                 />
               )}
 
-              <div className="flex gap-2 justify-between">
-                <div className="text-xs text-muted-foreground">
-                  {showPreview
-                    ? 'Showing markdown preview. Click "Edit" to modify the content.'
-                    : 'Raw markdown content. Click "Preview" to see how it will look.'
-                  }
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleUse('append')}
-                    size="sm"
-                  >
-                    <Copy className="mr-2 h-4 w-4" />
-                    Append to Current
-                  </Button>
-                  <Button
-                    onClick={() => handleUse('replace')}
-                    size="sm"
-                  >
-                    <Replace className="mr-2 h-4 w-4" />
-                    Replace Current
-                  </Button>
-                </div>
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => handleUse('append')}
+                  size="sm"
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Append
+                </Button>
+                <Button
+                  onClick={() => handleUse('replace')}
+                  size="sm"
+                >
+                  <Replace className="mr-2 h-4 w-4" />
+                  Replace
+                </Button>
               </div>
             </div>
           )}
