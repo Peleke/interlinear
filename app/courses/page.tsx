@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import CourseCard from '@/components/courses/CourseCard'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Home } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
+import Link from 'next/link'
 
 export default async function CoursesPage() {
   const supabase = await createClient()
@@ -91,9 +92,16 @@ export default async function CoursesPage() {
             <BookOpen className="h-10 w-10 text-sepia-700" />
             <h1 className="text-4xl font-serif text-sepia-900">All Courses</h1>
           </div>
-          <p className="text-lg text-sepia-700">
+          <p className="text-lg text-sepia-700 mb-6">
             Explore our complete Spanish curriculum, from beginner to advanced
           </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-sepia-300 text-sepia-700 rounded-lg hover:bg-sepia-50 hover:border-sepia-400 transition-all font-medium"
+          >
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Link>
         </div>
       </div>
 

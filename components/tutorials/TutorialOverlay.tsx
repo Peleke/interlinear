@@ -93,7 +93,7 @@ export function TutorialOverlay() {
             variant: 'purple' as const,
             placement: 'top' as const,
             pulseTarget: true,
-            spotlightMode: true, // Spotlight mode for course discovery
+            spotlightMode: false, // No spotlight - just tooltip above panda
             showPrevious: true
           }
         }

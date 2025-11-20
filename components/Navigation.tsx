@@ -26,7 +26,7 @@ export function Navigation() {
   return (
     <>
       <nav className="flex items-center justify-between mb-6 relative">
-        <Link href="/" className="text-3xl font-serif text-sepia-900 hover:text-crimson transition-colors">
+        <Link href="/dashboard" className="text-3xl font-serif text-sepia-900 hover:text-crimson transition-colors">
           Interlinear
         </Link>
 
