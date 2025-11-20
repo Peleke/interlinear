@@ -110,7 +110,7 @@ export function TutorialOverlay() {
         // Only show step 4 if user has enrolled courses
         return {
           targetElementId: 'continue-adventure-btn',
-          message: "Speaking of which... LET'S DO THAT COURSE YOU SIGNED UP FOR! (4/4)",
+          message: "Ready to dive in? Let's continue your learning journey! (4/4)",
           variant: 'red' as const,
           placement: 'bottom' as const,
           pulseTarget: true,

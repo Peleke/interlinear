@@ -311,6 +311,19 @@ export default function CompletePage() {
               from the "Courses" link in the navigation bar.
             </p>
           </div>
+
+          {/* Enroll Later Option */}
+          <div className="mt-6 pt-6 border-t border-sepia-200 text-center">
+            <p className="text-sm text-sepia-600 mb-3">
+              Not ready to start yet? That's okay!
+            </p>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-6 py-3 bg-gray-100 text-sepia-700 border border-sepia-300 rounded-lg hover:bg-gray-200 hover:border-sepia-400 transition-all font-medium"
+            >
+              Enroll Later - Go to Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Progress Indicator */}
