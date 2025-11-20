@@ -29,19 +29,39 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
   // Get choices from exercise data structure
   const getChoices = () => {
     // Handle different data structure formats
-    if (exercise.choices && Array.isArray(exercise.choices)) {
+    if (exercise.choices && Array.isArray(exercise.choices) && exercise.choices.length >= 2) {
       return exercise.choices
     }
-    if (exercise.options?.choices && Array.isArray(exercise.options.choices)) {
+    if (exercise.options?.choices && Array.isArray(exercise.options.choices) && exercise.options.choices.length >= 2) {
       return exercise.options.choices
     }
-    if (exercise.options && Array.isArray(exercise.options)) {
+    if (exercise.options && Array.isArray(exercise.options) && exercise.options.length >= 2) {
       return exercise.options
     }
 
-    // If no choices found, log error and provide fallback that includes correct answer
+    // If no valid choices found, create a fallback with generic options
     console.error('No valid choices found for multiple choice exercise:', exercise)
-    return [exercise.answer] // At minimum, show the correct answer
+
+    // Create fallback choices that include the correct answer plus some generic alternatives
+    const fallbackChoices = [
+      exercise.answer,
+      'Option A',
+      'Option B',
+      'Option C'
+    ]
+
+    // Remove duplicates and filter out the correct answer from generic options
+    const uniqueChoices = Array.from(new Set(fallbackChoices)).filter((choice, index) => {
+      if (index === 0) return true // Always include the correct answer
+      return choice !== exercise.answer // Don't duplicate the correct answer
+    })
+
+    // Ensure we have at least 2 choices
+    if (uniqueChoices.length < 2) {
+      uniqueChoices.push('Alternative Option')
+    }
+
+    return uniqueChoices.slice(0, 4) // Limit to 4 choices max
   }
 
   const choices = getChoices()
