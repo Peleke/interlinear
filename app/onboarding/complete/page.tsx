@@ -57,16 +57,25 @@ export default function CompletePage() {
         }
         const { courses: allCourses } = await coursesResponse.json()
 
-        // Get top 3 courses
-        const topCourses = (allCourses || []).slice(0, 3)
-        setCourses(topCourses)
+        // Show all available courses instead of just top 3
+        setCourses(allCourses || [])
 
-        // Find recommended course (vibras puras in title for now)
-        const recommended = allCourses.find((course: any) =>
-          course.title.toLowerCase().includes('vibras puras') ||
-          course.title.toLowerCase().includes('vibras') ||
-          course.title.toLowerCase().includes('puras')
-        )
+        // Find recommended course with more robust detection
+        const recommended = allCourses.find((course: any) => {
+          const title = course.title.toLowerCase()
+          const description = (course.description || '').toLowerCase()
+
+          // Check for vibras puras in title or description
+          return title.includes('vibras puras') ||
+                 title.includes('vibras') ||
+                 title.includes('puras') ||
+                 description.includes('vibras puras') ||
+                 description.includes('vibras') ||
+                 description.includes('puras') ||
+                 // Also check if it's marked as recommended in metadata
+                 course.is_recommended === true ||
+                 course.recommended === true
+        })
         setRecommendedCourse(recommended)
 
         setStatus('success')
@@ -136,8 +145,8 @@ export default function CompletePage() {
         throw new Error('Failed to enroll in course')
       }
 
-      // Redirect to course page
-      router.push(`/courses/${course.id}`)
+      // Redirect to dashboard to show continue button with tooltip
+      router.push(`/dashboard`)
     } catch (error) {
       console.error('Enrollment error:', error)
       setStatus('error')

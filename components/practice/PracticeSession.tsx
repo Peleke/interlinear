@@ -412,7 +412,7 @@ export default function PracticeSession({
       </div>
 
       {/* Exercise Content */}
-      <div className="flex-1 overflow-y-auto p-6 flex items-start justify-center min-h-0">
+      <div className="flex-1 overflow-y-auto p-6 flex items-start justify-center min-h-0 max-h-full">
         <AnimatePresence mode="wait">
           {showResult ? (
             <motion.div

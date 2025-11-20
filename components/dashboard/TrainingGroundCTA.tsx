@@ -27,6 +27,7 @@ export default function TrainingGroundCTA({
 }: TrainingGroundCTAProps) {
   const [isHovering, setIsHovering] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
+  const [showContinueTooltip, setShowContinueTooltip] = useState(false)
 
   // Check if user has any enrolled courses (simplified logic)
   const hasEnrolledCourses = !!nextLesson
@@ -77,8 +78,14 @@ export default function TrainingGroundCTA({
           >
             <motion.div
               className="group relative bg-sepia-50 border border-sepia-200 text-sepia-900 rounded-lg p-4 cursor-pointer overflow-hidden shadow-sm hover:shadow-md"
-              onHoverStart={() => setIsHovering(true)}
-              onHoverEnd={() => setIsHovering(false)}
+              onHoverStart={() => {
+                setIsHovering(true)
+                setShowContinueTooltip(true)
+              }}
+              onHoverEnd={() => {
+                setIsHovering(false)
+                setShowContinueTooltip(false)
+              }}
               whileHover={{ scale: 1.005, y: -1 }}
               whileTap={{ scale: 0.995 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -105,6 +112,19 @@ export default function TrainingGroundCTA({
                   →
                 </motion.div>
               </div>
+
+              {/* Continue Button Tooltip */}
+              {showContinueTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-lg z-10"
+                >
+                  Resume your language learning journey
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-700 rotate-45"></div>
+                </motion.div>
+              )}
             </motion.div>
           </Link>
         </motion.div>

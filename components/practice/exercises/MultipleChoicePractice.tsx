@@ -27,12 +27,35 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
   const [isListening, setIsListening] = useState(false)
 
   // Get choices from exercise data structure
-  const choices = exercise.choices || exercise.options?.choices || exercise.options || [
-    exercise.answer,
-    'Alternative option 1',
-    'Alternative option 2',
-    'Alternative option 3'
-  ]
+  const getChoices = () => {
+    // Handle different data structure formats
+    if (exercise.choices && Array.isArray(exercise.choices)) {
+      return exercise.choices
+    }
+    if (exercise.options?.choices && Array.isArray(exercise.options.choices)) {
+      return exercise.options.choices
+    }
+    if (exercise.options && Array.isArray(exercise.options)) {
+      return exercise.options
+    }
+
+    // If no choices found, log error and provide fallback that includes correct answer
+    console.error('No valid choices found for multiple choice exercise:', exercise)
+    return [exercise.answer] // At minimum, show the correct answer
+  }
+
+  const choices = getChoices()
+
+  // Validate that we have enough choices for a proper multiple choice question
+  if (choices.length < 2) {
+    console.error('Insufficient choices for multiple choice question:', choices)
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">Error: This multiple choice question has insufficient answer options.</p>
+        <p className="text-sm text-gray-500">Expected at least 2 choices, got {choices.length}</p>
+      </div>
+    )
+  }
 
   // Debug: Log choices to help troubleshoot
   console.log('MultipleChoice - exercise.choices:', exercise.choices)
@@ -78,7 +101,8 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
   const choiceLabels = ['A', 'B', 'C', 'D']
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full max-h-full overflow-hidden">
+      <div className="flex-1 overflow-y-auto space-y-6 pb-4">
       {/* Exercise Type Badge */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -241,12 +265,14 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
         )}
       </AnimatePresence>
 
-      {/* Submit Button */}
+      </div>
+
+      {/* Submit Button - Fixed at bottom */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="text-center pt-6 pb-4"
+        className="flex-shrink-0 text-center pt-4 pb-4 bg-white border-t border-gray-100"
       >
         <Button
           onClick={handleSubmit}
