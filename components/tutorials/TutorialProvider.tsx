@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { usePathname } from 'next/navigation'
 
 type TutorialType = 'dashboard' | 'discovery' | null
 type TutorialStep = 1 | 2 | 3 | 4
@@ -55,6 +56,7 @@ interface TutorialProviderProps {
 
 export function TutorialProvider({ children }: TutorialProviderProps) {
   const { user } = useAuth()
+  const pathname = usePathname()
   const [tutorialState, setTutorialState] = useState<TutorialState>({
     isActive: false,
     tutorialType: null,
@@ -78,7 +80,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         // Check if tutorial is already completed
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('tutorial_completed, tutorial_step, last_tutorial_seen')
+          .select('tutorial_completed, tutorial_step')
           .eq('user_id', user.id)
           .single()
 
@@ -99,7 +101,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
         }))
 
         // Auto-start tutorial if not completed and we're on dashboard
-        if (!profile?.tutorial_completed && window.location.pathname === '/dashboard') {
+        if (!profile?.tutorial_completed && pathname === '/dashboard') {
           setTimeout(() => {
             startTutorial('dashboard')
           }, 2000) // 2 second delay for page to load
@@ -110,7 +112,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     }
 
     checkTutorialStatus()
-  }, [user])
+  }, [user, pathname])
 
   const startTutorial = (type: TutorialType) => {
     if (!type) return
@@ -146,6 +148,8 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   }
 
   const completeTutorial = async () => {
+    console.log('🎯 completeTutorial called', { userId: user?.id })
+
     setTutorialState(prev => ({
       ...prev,
       isActive: false,
@@ -156,16 +160,19 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
     if (user) {
       const supabase = createClient()
       try {
-        await supabase
+        console.log('📝 Updating tutorial status in DB for user:', user.id)
+        const result = await supabase
           .from('user_profiles')
-          .update({
+          .upsert({
+            user_id: user.id,
             tutorial_completed: true,
-            tutorial_step: null,
-            last_tutorial_seen: new Date().toISOString()
+            tutorial_step: null
+          }, {
+            onConflict: 'user_id'
           })
-          .eq('user_id', user.id)
+        console.log('✅ Tutorial DB update result:', result)
       } catch (error) {
-        console.error('Error updating tutorial status:', error)
+        console.error('❌ Error updating tutorial status:', error)
       }
     }
   }

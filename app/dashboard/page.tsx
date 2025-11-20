@@ -156,7 +156,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Mobile Gaming Dashboard */}
-      <div className="md:hidden bg-gradient-to-br from-desert-sand via-sepia-50 to-desert-warm min-h-screen overflow-hidden relative">
+      <div className="md:hidden bg-gradient-to-br from-desert-sand via-sepia-50 to-desert-warm overflow-hidden relative">
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-b from-sunset-gold/5 via-transparent to-sunset-red/5 pointer-events-none" />
 

@@ -1,10 +1,12 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTutorial } from './TutorialProvider'
 import { TutorialTooltip } from './TutorialTooltip'
 
 export function TutorialOverlay() {
+  const router = useRouter()
   const {
     tutorialState,
     nextStep,
@@ -112,7 +114,7 @@ export function TutorialOverlay() {
           targetElementId: 'continue-adventure-btn',
           message: "Ready to dive in? Let's continue your learning journey! (4/4)",
           variant: 'red' as const,
-          placement: 'bottom' as const,
+          placement: 'top' as const,
           pulseTarget: true,
           spotlightMode: false,
           showPrevious: true
@@ -130,7 +132,24 @@ export function TutorialOverlay() {
     if (currentStep < totalSteps) {
       nextStep()
     } else {
+      // Complete tutorial and navigate appropriately
       completeTutorial()
+
+      // Navigate based on user state:
+      if (hasEnrolledCourses) {
+        // For enrolled users, simulate clicking the continue adventure button
+        // This will take them to their next lesson
+        const continueBtn = document.getElementById('continue-adventure-btn')
+        if (continueBtn && continueBtn.closest('a')) {
+          continueBtn.closest('a')?.click()
+        } else {
+          // Fallback to courses page
+          router.push('/courses')
+        }
+      } else {
+        // For non-enrolled users, go to course discovery
+        router.push('/courses')
+      }
     }
   }
 
