@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation'
 import StatsWidget from '@/components/dashboard/StatsWidget'
 import MobileStatsChart from '@/components/dashboard/MobileStatsChart'
 import TrainingGroundCTA from '@/components/dashboard/TrainingGroundCTA'
+import { DashboardTutorial } from '@/components/tutorials/DashboardTutorial'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -237,6 +238,9 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Tutorial system */}
+      <DashboardTutorial />
     </div>
   )
 }

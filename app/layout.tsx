@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { TutorialProvider } from '@/components/tutorials/TutorialProvider'
 import { Toaster } from 'sonner'
 import { PWAInstallBanner } from '@/components/pwa/PWAInstallBanner'
 
@@ -19,7 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <TutorialProvider>
+            {children}
+          </TutorialProvider>
+        </AuthProvider>
         <Toaster position="top-right" />
         <PWAInstallBanner />
       </body>

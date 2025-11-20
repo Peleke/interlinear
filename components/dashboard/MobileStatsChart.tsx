@@ -125,7 +125,7 @@ export default function MobileStatsChart({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div id="mobile-stats-chart" className={`relative ${className}`}>
       {/* Chart Mode Toggle */}
       <motion.div
         className="flex justify-center mb-0"
@@ -205,6 +205,7 @@ export default function MobileStatsChart({
       {/* Streak Indicator */}
       {isLoaded && (
         <motion.div
+          id="xp-level-section"
           className="mt-1 space-y-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

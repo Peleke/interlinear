@@ -43,7 +43,7 @@ export default function TrainingGroundCTA({
           className="space-y-6"
         >
           {/* Books Animation */}
-          <div className="flex justify-center relative">
+          <div id="training-ground-books" className="flex justify-center relative">
             <Link href="/courses" className="block">
               <div
                 className="w-32 h-32 cursor-pointer hover:scale-105 transition-transform duration-300"
@@ -77,6 +77,7 @@ export default function TrainingGroundCTA({
             className="block"
           >
             <motion.div
+              id="continue-adventure-btn"
               className="group relative bg-sepia-50 border border-sepia-200 text-sepia-900 rounded-lg p-4 cursor-pointer overflow-hidden shadow-sm hover:shadow-md"
               onHoverStart={() => {
                 setIsHovering(true)
