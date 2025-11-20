@@ -57,8 +57,9 @@ export default function CompletePage() {
         }
         const { courses: allCourses } = await coursesResponse.json()
 
-        // Show all available courses instead of just top 3
-        setCourses(allCourses || [])
+        // Show top 3 courses (back to original behavior for demos)
+        const topCourses = (allCourses || []).slice(0, 3)
+        setCourses(topCourses)
 
         // Find recommended course with more robust detection
         const recommended = allCourses.find((course: any) => {

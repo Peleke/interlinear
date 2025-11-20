@@ -8,6 +8,7 @@ import {
   Trash2,
   Globe2,
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -89,9 +90,9 @@ export function CourseCard({ course, onView }: Props) {
               <h3 className="font-semibold text-lg truncate text-sepia-900">
                 {course.title}
               </h3>
-              <p className="text-sm text-sepia-600 truncate line-clamp-2 mt-1">
-                {course.description}
-              </p>
+              <div className="text-sm text-sepia-600 line-clamp-2 mt-1 prose prose-sepia prose-sm max-w-none">
+                <ReactMarkdown>{course.description}</ReactMarkdown>
+              </div>
             </div>
             <div onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
