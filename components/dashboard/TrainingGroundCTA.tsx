@@ -28,7 +28,6 @@ export default function TrainingGroundCTA({
   const [isHovering, setIsHovering] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
   const [showContinueTooltip, setShowContinueTooltip] = useState(false)
-  const [showTutorialTooltip, setShowTutorialTooltip] = useState(true) // Show tutorial tooltip by default
 
   // Check if user has any enrolled courses (simplified logic)
   const hasEnrolledCourses = !!nextLesson
@@ -157,14 +156,12 @@ export default function TrainingGroundCTA({
         </div>
 
         {/* Signup Message */}
-        <div className="text-center relative">
+        <div className="text-center">
           <Link href="/courses" className="block">
             <motion.div
               className="group cursor-pointer"
               whileHover={{ y: -2 }}
               transition={{ type: "spring", stiffness: 400 }}
-              onMouseEnter={() => setShowTutorialTooltip(false)}
-              onMouseLeave={() => setShowTutorialTooltip(true)}
             >
               <p className="text-lg text-sepia-700 group-hover:text-sepia-900 transition-colors">
                 Don't keep sleeping on it...
@@ -175,35 +172,6 @@ export default function TrainingGroundCTA({
               </p>
             </motion.div>
           </Link>
-
-          {/* Tutorial Tooltip - Shows by default for first-time users */}
-          {showTutorialTooltip && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              transition={{ delay: 1.5, duration: 0.5 }} // Show after 1.5s delay
-              className="absolute top-full mt-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-xl text-sm font-medium whitespace-nowrap shadow-lg z-20 max-w-xs"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xl">👋</span>
-                <span>Get your adventure started by browsing courses!</span>
-              </div>
-              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-purple-600"></div>
-
-              {/* Dismiss button */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setShowTutorialTooltip(false)
-                }}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-white text-purple-600 rounded-full flex items-center justify-center text-xs font-bold hover:bg-gray-100 transition-colors"
-              >
-                ×
-              </button>
-            </motion.div>
-          )}
         </div>
       </motion.div>
     </div>
