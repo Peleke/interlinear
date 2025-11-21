@@ -142,9 +142,6 @@ export default function TrainingGroundCTA({
         transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
         className="space-y-6"
       >
-        {/* HR Separator */}
-        <hr className="border-sepia-300" />
-
         {/* Panda Animation */}
         <div className="flex justify-center">
           <div className="w-32 h-32">
