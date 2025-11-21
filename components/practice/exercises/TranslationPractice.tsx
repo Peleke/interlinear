@@ -68,48 +68,12 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
   }
 
   // Determine source text (what to translate)
-  const sourceText = exercise.spanish_text || exercise.prompt
+  const sourceText = exercise.spanish_text || exercise.prompt.replace(/^Translate to [^:]+:\s*/, '').replace(/^["']|["']$/g, '')
   const isSpanishToEnglish = exercise.spanish_text && exercise.english_text
 
   return (
     <div className="space-y-6">
-      {/* Exercise Type Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center"
-      >
-        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-          <Languages className="w-4 h-4" />
-          Translation
-        </div>
-      </motion.div>
 
-      {/* Translation Direction */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="text-center"
-      >
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">
-          {isSpanishToEnglish ? 'Translate to English' : 'Translate this text'}
-        </h3>
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
-          <span className="flex items-center gap-1">
-            🇪🇸 Español
-          </span>
-          <motion.div
-            animate={{ x: [0, 5, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            →
-          </motion.div>
-          <span className="flex items-center gap-1">
-            🇺🇸 English
-          </span>
-        </div>
-      </motion.div>
 
       {/* Source Text */}
       <motion.div
@@ -120,8 +84,8 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-lg font-medium text-blue-900 mb-2">
-              Text to translate:
+            <p className="text-lg font-bold text-blue-900 mb-2">
+              Translate:
             </p>
             <p className="text-xl text-blue-800 leading-relaxed">
               "{sourceText}"
@@ -153,9 +117,6 @@ export default function TranslationPractice({ exercise, onAnswer }: TranslationP
         transition={{ delay: 0.3 }}
         className="space-y-3"
       >
-        <label className="block text-lg font-medium text-gray-700">
-          Your translation:
-        </label>
         <div className="relative">
           <textarea
             ref={textareaRef}

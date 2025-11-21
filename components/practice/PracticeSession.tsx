@@ -470,14 +470,6 @@ export default function PracticeSession({
               className="w-full max-w-2xl my-auto"
             >
               <div className="bg-white rounded-2xl p-8 shadow-2xl min-h-fit">
-                <div className="mb-6 text-center">
-                  <span className="text-sm text-gray-500 font-medium">
-                    Question {currentIndex + 1} of {exercises.length}
-                  </span>
-                  <h2 className="text-xl font-bold text-gray-800 mt-2">
-                    {lesson.title}
-                  </h2>
-                </div>
 
                 {!currentExercise ? (
                   <div className="text-center py-8">

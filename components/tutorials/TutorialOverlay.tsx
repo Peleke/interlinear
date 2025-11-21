@@ -75,10 +75,10 @@ export function TutorialOverlay() {
 
       case 2:
         return {
-          targetElementId: 'xp-level-section',
+          targetElementId: 'constellation-chart-container',
           message: "We'll show your XP and level progress here (2/4)",
           variant: 'green' as const,
-          placement: 'left' as const,
+          placement: 'bottom' as const,
           pulseTarget: true,
           spotlightMode: false,
           showPrevious: true
