@@ -40,13 +40,13 @@ export default function TrainingGroundCTA({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
-          className="space-y-6"
+          className="space-y-4"
         >
           {/* Books Animation */}
           <div id="training-ground-books" className="flex justify-center relative">
             <Link href="/courses" className="block">
               <div
-                className="w-32 h-32 cursor-pointer hover:scale-105 transition-transform duration-300"
+                className="w-24 h-24 cursor-pointer hover:scale-105 transition-transform duration-300"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               >
@@ -140,11 +140,11 @@ export default function TrainingGroundCTA({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
-        className="space-y-6"
+        className="space-y-4"
       >
         {/* Panda Animation */}
         <div className="flex justify-center">
-          <div className="w-32 h-32">
+          <div className="w-24 h-24">
             <DotLottieReact
               src="/assets/lottie/panda.lottie"
               loop

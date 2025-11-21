@@ -128,7 +128,7 @@ export default function MobileStatsChart({
     <div id="mobile-stats-chart" className={`relative ${className}`}>
       {/* Chart Mode Toggle */}
       <motion.div
-        className="flex justify-center mb-0"
+        className="flex justify-center mb-2"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -186,7 +186,7 @@ export default function MobileStatsChart({
       </motion.div>
 
       {/* Chart Container */}
-      <div id="constellation-chart-container" className="h-72 relative overflow-hidden mt-1">
+      <div id="constellation-chart-container" className="h-60 relative overflow-hidden mt-1">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -206,7 +206,7 @@ export default function MobileStatsChart({
       {isLoaded && (
         <motion.div
           id="xp-level-section"
-          className="mt-1 space-y-3"
+          className="mt-2 space-y-2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.5 }}
@@ -223,8 +223,6 @@ export default function MobileStatsChart({
         </motion.div>
       )}
 
-      {/* HR Divider - Always show */}
-      <hr className="border-sepia-300" />
 
       {/* Motivational Message */}
       {/* {isLoaded && typedMessage && (

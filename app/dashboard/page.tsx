@@ -160,7 +160,7 @@ export default async function DashboardPage() {
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-b from-sunset-gold/5 via-transparent to-sunset-red/5 pointer-events-none" />
 
-        <div className="relative px-6 py-8 space-y-4 min-h-screen flex flex-col justify-center">
+        <div className="relative px-6 py-4 space-y-3 min-h-screen flex flex-col justify-start pt-12">
           {/* Mobile Stats Chart */}
           <MobileStatsChart
             xp={userStats.xp}
