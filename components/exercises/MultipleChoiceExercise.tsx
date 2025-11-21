@@ -222,120 +222,134 @@ export default function MultipleChoiceExercise({
   }
 
   return (
-    <div className="bg-white rounded-lg border-2 border-sepia-200 p-6">
-      {/* Exercise Header */}
-      <div className="mb-4">
+    <div className="bg-white rounded-lg border-2 border-sepia-200 overflow-hidden">
+      {/* Exercise Header - Fixed */}
+      <div className="p-6 border-b border-sepia-200">
         <h4 className="text-lg font-semibold text-sepia-900 mb-2">
           ☑️ Multiple Choice Exercise
         </h4>
         <p className="text-sepia-700">{prompt}</p>
       </div>
 
-      {/* Context (if provided) */}
-      {(spanishText || englishText) && (
-        <div className="mb-4 p-4 bg-sepia-50 rounded-lg border border-sepia-200">
-          {spanishText && (
-            <p className="font-serif text-lg text-sepia-900 mb-1">
-              {spanishText}
-            </p>
+      {/* Scrollable Content Area */}
+      <div className="max-h-[60vh] overflow-y-auto">
+        <div className="p-6">
+          {/* Context (if provided) */}
+          {(spanishText || englishText) && (
+            <div className="mb-4 p-4 bg-sepia-50 rounded-lg border border-sepia-200">
+              {spanishText && (
+                <p className="font-serif text-lg text-sepia-900 mb-1">
+                  {spanishText}
+                </p>
+              )}
+              {englishText && (
+                <p className="text-sm text-sepia-600 italic">{englishText}</p>
+              )}
+            </div>
           )}
-          {englishText && (
-            <p className="text-sm text-sepia-600 italic">{englishText}</p>
+
+          {/* Options */}
+          {!result && options.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => setSelectedOption(option)}
+                  disabled={isSubmitting}
+                  className={`w-full p-4 border-2 rounded-lg text-left transition-colors disabled:cursor-not-allowed ${getOptionStyle(option)}`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Options */}
-      {!result && options.length > 0 && (
-        <div className="space-y-3 mb-4">
-          {options.map((option) => (
-            <button
-              key={option}
-              onClick={() => setSelectedOption(option)}
-              disabled={isSubmitting}
-              className={`w-full p-4 border-2 rounded-lg text-left transition-colors disabled:cursor-not-allowed ${getOptionStyle(option)}`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Submit Button */}
+      {/* Submit Button - Sticky Bottom */}
       {!result && (
-        <button
-          onClick={handleSubmit}
-          disabled={isSubmitting || !selectedOption}
-          className="w-full px-6 py-3 bg-sepia-700 text-white font-medium rounded-lg hover:bg-sepia-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Checking...</span>
-            </>
-          ) : (
-            <span>Submit Answer</span>
-          )}
-        </button>
+        <div className="sticky bottom-0 bg-white border-t border-sepia-200 p-6">
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !selectedOption}
+            className="w-full px-6 py-3 bg-sepia-700 text-white font-medium rounded-lg hover:bg-sepia-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Checking...</span>
+              </>
+            ) : (
+              <span>Check Answer</span>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Result Display */}
       {result && (
         <div>
-          {/* Show all options with styling based on result */}
-          <div className="space-y-3 mb-4">
-            {options.map((option) => (
-              <div
-                key={option}
-                className={`w-full p-4 border-2 rounded-lg transition-colors ${getOptionStyle(option)}`}
-              >
-                {option}
-                {option === result.correct_answer && ' ✓'}
-              </div>
-            ))}
-          </div>
-
-          <div
-            className={`p-4 rounded-lg border-2 ${
-              result.is_correct
-                ? 'bg-green-50 border-green-200'
-                : 'bg-red-50 border-red-200'
-            }`}
-          >
-            <div className="flex items-start gap-3 mb-3">
-              {result.is_correct ? (
-                <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
-              ) : (
-                <XCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
-              )}
-              <div className="flex-1">
-                <h5
-                  className={`text-lg font-semibold mb-1 ${
-                    result.is_correct ? 'text-green-900' : 'text-red-900'
-                  }`}
-                >
-                  {result.is_correct ? '¡Correcto!' : 'Not quite'}
-                </h5>
-                {result.is_correct ? (
-                  <p className="text-green-800">
-                    Great job! You earned{' '}
-                    <strong>+{result.xp_earned} XP</strong>
-                  </p>
-                ) : (
-                  <div className="text-red-800">
-                    <p className="mb-2">
-                      Your answer: <span className="italic">{selectedOption}</span>
-                    </p>
-                    <p>
-                      Correct answer:{' '}
-                      <strong>{result.correct_answer}</strong>
-                    </p>
+          {/* Scrollable Results Area */}
+          <div className="max-h-[50vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Show all options with styling based on result */}
+              <div className="space-y-3 mb-4">
+                {options.map((option) => (
+                  <div
+                    key={option}
+                    className={`w-full p-4 border-2 rounded-lg transition-colors ${getOptionStyle(option)}`}
+                  >
+                    {option}
+                    {option === result.correct_answer && ' ✓'}
                   </div>
-                )}
+                ))}
+              </div>
+
+              <div
+                className={`p-4 rounded-lg border-2 ${
+                  result.is_correct
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  {result.is_correct ? (
+                    <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <XCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <h5
+                      className={`text-lg font-semibold mb-1 ${
+                        result.is_correct ? 'text-green-900' : 'text-red-900'
+                      }`}
+                    >
+                      {result.is_correct ? '¡Correcto!' : 'Not quite'}
+                    </h5>
+                    {result.is_correct ? (
+                      <p className="text-green-800">
+                        Great job! You earned{' '}
+                        <strong>+{result.xp_earned} XP</strong>
+                      </p>
+                    ) : (
+                      <div className="text-red-800">
+                        <p className="mb-2">
+                          Your answer: <span className="italic">{selectedOption}</span>
+                        </p>
+                        <p>
+                          Correct answer:{' '}
+                          <strong>{result.correct_answer}</strong>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Action buttons */}
+          {/* Action buttons - Sticky Bottom */}
+          <div className="sticky bottom-0 bg-white border-t border-sepia-200 p-6">
             <div className="flex gap-2">
               {!result.is_correct && (
                 <button
