@@ -94,7 +94,7 @@ export default function TranslationExercise({
   const getTextToTranslate = () => {
     if (direction === 'en_to_es' && englishText) return englishText
     if (direction === 'es_to_en' && spanishText) return spanishText
-    return prompt.replace('Translate from English.', '').replace('Translate:', '').trim()
+    return prompt.replace(/^Translate to [^:]+:\s*/, '').replace('Translate from English.', '').replace('Translate:', '').replace(/^["']|["']$/g, '').trim()
   }
 
   return (
