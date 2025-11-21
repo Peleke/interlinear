@@ -220,10 +220,11 @@ export default function MobileStatsChart({
             </div>
           </div>
 
-          {/* HR Divider */}
-          <hr className="border-sepia-300" />
         </motion.div>
       )}
+
+      {/* HR Divider - Always show */}
+      <hr className="border-sepia-300" />
 
       {/* Motivational Message */}
       {/* {isLoaded && typedMessage && (
