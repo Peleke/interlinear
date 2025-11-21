@@ -186,7 +186,7 @@ export default function MobileStatsChart({
       </motion.div>
 
       {/* Chart Container */}
-      <div className="h-72 relative overflow-hidden mt-1">
+      <div id="constellation-chart-container" className="h-72 relative overflow-hidden mt-1">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
