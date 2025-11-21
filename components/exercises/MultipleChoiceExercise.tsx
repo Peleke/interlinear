@@ -225,9 +225,6 @@ export default function MultipleChoiceExercise({
     <div className="bg-white rounded-lg border-2 border-sepia-200 overflow-hidden">
       {/* Exercise Header - Fixed */}
       <div className="p-6 border-b border-sepia-200">
-        <h4 className="text-lg font-semibold text-sepia-900 mb-2">
-          ☑️ Multiple Choice Exercise
-        </h4>
         <p className="text-sepia-700">{prompt}</p>
       </div>
 

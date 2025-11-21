@@ -46,9 +46,9 @@ export default function ChallengeScreen({ lesson, exercises, onBegin, onClose }:
   }
 
   const typeLabels: Record<string, string> = {
-    'multiple_choice': 'Multiple Choice',
-    'translation': 'Translation',
-    'fill_blank': 'Fill in the Blank',
+    'multiple_choice': '',
+    'translation': '',
+    'fill_blank': '',
   }
 
   const maxXP = exercises.length * 10 // Base XP calculation

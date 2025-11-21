@@ -58,17 +58,6 @@ export default function FillBlankPractice({ exercise, onAnswer }: FillBlankPract
 
   return (
     <div className="space-y-6">
-      {/* Exercise Type Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center"
-      >
-        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-          <Sparkles className="w-4 h-4" />
-          Fill in the blank
-        </div>
-      </motion.div>
 
       {/* Context Text */}
       {exercise.spanish_text && (
@@ -90,9 +79,6 @@ export default function FillBlankPractice({ exercise, onAnswer }: FillBlankPract
         transition={{ delay: 0.2 }}
         className="text-center space-y-4"
       >
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">
-          Complete the sentence
-        </h3>
 
         {hasBlank ? (
           <div className="flex flex-wrap items-center justify-center gap-3 text-xl leading-relaxed">

@@ -123,17 +123,6 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
   return (
     <div className="flex flex-col h-full max-h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto space-y-6 pb-4">
-      {/* Exercise Type Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center"
-      >
-        <div className="bg-gradient-to-r from-blue-100 to-sepia-100 text-sepia-700 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-          <Target className="w-4 h-4" />
-          Multiple choice
-        </div>
-      </motion.div>
 
       {/* Context Text */}
       {exercise.spanish_text && (
@@ -145,7 +134,6 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-lg font-medium text-amber-900 mb-2">Spanish Text:</p>
               <p className="text-xl text-amber-800 italic leading-relaxed">
                 "{exercise.spanish_text}"
               </p>
@@ -175,10 +163,6 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
         transition={{ delay: 0.2 }}
         className="text-center space-y-4"
       >
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">
-          Choose the correct answer
-        </h3>
-
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
           <p className="text-xl text-blue-900 leading-relaxed">
             {exercise.prompt}
@@ -193,9 +177,6 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
         transition={{ delay: 0.3 }}
         className="space-y-3"
       >
-        <p className="text-lg font-medium text-gray-700 mb-4">
-          Select your answer:
-        </p>
 
         {shuffledChoices.map((choice, index) => (
           <motion.button
@@ -317,15 +298,6 @@ export default function MultipleChoicePractice({ exercise, onAnswer }: MultipleC
           )}
         </Button>
 
-        {selectedChoice && !isSubmitting && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-sm text-gray-500 mt-3"
-          >
-            Selected: <span className="font-medium">{selectedChoice}</span>
-          </motion.p>
-        )}
       </motion.div>
     </div>
   )
